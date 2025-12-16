@@ -6,32 +6,65 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { PaymentFormModal } from '@/components/payments/PaymentFormModal';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import {
   CreditCard,
   Search,
-  Plus,
   Download,
   Receipt,
   Wallet,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 
-// Mock data for finance/admin view
-const allPayments = [
-  { id: 1, date: '2024-01-15', studentId: 'STU2024001', name: 'John Mukasa', amount: 1200000, method: 'Bank Transfer', receipt: 'RCP001245' },
-  { id: 2, date: '2024-01-14', studentId: 'STU2024002', name: 'Sarah Nambi', amount: 800000, method: 'Mobile Money', receipt: 'RCP001244' },
-  { id: 3, date: '2024-01-13', studentId: 'STU2024003', name: 'James Okello', amount: 1500000, method: 'Cash', receipt: 'RCP001243' },
-  { id: 4, date: '2024-01-12', studentId: 'STU2024004', name: 'Grace Namutebi', amount: 600000, method: 'Bank Transfer', receipt: 'RCP001242' },
-];
-
-// Mock data for student view
-const studentPayments = [
-  { id: 1, date: '2024-01-15', amount: 1200000, method: 'Bank Transfer', receipt: 'RCP001245', semester: 'Sem 1, 2024/2025' },
-  { id: 2, date: '2023-09-01', amount: 1200000, method: 'Mobile Money', receipt: 'RCP000987', semester: 'Sem 2, 2023/2024' },
-  { id: 3, date: '2023-02-15', amount: 1000000, method: 'Cash', receipt: 'RCP000654', semester: 'Sem 1, 2023/2024' },
-];
-
 function FinancePaymentsView() {
+  const { data: payments, isLoading, refetch } = useQuery({
+    queryKey: ['all-payments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          students:student_id (
+            student_id,
+            profiles:user_id (full_name)
+          ),
+          semesters:semester_id (name)
+        `)
+        .order('payment_date', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: stats } = useQuery({
+    queryKey: ['payment-stats'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        .toISOString()
+        .split('T')[0];
+
+      const { data: todayPayments } = await supabase
+        .from('payments')
+        .select('amount')
+        .gte('payment_date', today);
+
+      const { data: monthPayments } = await supabase
+        .from('payments')
+        .select('amount')
+        .gte('payment_date', monthStart);
+
+      return {
+        today: todayPayments?.reduce((sum, p) => sum + parseFloat(p.amount as any), 0) || 0,
+        month: monthPayments?.reduce((sum, p) => sum + parseFloat(p.amount as any), 0) || 0,
+      };
+    },
+  });
+
   return (
     <div className="space-y-6">
       {/* Stats */}
@@ -41,7 +74,7 @@ function FinancePaymentsView() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">Today's Collection</p>
-                <p className="text-2xl font-bold">UGX 12.4M</p>
+                <p className="text-2xl font-bold">UGX {(stats?.today || 0).toLocaleString()}</p>
               </div>
               <TrendingUp className="w-8 h-8 opacity-80" />
             </div>
@@ -52,7 +85,7 @@ function FinancePaymentsView() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">This Month</p>
-                <p className="text-2xl font-bold">UGX 847M</p>
+                <p className="text-2xl font-bold">UGX {(stats?.month || 0).toLocaleString()}</p>
               </div>
               <Wallet className="w-8 h-8 opacity-80" />
             </div>
@@ -63,7 +96,7 @@ function FinancePaymentsView() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-80">Outstanding</p>
-                <p className="text-2xl font-bold">UGX 285M</p>
+                <p className="text-2xl font-bold">-</p>
               </div>
               <CreditCard className="w-8 h-8 opacity-80" />
             </div>
@@ -73,8 +106,8 @@ function FinancePaymentsView() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm opacity-80">Collection Rate</p>
-                <p className="text-2xl font-bold">75%</p>
+                <p className="text-sm opacity-80">Total Transactions</p>
+                <p className="text-2xl font-bold">{payments?.length || 0}</p>
               </div>
               <Receipt className="w-8 h-8 opacity-80" />
             </div>
@@ -94,10 +127,7 @@ function FinancePaymentsView() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Record Payment
-            </Button>
+            <PaymentFormModal onSuccess={refetch} />
           </div>
         </CardContent>
       </Card>
@@ -109,41 +139,51 @@ function FinancePaymentsView() {
           <CardDescription>All payment transactions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Student ID</th>
-                  <th>Name</th>
-                  <th>Amount</th>
-                  <th>Method</th>
-                  <th>Receipt</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allPayments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td>{payment.date}</td>
-                    <td className="font-mono text-sm">{payment.studentId}</td>
-                    <td className="font-medium">{payment.name}</td>
-                    <td className="font-semibold text-success">UGX {payment.amount.toLocaleString()}</td>
-                    <td>
-                      <Badge variant="secondary">{payment.method}</Badge>
-                    </td>
-                    <td className="font-mono text-sm">{payment.receipt}</td>
-                    <td className="text-right">
-                      <Button variant="ghost" size="sm">
-                        <Receipt className="w-4 h-4 mr-1" />
-                        Print
-                      </Button>
-                    </td>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Receipt</th>
+                    <th className="text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {payments?.map((payment: any) => (
+                    <tr key={payment.id}>
+                      <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
+                      <td className="font-mono text-sm">{payment.students?.student_id}</td>
+                      <td className="font-medium">{payment.students?.profiles?.full_name || '-'}</td>
+                      <td className="font-semibold text-success">
+                        UGX {parseFloat(payment.amount).toLocaleString()}
+                      </td>
+                      <td>
+                        <Badge variant="secondary" className="capitalize">
+                          {payment.payment_method?.replace('_', ' ')}
+                        </Badge>
+                      </td>
+                      <td className="font-mono text-sm">{payment.receipt_number}</td>
+                      <td className="text-right">
+                        <Button variant="ghost" size="sm">
+                          <Receipt className="w-4 h-4 mr-1" />
+                          Print
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -151,12 +191,58 @@ function FinancePaymentsView() {
 }
 
 function StudentPaymentsView() {
-  const paymentSummary = {
-    totalFee: 2400000,
-    paid: 1800000,
-    balance: 600000,
-    percentage: 75,
-  };
+  const { user } = useAuth();
+
+  const { data: studentData, isLoading } = useQuery({
+    queryKey: ['student-payments', user?.id],
+    queryFn: async () => {
+      // Get student record
+      const { data: student, error: studentError } = await supabase
+        .from('students')
+        .select(`
+          id,
+          program_id,
+          programs:program_id (name)
+        `)
+        .eq('user_id', user?.id || '')
+        .maybeSingle();
+
+      if (studentError || !student) return null;
+
+      // Get payments
+      const { data: payments } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          semesters:semester_id (name)
+        `)
+        .eq('student_id', student.id)
+        .order('payment_date', { ascending: false });
+
+      // Get fee structure
+      const { data: feeStructure } = await supabase
+        .from('fee_structures')
+        .select('total_fee')
+        .eq('program_id', student.program_id)
+        .maybeSingle();
+
+      const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.amount as any), 0) || 0;
+      const totalFee = feeStructure?.total_fee || 0;
+      const balance = totalFee - totalPaid;
+      const percentage = totalFee > 0 ? Math.min(100, (totalPaid / totalFee) * 100) : 0;
+
+      return { payments, totalFee, totalPaid, balance, percentage };
+    },
+    enabled: !!user?.id,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -166,23 +252,29 @@ function StudentPaymentsView() {
           <div className="grid gap-6 sm:grid-cols-3">
             <div>
               <p className="text-sm opacity-80">Total Fees</p>
-              <p className="text-2xl font-bold">UGX {paymentSummary.totalFee.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                UGX {(studentData?.totalFee || 0).toLocaleString()}
+              </p>
             </div>
             <div>
               <p className="text-sm opacity-80">Amount Paid</p>
-              <p className="text-2xl font-bold">UGX {paymentSummary.paid.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                UGX {(studentData?.totalPaid || 0).toLocaleString()}
+              </p>
             </div>
             <div>
               <p className="text-sm opacity-80">Balance Due</p>
-              <p className="text-2xl font-bold">UGX {paymentSummary.balance.toLocaleString()}</p>
+              <p className="text-2xl font-bold">
+                UGX {(studentData?.balance || 0).toLocaleString()}
+              </p>
             </div>
           </div>
           <div className="mt-4">
             <div className="flex justify-between text-sm mb-2">
               <span>Payment Progress</span>
-              <span>{paymentSummary.percentage}%</span>
+              <span>{Math.round(studentData?.percentage || 0)}%</span>
             </div>
-            <Progress value={paymentSummary.percentage} className="h-2 bg-primary-foreground/20" />
+            <Progress value={studentData?.percentage || 0} className="h-2 bg-primary-foreground/20" />
           </div>
         </CardContent>
       </Card>
@@ -201,23 +293,36 @@ function StudentPaymentsView() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {studentPayments.map((payment) => (
-              <div key={payment.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-soft transition-shadow">
+            {studentData?.payments?.map((payment: any) => (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between p-4 rounded-lg border hover:shadow-soft transition-shadow"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
                     <Receipt className="w-5 h-5 text-success" />
                   </div>
                   <div>
-                    <p className="font-medium">UGX {payment.amount.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">{payment.date} • {payment.semester}</p>
+                    <p className="font-medium">
+                      UGX {parseFloat(payment.amount).toLocaleString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(payment.payment_date).toLocaleDateString()} •{' '}
+                      {payment.semesters?.name}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <Badge variant="secondary">{payment.method}</Badge>
-                  <p className="text-xs text-muted-foreground mt-1">{payment.receipt}</p>
+                  <Badge variant="secondary" className="capitalize">
+                    {payment.payment_method?.replace('_', ' ')}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">{payment.receipt_number}</p>
                 </div>
               </div>
             ))}
+            {!studentData?.payments?.length && (
+              <p className="text-center text-muted-foreground py-8">No payments recorded yet</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -235,7 +340,9 @@ export default function Payments() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Payments</h1>
           <p className="text-muted-foreground">
-            {role === 'student' ? 'View your payment history and balance' : 'Manage student payments and fees'}
+            {role === 'student'
+              ? 'View your payment history and balance'
+              : 'Manage student payments and fees'}
           </p>
         </div>
 
