@@ -1,4 +1,17 @@
 project_id = "dkwxvdvspciuwtusxmrk"
 
+[api]
+enabled = true
+schemas = ["public", "graphql_public"]
+
 [functions.assign-admin-role]
+enabled = true
 verify_jwt = false
+
+[functions.create-user]
+enabled = true
+verify_jwt = true
+
+[functions.delete-user]
+enabled = true
+verify_jwt = true
