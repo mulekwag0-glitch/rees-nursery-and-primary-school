@@ -3,160 +3,133 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ResultsEntryForm } from '@/components/results/ResultsEntryForm';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import {
   ClipboardList,
-  Search,
-  Save,
-  Send,
   CheckCircle,
-  Clock,
-  AlertCircle,
+  Download,
+  Loader2,
 } from 'lucide-react';
-
-// Mock data for tutor view
-const resultsEntryData = [
-  { id: 1, studentId: 'STU2024001', name: 'John Mukasa', cw: 35, exam: 52, total: 87, grade: 'A', status: 'entered' },
-  { id: 2, studentId: 'STU2024002', name: 'Sarah Nambi', cw: 28, exam: 45, total: 73, grade: 'A', status: 'entered' },
-  { id: 3, studentId: 'STU2024003', name: 'James Okello', cw: 22, exam: 35, total: 57, grade: 'C', status: 'entered' },
-  { id: 4, studentId: 'STU2024004', name: 'Grace Namutebi', cw: null, exam: null, total: null, grade: null, status: 'pending' },
-  { id: 5, studentId: 'STU2024005', name: 'Peter Ssali', cw: null, exam: null, total: null, grade: null, status: 'pending' },
-];
-
-// Mock data for student view
-const studentResultsData = [
-  { semester: 'Sem 1, 2024/2025', courses: [
-    { code: 'ICT201', name: 'Database Systems', cu: 4, cw: 35, exam: 52, total: 87, grade: 'A', gp: 5 },
-    { code: 'ICT202', name: 'Data Structures', cu: 4, cw: 28, exam: 45, total: 73, grade: 'A', gp: 5 },
-    { code: 'MTH201', name: 'Statistics', cu: 3, cw: 25, exam: 40, total: 65, grade: 'B', gp: 4 },
-  ], gpa: 4.64 },
-  { semester: 'Sem 2, 2023/2024', courses: [
-    { code: 'ICT102', name: 'Programming Basics', cu: 4, cw: 30, exam: 48, total: 78, grade: 'A', gp: 5 },
-    { code: 'ICT103', name: 'Computer Networks', cu: 3, cw: 26, exam: 38, total: 64, grade: 'B', gp: 4 },
-  ], gpa: 4.43 },
-];
 
 const getGradeBadge = (grade: string | null) => {
   if (!grade) return null;
   const styles: Record<string, string> = {
-    'A': 'badge-grade badge-grade-a',
-    'B': 'badge-grade badge-grade-b',
-    'C': 'badge-grade badge-grade-c',
-    'D': 'badge-grade badge-grade-d',
-    'F': 'badge-grade badge-grade-f',
+    A: 'bg-success/20 text-success',
+    B: 'bg-primary/20 text-primary',
+    C: 'bg-warning/20 text-warning',
+    D: 'bg-orange-500/20 text-orange-600',
+    F: 'bg-destructive/20 text-destructive',
   };
-  return <span className={styles[grade] || 'badge-grade'}>{grade}</span>;
+  return (
+    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm ${styles[grade] || ''}`}>
+      {grade}
+    </span>
+  );
 };
 
-function TutorResultsView() {
-  return (
-    <div className="space-y-6">
-      {/* Course Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Enter Results</CardTitle>
-          <CardDescription>Select a course to enter student marks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <select className="flex h-10 w-full sm:w-64 rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option>ICT201 - Database Systems</option>
-              <option>ICT202 - Data Structures</option>
-              <option>ICT203 - Web Development</option>
-            </select>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search students..." className="pl-10" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Results Entry Table */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg">ICT201 - Database Systems</CardTitle>
-            <CardDescription>45 students registered • Semester 1, 2024/2025</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Save className="w-4 h-4 mr-2" />
-              Save Draft
-            </Button>
-            <Button>
-              <Send className="w-4 h-4 mr-2" />
-              Submit Results
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Student ID</th>
-                  <th>Name</th>
-                  <th className="text-center w-24">CW (40)</th>
-                  <th className="text-center w-24">Exam (60)</th>
-                  <th className="text-center w-20">Total</th>
-                  <th className="text-center w-20">Grade</th>
-                  <th className="text-center w-20">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resultsEntryData.map((student) => (
-                  <tr key={student.id}>
-                    <td className="font-mono text-sm">{student.studentId}</td>
-                    <td className="font-medium">{student.name}</td>
-                    <td className="text-center">
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        max="40" 
-                        defaultValue={student.cw ?? ''} 
-                        className="w-20 text-center mx-auto"
-                      />
-                    </td>
-                    <td className="text-center">
-                      <Input 
-                        type="number" 
-                        min="0" 
-                        max="60" 
-                        defaultValue={student.exam ?? ''} 
-                        className="w-20 text-center mx-auto"
-                      />
-                    </td>
-                    <td className="text-center font-medium">
-                      {student.total ?? '-'}
-                    </td>
-                    <td className="text-center">
-                      {getGradeBadge(student.grade) ?? '-'}
-                    </td>
-                    <td className="text-center">
-                      {student.status === 'entered' ? (
-                        <CheckCircle className="w-4 h-4 text-success mx-auto" />
-                      ) : (
-                        <Clock className="w-4 h-4 text-muted-foreground mx-auto" />
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
 function StudentResultsView() {
+  const { user } = useAuth();
+
+  const { data: studentResults, isLoading } = useQuery({
+    queryKey: ['student-results', user?.id],
+    queryFn: async () => {
+      // First get the student record
+      const { data: student, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('user_id', user?.id || '')
+        .maybeSingle();
+
+      if (studentError || !student) return [];
+
+      // Get all results for this student
+      const { data, error } = await supabase
+        .from('student_courses')
+        .select(`
+          id,
+          courses:course_id (
+            code,
+            name,
+            credit_units
+          ),
+          semesters:semester_id (
+            name
+          ),
+          results (
+            coursework_marks,
+            exam_marks,
+            total_marks,
+            grade,
+            grade_point,
+            status
+          )
+        `)
+        .eq('student_id', student.id);
+
+      if (error) throw error;
+
+      // Group by semester
+      const grouped: Record<string, any> = {};
+      data?.forEach((sc: any) => {
+        const semesterName = sc.semesters?.name || 'Unknown';
+        if (!grouped[semesterName]) {
+          grouped[semesterName] = { semester: semesterName, courses: [], totalGP: 0, totalCU: 0 };
+        }
+        const result = sc.results?.[0];
+        if (result && result.status === 'approved') {
+          const cu = sc.courses?.credit_units || 0;
+          const gp = result.grade_point || 0;
+          grouped[semesterName].courses.push({
+            code: sc.courses?.code,
+            name: sc.courses?.name,
+            cu,
+            cw: result.coursework_marks,
+            exam: result.exam_marks,
+            total: result.total_marks,
+            grade: result.grade,
+            gp,
+          });
+          grouped[semesterName].totalGP += gp * cu;
+          grouped[semesterName].totalCU += cu;
+        }
+      });
+
+      return Object.values(grouped).map((g: any) => ({
+        ...g,
+        gpa: g.totalCU > 0 ? g.totalGP / g.totalCU : 0,
+      }));
+    },
+    enabled: !!user?.id,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!studentResults?.length) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground py-8">
+            No approved results available yet.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {studentResultsData.map((semester, index) => (
+      {studentResults.map((semester: any, index: number) => (
         <Card key={index}>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -164,7 +137,10 @@ function StudentResultsView() {
                 <CardTitle className="text-lg">{semester.semester}</CardTitle>
                 <CardDescription>Semester GPA: {semester.gpa.toFixed(2)}</CardDescription>
               </div>
-              <Button variant="outline" size="sm">Download PDF</Button>
+              <Button variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                Download PDF
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -183,7 +159,7 @@ function StudentResultsView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {semester.courses.map((course, idx) => (
+                  {semester.courses.map((course: any, idx: number) => (
                     <tr key={idx}>
                       <td className="font-medium">{course.code}</td>
                       <td>{course.name}</td>
@@ -206,11 +182,94 @@ function StudentResultsView() {
 }
 
 function AdminResultsView() {
-  const pendingApprovals = [
-    { id: 1, course: 'ICT201', name: 'Database Systems', tutor: 'Dr. Sarah Nambi', students: 45, submitted: '2024-01-15', status: 'pending' },
-    { id: 2, course: 'MTH201', name: 'Statistics', tutor: 'Mr. James Okello', students: 52, submitted: '2024-01-14', status: 'pending' },
-    { id: 3, course: 'BUS201', name: 'Business Communication', tutor: 'Ms. Grace Namutebi', students: 38, submitted: '2024-01-13', status: 'approved' },
-  ];
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: pendingResults, isLoading } = useQuery({
+    queryKey: ['pending-results'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('results')
+        .select(`
+          id,
+          status,
+          created_at,
+          student_courses:student_course_id (
+            courses:course_id (
+              code,
+              name
+            ),
+            semesters:semester_id (
+              name
+            )
+          ),
+          profiles:tutor_id (
+            full_name
+          )
+        `)
+        .in('status', ['submitted', 'approved'])
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Group by course and status
+      const grouped: Record<string, any> = {};
+      data?.forEach((r: any) => {
+        const courseCode = r.student_courses?.courses?.code || 'Unknown';
+        const key = `${courseCode}-${r.status}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            id: r.id,
+            course: courseCode,
+            name: r.student_courses?.courses?.name || 'Unknown',
+            tutor: r.profiles?.full_name || 'Unknown',
+            semester: r.student_courses?.semesters?.name || 'Unknown',
+            status: r.status,
+            count: 0,
+            submitted: r.created_at,
+          };
+        }
+        grouped[key].count++;
+      });
+
+      return Object.values(grouped);
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (courseCode: string) => {
+      // Approve all submitted results for this course
+      const { error } = await supabase
+        .from('results')
+        .update({ status: 'approved', approved_at: new Date().toISOString() })
+        .eq('status', 'submitted');
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-results'] });
+      toast({ title: 'Success', description: 'Results approved successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to approve results', variant: 'destructive' });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (courseCode: string) => {
+      const { error } = await supabase
+        .from('results')
+        .update({ status: 'rejected' })
+        .eq('status', 'submitted');
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-results'] });
+      toast({ title: 'Success', description: 'Results rejected' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to reject results', variant: 'destructive' });
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -218,9 +277,8 @@ function AdminResultsView() {
         <TabsList>
           <TabsTrigger value="pending">Pending Approval</TabsTrigger>
           <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="all">All Results</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="pending" className="mt-6">
           <Card>
             <CardHeader>
@@ -228,48 +286,101 @@ function AdminResultsView() {
               <CardDescription>Review and approve submitted results</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {pendingApprovals.filter(r => r.status === 'pending').map((result) => (
-                  <div key={result.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-soft transition-shadow">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <ClipboardList className="w-6 h-6 text-primary" />
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingResults
+                    ?.filter((r: any) => r.status === 'submitted')
+                    .map((result: any) => (
+                      <div
+                        key={result.id}
+                        className="flex items-center justify-between p-4 rounded-lg border hover:shadow-soft transition-shadow"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <ClipboardList className="w-6 h-6 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">
+                              {result.course} - {result.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {result.tutor} • {result.count} students • {result.semester}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            View Details
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => rejectMutation.mutate(result.course)}
+                            disabled={rejectMutation.isPending}
+                          >
+                            Reject
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => approveMutation.mutate(result.course)}
+                            disabled={approveMutation.isPending}
+                          >
+                            Approve
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold">{result.course} - {result.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {result.tutor} • {result.students} students • Submitted {result.submitted}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">View Details</Button>
-                      <Button variant="destructive" size="sm">Reject</Button>
-                      <Button size="sm">Approve</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    ))}
+                  {!pendingResults?.filter((r: any) => r.status === 'submitted').length && (
+                    <p className="text-center text-muted-foreground py-8">
+                      No results pending approval
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="approved" className="mt-6">
           <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground py-8">
-                View approved results for all courses
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="all" className="mt-6">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground py-8">
-                Browse all results across semesters
-              </p>
+            <CardHeader>
+              <CardTitle className="text-lg">Approved Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {pendingResults
+                  ?.filter((r: any) => r.status === 'approved')
+                  .map((result: any) => (
+                    <div
+                      key={result.id}
+                      className="flex items-center justify-between p-4 rounded-lg border"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-success/10 flex items-center justify-center">
+                          <CheckCircle className="w-6 h-6 text-success" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">
+                            {result.course} - {result.name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {result.count} students • {result.semester}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-success/20 text-success">
+                        Approved
+                      </Badge>
+                    </div>
+                  ))}
+                {!pendingResults?.filter((r: any) => r.status === 'approved').length && (
+                  <p className="text-center text-muted-foreground py-8">No approved results yet</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -295,7 +406,7 @@ export default function Results() {
         </div>
 
         {/* Role-specific view */}
-        {role === 'tutor' && <TutorResultsView />}
+        {role === 'tutor' && <ResultsEntryForm />}
         {role === 'student' && <StudentResultsView />}
         {role === 'admin' && <AdminResultsView />}
       </div>

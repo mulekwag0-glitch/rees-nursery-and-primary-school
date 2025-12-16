@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Building2, Mail, Lock, User, Loader2, GraduationCap, Briefcase } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -30,7 +30,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState('student');
 
   // Form states
   const [loginEmail, setLoginEmail] = useState('');
@@ -39,6 +39,7 @@ export default function Auth() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -121,9 +122,141 @@ export default function Auth() {
         title: 'Account Created!',
         description: 'Your account has been created. Please contact an administrator to assign your role.',
       });
-      setActiveTab('login');
+      setIsSignup(false);
     }
   };
+
+  const LoginForm = () => (
+    <form onSubmit={handleLogin} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="login-email">Email</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="login-email"
+            type="email"
+            placeholder="your@email.com"
+            className="pl-10"
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="login-password">Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="login-password"
+            type="password"
+            placeholder="••••••••"
+            className="pl-10"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Signing in...
+          </>
+        ) : (
+          'Sign In'
+        )}
+      </Button>
+      <p className="text-sm text-center text-muted-foreground">
+        Don't have an account?{' '}
+        <button type="button" onClick={() => setIsSignup(true)} className="text-primary hover:underline">
+          Register here
+        </button>
+      </p>
+    </form>
+  );
+
+  const SignupForm = () => (
+    <form onSubmit={handleSignup} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="signup-name">Full Name</Label>
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="signup-name"
+            type="text"
+            placeholder="John Doe"
+            className="pl-10"
+            value={signupName}
+            onChange={(e) => setSignupName(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="signup-email">Email</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="signup-email"
+            type="email"
+            placeholder="your@email.com"
+            className="pl-10"
+            value={signupEmail}
+            onChange={(e) => setSignupEmail(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="signup-password">Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="signup-password"
+            type="password"
+            placeholder="••••••••"
+            className="pl-10"
+            value={signupPassword}
+            onChange={(e) => setSignupPassword(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="signup-confirm">Confirm Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="signup-confirm"
+            type="password"
+            placeholder="••••••••"
+            className="pl-10"
+            value={signupConfirmPassword}
+            onChange={(e) => setSignupConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Creating account...
+          </>
+        ) : (
+          'Create Account'
+        )}
+      </Button>
+      <p className="text-sm text-center text-muted-foreground">
+        Already have an account?{' '}
+        <button type="button" onClick={() => setIsSignup(false)} className="text-primary hover:underline">
+          Sign in
+        </button>
+      </p>
+    </form>
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
@@ -141,137 +274,38 @@ export default function Auth() {
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl">Welcome</CardTitle>
             <CardDescription>
-              Sign in to access your dashboard
+              Select your portal to continue
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="student" className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  Student Portal
+                </TabsTrigger>
+                <TabsTrigger value="staff" className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  Staff Portal
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="login" className="space-y-4">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        className="pl-10"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In'
-                    )}
-                  </Button>
-                </form>
+              <TabsContent value="student" className="space-y-4">
+                <div className="text-center mb-4 p-3 rounded-lg bg-primary/10">
+                  <p className="text-sm text-muted-foreground">
+                    Access your results, payments, and academic information
+                  </p>
+                </div>
+                {isSignup ? <SignupForm /> : <LoginForm />}
               </TabsContent>
 
-              <TabsContent value="signup" className="space-y-4">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-name"
-                        type="text"
-                        placeholder="John Doe"
-                        className="pl-10"
-                        value={signupName}
-                        onChange={(e) => setSignupName(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        className="pl-10"
-                        value={signupEmail}
-                        onChange={(e) => setSignupEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="signup-confirm"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={signupConfirmPassword}
-                        onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating account...
-                      </>
-                    ) : (
-                      'Create Account'
-                    )}
-                  </Button>
-                </form>
-                <p className="text-xs text-center text-muted-foreground">
-                  After signup, an administrator will assign your role (Student, Tutor, Finance, or Admin).
-                </p>
+              <TabsContent value="staff" className="space-y-4">
+                <div className="text-center mb-4 p-3 rounded-lg bg-secondary/30">
+                  <p className="text-sm text-muted-foreground">
+                    For Tutors, Finance Officers, and Administrators
+                  </p>
+                </div>
+                {isSignup ? <SignupForm /> : <LoginForm />}
               </TabsContent>
             </Tabs>
           </CardContent>

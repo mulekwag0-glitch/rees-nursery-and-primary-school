@@ -17,6 +17,7 @@ import Semesters from "./pages/Semesters";
 import Reports from "./pages/Reports";
 import UserManagement from "./pages/UserManagement";
 import Settings from "./pages/Settings";
+import Admissions from "./pages/Admissions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Reports /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
+            <Route path="/admissions" element={<ProtectedRoute allowedRoles={['admin']}><Admissions /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
