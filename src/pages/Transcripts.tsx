@@ -1,0 +1,570 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  FileText,
+  Download,
+  Search,
+  Loader2,
+  Award,
+  GraduationCap,
+  Printer,
+} from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+interface Student {
+  id: string;
+  student_id: string;
+  current_year: number;
+  enrollment_date: string;
+  profiles: {
+    full_name: string;
+    email: string;
+  };
+  programs: {
+    name: string;
+    code: string;
+    duration_years: number;
+  };
+}
+
+interface ResultWithDetails {
+  id: string;
+  coursework_marks: number;
+  exam_marks: number;
+  total_marks: number;
+  grade: string;
+  grade_point: number;
+  status: string;
+  student_courses: {
+    courses: {
+      code: string;
+      name: string;
+      credit_units: number;
+    };
+    semesters: {
+      name: string;
+      semester_number: number;
+      academic_years: {
+        name: string;
+      };
+    };
+  };
+}
+
+export default function Transcripts() {
+  const { toast } = useToast();
+  const { role } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
+  const [studentResults, setStudentResults] = useState<ResultWithDetails[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
+  const printRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStudent) {
+      fetchStudentResults();
+    }
+  }, [selectedStudent]);
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select(`
+          id,
+          student_id,
+          current_year,
+          enrollment_date,
+          profiles!students_user_id_fkey(full_name, email),
+          programs(name, code, duration_years)
+        `)
+        .order('student_id');
+
+      if (error) throw error;
+      setStudents(data as unknown as Student[]);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch students',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStudentResults = async () => {
+    if (!selectedStudent) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('results')
+        .select(`
+          id,
+          coursework_marks,
+          exam_marks,
+          total_marks,
+          grade,
+          grade_point,
+          status,
+          student_courses(
+            courses(code, name, credit_units),
+            semesters(
+              name,
+              semester_number,
+              academic_years(name)
+            )
+          )
+        `)
+        .eq('status', 'approved')
+        .in('student_course_id', 
+          (await supabase
+            .from('student_courses')
+            .select('id')
+            .eq('student_id', selectedStudent)
+          ).data?.map(sc => sc.id) || []
+        );
+
+      if (error) throw error;
+      setStudentResults(data as unknown as ResultWithDetails[]);
+    } catch (error) {
+      console.error('Error fetching results:', error);
+    }
+  };
+
+  const getSelectedStudentData = () => {
+    return students.find(s => s.id === selectedStudent);
+  };
+
+  const calculateCGPA = () => {
+    if (studentResults.length === 0) return 0;
+    
+    let totalGradePoints = 0;
+    let totalCreditUnits = 0;
+
+    studentResults.forEach(result => {
+      const creditUnits = result.student_courses.courses.credit_units;
+      totalGradePoints += (result.grade_point || 0) * creditUnits;
+      totalCreditUnits += creditUnits;
+    });
+
+    return totalCreditUnits > 0 ? (totalGradePoints / totalCreditUnits).toFixed(2) : '0.00';
+  };
+
+  const getClassification = (cgpa: number) => {
+    if (cgpa >= 4.5) return 'First Class Honours';
+    if (cgpa >= 3.5) return 'Second Class Honours (Upper Division)';
+    if (cgpa >= 2.5) return 'Second Class Honours (Lower Division)';
+    if (cgpa >= 2.0) return 'Pass';
+    return 'Fail';
+  };
+
+  const handlePrint = () => {
+    const printContent = printRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${documentType === 'transcript' ? 'Academic Transcript' : 'Certificate'}</title>
+          <style>
+            body { 
+              font-family: 'Times New Roman', serif; 
+              padding: 40px; 
+              max-width: 800px; 
+              margin: 0 auto;
+              line-height: 1.6;
+            }
+            .header { 
+              text-align: center; 
+              border-bottom: 2px solid #000; 
+              padding-bottom: 20px; 
+              margin-bottom: 30px; 
+            }
+            .logo { font-size: 24px; font-weight: bold; }
+            .subtitle { font-size: 14px; color: #666; }
+            .title { font-size: 20px; font-weight: bold; margin: 20px 0; text-transform: uppercase; }
+            .student-info { margin-bottom: 30px; }
+            .info-row { display: flex; margin-bottom: 8px; }
+            .info-label { width: 150px; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+            th { background: #f0f0f0; }
+            .footer { margin-top: 40px; text-align: center; }
+            .signature { margin-top: 60px; display: flex; justify-content: space-between; }
+            .signature-line { width: 200px; border-top: 1px solid #000; padding-top: 5px; text-align: center; }
+            .certificate-body { text-align: center; padding: 40px 20px; }
+            .certificate-name { font-size: 28px; font-weight: bold; margin: 20px 0; }
+            .certificate-program { font-size: 18px; margin: 10px 0; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const filteredStudents = students.filter(student =>
+    student.profiles.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const selectedStudentData = getSelectedStudentData();
+  const cgpa = parseFloat(calculateCGPA() as string);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Transcripts & Certificates</h1>
+            <p className="text-muted-foreground">Generate academic transcripts and certificates for students</p>
+          </div>
+        </div>
+
+        {/* Search & Select */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search students..." 
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                <SelectTrigger className="w-full sm:w-80">
+                  <SelectValue placeholder="Select a student" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredStudents.map(student => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.profiles.full_name} ({student.student_id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {selectedStudent && selectedStudentData && (
+          <>
+            {/* Student Info Card */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>{selectedStudentData.profiles.full_name}</CardTitle>
+                    <CardDescription>{selectedStudentData.student_id}</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setDocumentType('transcript');
+                        setShowTranscript(true);
+                      }}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Transcript
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setDocumentType('certificate');
+                        setShowCertificate(true);
+                      }}
+                    >
+                      <Award className="w-4 h-4 mr-2" />
+                      Certificate
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Program</p>
+                    <p className="font-medium">{selectedStudentData.programs.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Current Year</p>
+                    <p className="font-medium">Year {selectedStudentData.current_year}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Enrollment Date</p>
+                    <p className="font-medium">{new Date(selectedStudentData.enrollment_date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Academic Summary */}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{studentResults.length}</p>
+                      <p className="text-sm text-muted-foreground">Courses Completed</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                      <Award className="w-5 h-5 text-success" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{cgpa}</p>
+                      <p className="text-sm text-muted-foreground">CGPA</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-accent-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{getClassification(cgpa)}</p>
+                      <p className="text-sm text-muted-foreground">Classification</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Results Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Academic Results</CardTitle>
+                <CardDescription>Approved results for all semesters</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {studentResults.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No approved results found
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Course Code</th>
+                          <th>Course Name</th>
+                          <th>Semester</th>
+                          <th>CU</th>
+                          <th>Marks</th>
+                          <th>Grade</th>
+                          <th>GP</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {studentResults.map(result => (
+                          <tr key={result.id}>
+                            <td className="font-mono">{result.student_courses.courses.code}</td>
+                            <td>{result.student_courses.courses.name}</td>
+                            <td className="text-sm">{result.student_courses.semesters.name}</td>
+                            <td>{result.student_courses.courses.credit_units}</td>
+                            <td>{result.total_marks}</td>
+                            <td>
+                              <Badge variant={result.grade === 'F' ? 'destructive' : 'default'}>
+                                {result.grade}
+                              </Badge>
+                            </td>
+                            <td>{result.grade_point}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* Transcript Modal */}
+        <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Academic Transcript</DialogTitle>
+              <DialogDescription>
+                Official academic transcript for {selectedStudentData?.profiles.full_name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end mb-4">
+              <Button onClick={handlePrint}>
+                <Printer className="w-4 h-4 mr-2" />
+                Print Transcript
+              </Button>
+            </div>
+            <div ref={printRef} className="p-6 bg-white text-black">
+              <div className="header">
+                <div className="logo">SALEM UGANDA</div>
+                <div className="subtitle">Institution of Higher Learning</div>
+                <div className="title">Official Academic Transcript</div>
+              </div>
+              
+              <div className="student-info">
+                <div className="info-row">
+                  <span className="info-label">Student Name:</span>
+                  <span>{selectedStudentData?.profiles.full_name}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Student ID:</span>
+                  <span>{selectedStudentData?.student_id}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Program:</span>
+                  <span>{selectedStudentData?.programs.name}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Enrollment Date:</span>
+                  <span>{selectedStudentData && new Date(selectedStudentData.enrollment_date).toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Course Name</th>
+                    <th>Semester</th>
+                    <th>CU</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>GP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentResults.map(result => (
+                    <tr key={result.id}>
+                      <td>{result.student_courses.courses.code}</td>
+                      <td>{result.student_courses.courses.name}</td>
+                      <td>{result.student_courses.semesters.name}</td>
+                      <td>{result.student_courses.courses.credit_units}</td>
+                      <td>{result.total_marks}</td>
+                      <td>{result.grade}</td>
+                      <td>{result.grade_point}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div style={{ marginTop: '30px' }}>
+                <strong>Cumulative GPA: {cgpa}</strong>
+                <br />
+                <strong>Classification: {getClassification(cgpa)}</strong>
+              </div>
+
+              <div className="signature">
+                <div className="signature-line">Registrar</div>
+                <div className="signature-line">Date</div>
+                <div className="signature-line">Official Stamp</div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Certificate Modal */}
+        <Dialog open={showCertificate} onOpenChange={setShowCertificate}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Certificate of Completion</DialogTitle>
+              <DialogDescription>
+                Certificate for {selectedStudentData?.profiles.full_name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end mb-4">
+              <Button onClick={handlePrint}>
+                <Printer className="w-4 h-4 mr-2" />
+                Print Certificate
+              </Button>
+            </div>
+            <div ref={printRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
+              <div className="header" style={{ borderBottom: 'none' }}>
+                <div className="logo">SALEM UGANDA</div>
+                <div className="subtitle">Institution of Higher Learning</div>
+                <div className="title" style={{ marginTop: '30px' }}>Certificate of Completion</div>
+              </div>
+              
+              <div className="certificate-body">
+                <p style={{ fontSize: '16px' }}>This is to certify that</p>
+                <div className="certificate-name">{selectedStudentData?.profiles.full_name}</div>
+                <p style={{ fontSize: '16px' }}>Student ID: {selectedStudentData?.student_id}</p>
+                <p style={{ fontSize: '16px', marginTop: '20px' }}>has successfully completed the requirements for</p>
+                <div className="certificate-program">{selectedStudentData?.programs.name}</div>
+                <p style={{ fontSize: '16px', marginTop: '20px' }}>
+                  with a Cumulative Grade Point Average of <strong>{cgpa}</strong>
+                </p>
+                <p style={{ fontSize: '18px', marginTop: '10px' }}>
+                  <strong>{getClassification(cgpa)}</strong>
+                </p>
+                <p style={{ fontSize: '14px', marginTop: '30px', color: '#666' }}>
+                  Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+
+              <div className="signature">
+                <div className="signature-line">Principal</div>
+                <div className="signature-line">Academic Registrar</div>
+                <div className="signature-line">Official Stamp</div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </DashboardLayout>
+  );
+}

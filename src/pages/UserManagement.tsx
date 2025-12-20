@@ -16,6 +16,7 @@ import {
   UserCheck,
   UserX,
   Loader2,
+  KeyRound,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -75,6 +76,7 @@ export default function UserManagement() {
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   
@@ -84,6 +86,8 @@ export default function UserManagement() {
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState<AppRole>('tutor');
   const [editRole, setEditRole] = useState<AppRole>('tutor');
+  const [resetPassword, setResetPassword] = useState('');
+  const [confirmResetPassword, setConfirmResetPassword] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -92,7 +96,6 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Get all profiles with their roles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email, full_name, created_at');
@@ -138,7 +141,6 @@ export default function UserManagement() {
 
     setFormLoading(true);
     try {
-      // Create user via edge function (admin create user)
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           email: newEmail,
@@ -178,15 +180,13 @@ export default function UserManagement() {
 
     setFormLoading(true);
     try {
-      // Check if user already has a role
       const { data: existingRole } = await supabase
         .from('user_roles')
         .select('id')
         .eq('user_id', selectedUser.id)
-        .single();
+        .maybeSingle();
 
       if (existingRole) {
-        // Update existing role
         const { error } = await supabase
           .from('user_roles')
           .update({ role: editRole })
@@ -194,7 +194,6 @@ export default function UserManagement() {
 
         if (error) throw error;
       } else {
-        // Insert new role
         const { error } = await supabase
           .from('user_roles')
           .insert({ user_id: selectedUser.id, role: editRole });
@@ -215,6 +214,59 @@ export default function UserManagement() {
       toast({
         title: 'Error',
         description: error.message || 'Failed to update role',
+        variant: 'destructive',
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+
+    if (!resetPassword || resetPassword.length < 6) {
+      toast({
+        title: 'Validation Error',
+        description: 'Password must be at least 6 characters',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (resetPassword !== confirmResetPassword) {
+      toast({
+        title: 'Validation Error',
+        description: 'Passwords do not match',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setFormLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('reset-password', {
+        body: {
+          user_id: selectedUser.id,
+          new_password: resetPassword,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Password reset successfully',
+      });
+
+      setShowResetPasswordModal(false);
+      setSelectedUser(null);
+      setResetPassword('');
+      setConfirmResetPassword('');
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to reset password',
         variant: 'destructive',
       });
     } finally {
@@ -409,6 +461,15 @@ export default function UserManagement() {
                               }}>
                                 Change Role
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedUser(user);
+                                setResetPassword('');
+                                setConfirmResetPassword('');
+                                setShowResetPasswordModal(true);
+                              }}>
+                                <KeyRound className="w-4 h-4 mr-2" />
+                                Reset Password
+                              </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-destructive"
                                 onClick={() => handleDeleteUser(user.id)}
@@ -532,6 +593,49 @@ export default function UserManagement() {
               <Button onClick={handleUpdateRole} disabled={formLoading}>
                 {formLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Update Role
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reset Password Modal */}
+        <Dialog open={showResetPasswordModal} onOpenChange={setShowResetPasswordModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reset Password</DialogTitle>
+              <DialogDescription>
+                Set a new password for {selectedUser?.full_name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmResetPassword}
+                  onChange={(e) => setConfirmResetPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowResetPasswordModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleResetPassword} disabled={formLoading}>
+                {formLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Reset Password
               </Button>
             </DialogFooter>
           </DialogContent>
