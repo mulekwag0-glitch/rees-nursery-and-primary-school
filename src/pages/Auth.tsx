@@ -25,11 +25,18 @@ export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Role-based redirect after login
+  // Role-based redirect after login - redirect immediately when user exists
+  // The role will be fetched and handled by dashboard if needed
   useEffect(() => {
-    if (user && role && !authLoading) {
-      const redirectPath = getRedirectPath(role);
-      navigate(redirectPath);
+    if (user && !authLoading) {
+      // If role is already available, redirect to role-specific page
+      if (role) {
+        const redirectPath = getRedirectPath(role);
+        navigate(redirectPath, { replace: true });
+      } else {
+        // If no role yet, redirect to dashboard which handles role waiting
+        navigate('/dashboard', { replace: true });
+      }
     }
   }, [user, role, authLoading, navigate]);
 
