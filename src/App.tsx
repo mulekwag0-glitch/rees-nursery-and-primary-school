@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import Admissions from "./pages/Admissions";
 import Enrollments from "./pages/Enrollments";
 import Transcripts from "./pages/Transcripts";
+import StudentProfile from "./pages/StudentProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/admissions" element={<ProtectedRoute allowedRoles={['admin']}><Admissions /></ProtectedRoute>} />
             <Route path="/enrollments" element={<ProtectedRoute allowedRoles={['admin']}><Enrollments /></ProtectedRoute>} />
             <Route path="/transcripts" element={<ProtectedRoute allowedRoles={['admin']}><Transcripts /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

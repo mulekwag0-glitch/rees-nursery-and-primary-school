@@ -40,6 +40,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'tutor', 'finance', 'admin'] },
+  { label: 'My Profile', href: '/profile', icon: Users, roles: ['student'] },
   { label: 'Students', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
   { label: 'Admissions', href: '/admissions', icon: GraduationCap, roles: ['admin'] },
   { label: 'Enrollments', href: '/enrollments', icon: BookOpen, roles: ['admin'] },
