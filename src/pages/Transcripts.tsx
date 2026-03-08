@@ -193,7 +193,7 @@ export default function Transcripts() {
     return 'Fail';
   };
 
-  const handlePrint = (type: 'transcript' | 'certificate') => {
+  const handlePrint = async (type: 'transcript' | 'certificate') => {
     const printContent = type === 'transcript' ? transcriptRef.current : certificateRef.current;
     if (!printContent) return;
 
