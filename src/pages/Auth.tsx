@@ -15,18 +15,53 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 2 * 60 * 1000; // 2 minutes
+
+function getLoginAttempts(): { count: number; lockedUntil: number | null } {
+  try {
+    const raw = sessionStorage.getItem('login_attempts');
+    if (!raw) return { count: 0, lockedUntil: null };
+    return JSON.parse(raw);
+  } catch {
+    return { count: 0, lockedUntil: null };
+  }
+}
+
+function setLoginAttempts(count: number, lockedUntil: number | null) {
+  sessionStorage.setItem('login_attempts', JSON.stringify({ count, lockedUntil }));
+}
+
+function clearLoginAttempts() {
+  sessionStorage.removeItem('login_attempts');
+}
+
 export default function Auth() {
   const { signIn, user, role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('student');
-
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
 
-  // Role-based redirect after login - redirect immediately when user exists
-  // The role will be fetched and handled by dashboard if needed
+  // Lockout countdown timer
+  useEffect(() => {
+    const { lockedUntil } = getLoginAttempts();
+    if (!lockedUntil) return;
+    const remaining = lockedUntil - Date.now();
+    if (remaining <= 0) { setLoginAttempts(0, null); return; }
+    setLockoutRemaining(Math.ceil(remaining / 1000));
+    const interval = setInterval(() => {
+      const r = (lockedUntil - Date.now()) / 1000;
+      if (r <= 0) { setLoginAttempts(0, null); setLockoutRemaining(0); clearInterval(interval); }
+      else setLockoutRemaining(Math.ceil(r));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Role-based redirect after login
   useEffect(() => {
     if (user && !authLoading) {
       // If role is already available, redirect to role-specific page
@@ -57,16 +92,19 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Check lockout
+    const { count, lockedUntil } = getLoginAttempts();
+    if (lockedUntil && Date.now() < lockedUntil) {
+      toast({ title: 'Account Temporarily Locked', description: `Too many failed attempts. Try again in ${Math.ceil((lockedUntil - Date.now()) / 1000)}s.`, variant: 'destructive' });
+      return;
+    }
+
     try {
       loginSchema.parse({ email: loginEmail, password: loginPassword });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: 'Validation Error',
-          description: error.errors[0].message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Validation Error', description: error.errors[0].message, variant: 'destructive' });
         return;
       }
     }
@@ -76,18 +114,30 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({
-        title: 'Login Failed',
-        description: error.message === 'Invalid login credentials' 
-          ? 'Invalid email or password. Please try again.'
-          : error.message,
-        variant: 'destructive',
-      });
+      const newCount = count + 1;
+      if (newCount >= MAX_ATTEMPTS) {
+        const until = Date.now() + LOCKOUT_DURATION_MS;
+        setLoginAttempts(newCount, until);
+        setLockoutRemaining(Math.ceil(LOCKOUT_DURATION_MS / 1000));
+        // Start countdown
+        const interval = setInterval(() => {
+          const r = (until - Date.now()) / 1000;
+          if (r <= 0) { setLoginAttempts(0, null); setLockoutRemaining(0); clearInterval(interval); }
+          else setLockoutRemaining(Math.ceil(r));
+        }, 1000);
+        toast({ title: 'Account Temporarily Locked', description: `Too many failed attempts. Try again in 2 minutes.`, variant: 'destructive' });
+      } else {
+        setLoginAttempts(newCount, null);
+        const remaining = MAX_ATTEMPTS - newCount;
+        toast({
+          title: 'Login Failed',
+          description: `Invalid email or password. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
+          variant: 'destructive',
+        });
+      }
     } else {
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-      });
+      clearLoginAttempts();
+      toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });
     }
   };
 
@@ -123,12 +173,19 @@ export default function Auth() {
           />
         </div>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      {lockoutRemaining > 0 && (
+        <p className="text-sm text-center text-destructive font-medium">
+          Too many failed attempts. Try again in {lockoutRemaining}s
+        </p>
+      )}
+      <Button type="submit" className="w-full" disabled={loading || lockoutRemaining > 0}>
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             Signing in...
           </>
+        ) : lockoutRemaining > 0 ? (
+          `Locked (${lockoutRemaining}s)`
         ) : (
           'Sign In'
         )}
