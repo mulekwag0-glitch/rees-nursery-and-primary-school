@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Loader2, Printer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { notifyPaymentRecorded } from '@/lib/notifications';
 
 interface PaymentFormModalProps {
   onSuccess?: () => void;
@@ -99,6 +100,12 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
 
       setReceiptData(data);
       setShowReceipt(true);
+
+      // Send notification to student
+      const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', studentId).single();
+      if (studentRecord?.user_id) {
+        await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
+      }
 
       toast({
         title: 'Payment Recorded',
