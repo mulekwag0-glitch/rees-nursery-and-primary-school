@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Loader2, CheckCircle, XCircle, Calendar, Search } from 'lucide-react';
+import { leaveRequestSchema, validateForm } from '@/lib/validation';
 
 const LEAVE_TYPES = [
   { value: 'annual', label: 'Annual Leave' },
