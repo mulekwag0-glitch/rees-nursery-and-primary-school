@@ -140,6 +140,17 @@ function FinancePaymentsView() {
     },
   });
 
+  const hasActiveFilters = methodFilter !== 'all' || semesterFilter !== 'all' || programFilter !== 'all' || !!dateFrom || !!dateTo;
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setMethodFilter('all');
+    setSemesterFilter('all');
+    setProgramFilter('all');
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
   const filteredPayments = payments?.filter((p: any) => {
     const matchesSearch =
       !searchTerm ||
@@ -148,7 +159,11 @@ function FinancePaymentsView() {
       p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMethod = methodFilter === 'all' || p.payment_method === methodFilter;
     const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
-    return matchesSearch && matchesMethod && matchesSemester;
+    const matchesProgram = programFilter === 'all' || p.students?.program_id === programFilter;
+    const paymentDate = new Date(p.payment_date);
+    const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
+    const matchesDateTo = !dateTo || paymentDate <= dateTo;
+    return matchesSearch && matchesMethod && matchesSemester && matchesProgram && matchesDateFrom && matchesDateTo;
   });
 
   const exportCSV = () => {
