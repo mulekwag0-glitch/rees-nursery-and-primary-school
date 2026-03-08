@@ -80,6 +80,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(null);
   };
 
+  // Auto-logout after 30 minutes of inactivity
+  useSessionTimeout(!!user);
+
   return (
     <AuthContext.Provider value={{ user, session, role, loading, signIn, signOut }}>
       {children}
