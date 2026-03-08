@@ -52,18 +52,24 @@ export default function Employees() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const validation = validateForm(employeeSchema, {
+        fullName, email, phone, department, jobTitle, hireDate,
+        salary: parseFloat(salary) || 0, bankName, bankAccount, nssfNumber, tinNumber,
+      });
+      if (!validation.success) throw new Error(validation.error);
+      const v = validation.data;
       const { error } = await supabase.from('employees').insert({
-        full_name: fullName,
-        email,
-        phone: phone || null,
-        department: department.toLowerCase(),
-        job_title: jobTitle,
-        hire_date: hireDate,
-        salary: parseFloat(salary) || 0,
-        bank_name: bankName || null,
-        bank_account: bankAccount || null,
-        nssf_number: nssfNumber || null,
-        tin_number: tinNumber || null,
+        full_name: v.fullName,
+        email: v.email,
+        phone: v.phone || null,
+        department: v.department.toLowerCase(),
+        job_title: v.jobTitle,
+        hire_date: v.hireDate,
+        salary: v.salary,
+        bank_name: v.bankName || null,
+        bank_account: v.bankAccount || null,
+        nssf_number: v.nssfNumber || null,
+        tin_number: v.tinNumber || null,
       });
       if (error) throw error;
     },

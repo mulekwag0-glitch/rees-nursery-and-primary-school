@@ -55,15 +55,23 @@ export default function Payroll() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const validation = validateForm(payrollSchema, {
+        employeeId, payPeriod,
+        basicSalary: parseFloat(basicSalary) || 0, allowances: parseFloat(allowances) || 0,
+        nssfDeduction: parseFloat(nssfDeduction) || 0, payeTax: parseFloat(payeTax) || 0,
+        otherDeductions: parseFloat(otherDeductions) || 0, notes,
+      });
+      if (!validation.success) throw new Error(validation.error);
+      const v = validation.data;
       const { data, error } = await supabase.from('payroll_records').insert({
-        employee_id: employeeId,
-        pay_period: payPeriod,
-        basic_salary: parseFloat(basicSalary) || 0,
-        allowances: parseFloat(allowances) || 0,
-        nssf_deduction: parseFloat(nssfDeduction) || 0,
-        paye_tax: parseFloat(payeTax) || 0,
-        other_deductions: parseFloat(otherDeductions) || 0,
-        notes: notes || null,
+        employee_id: v.employeeId,
+        pay_period: v.payPeriod,
+        basic_salary: v.basicSalary,
+        allowances: v.allowances,
+        nssf_deduction: v.nssfDeduction,
+        paye_tax: v.payeTax,
+        other_deductions: v.otherDeductions,
+        notes: v.notes || null,
       }).select().single();
       if (error) throw error;
       await logAudit('payroll_created', 'payroll_records', data.id, null, { employee_id: employeeId, pay_period: payPeriod });

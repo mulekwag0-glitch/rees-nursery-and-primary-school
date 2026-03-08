@@ -71,7 +71,16 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentId || !semesterId || !amount || !user) return;
+    if (!user) return;
+
+    const validation = validateForm(paymentSchema, {
+      studentId, semesterId, amount: parseFloat(amount) || 0, paymentMethod, notes,
+    });
+    if (!validation.success) {
+      toast({ title: 'Validation Error', description: validation.error, variant: 'destructive' });
+      return;
+    }
+    const v = validation.data;
 
     setLoading(true);
     const receiptNumber = generateReceiptNumber();

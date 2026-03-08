@@ -172,13 +172,13 @@ export default function Expenses() {
               if (!filtered?.length) return;
               const headers = ['Date', 'Title', 'Category', 'Amount', 'Receipt Ref', 'Status', 'Recorded By'];
               const rows = filtered.map((e: any) => [
-                new Date(e.expense_date).toLocaleDateString(),
-                `"${e.title}"`,
-                CATEGORIES.find(c => c.value === e.category)?.label || e.category,
-                parseFloat(e.amount),
-                e.receipt_reference || '',
-                e.status,
-                profileMap[e.recorded_by] || 'Unknown',
+                sanitizeCsvValue(new Date(e.expense_date).toLocaleDateString()),
+                sanitizeCsvValue(e.title),
+                sanitizeCsvValue(CATEGORIES.find(c => c.value === e.category)?.label || e.category),
+                sanitizeCsvValue(parseFloat(e.amount)),
+                sanitizeCsvValue(e.receipt_reference),
+                sanitizeCsvValue(e.status),
+                sanitizeCsvValue(profileMap[e.recorded_by] || 'Unknown'),
               ]);
               const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
               const blob = new Blob([csv], { type: 'text/csv' });
