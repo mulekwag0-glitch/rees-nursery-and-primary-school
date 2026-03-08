@@ -62,6 +62,7 @@ const App = () => (
             <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />
             <Route path="/leave-management" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
+            <Route path="/audit-logs" element={<ProtectedRoute allowedRoles={['admin']}><AuditLogs /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
