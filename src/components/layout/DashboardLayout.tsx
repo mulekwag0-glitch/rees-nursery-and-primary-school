@@ -35,6 +35,7 @@ import {
   CalendarOff,
   ScrollText,
 } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 
 interface NavItem {
   label: string;
