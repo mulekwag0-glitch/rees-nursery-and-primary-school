@@ -192,8 +192,8 @@ export default function Transcripts() {
     return 'Fail';
   };
 
-  const handlePrint = () => {
-    const printContent = printRef.current;
+  const handlePrint = (type: 'transcript' | 'certificate') => {
+    const printContent = type === 'transcript' ? transcriptRef.current : certificateRef.current;
     if (!printContent) return;
 
     const printWindow = window.open('', '_blank');
