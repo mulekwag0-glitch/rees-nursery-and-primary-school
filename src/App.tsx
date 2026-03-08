@@ -21,6 +21,8 @@ import Admissions from "./pages/Admissions";
 import Enrollments from "./pages/Enrollments";
 import Transcripts from "./pages/Transcripts";
 import StudentProfile from "./pages/StudentProfile";
+import FeeStructures from "./pages/FeeStructures";
+import TutorAssignment from "./pages/TutorAssignment";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
