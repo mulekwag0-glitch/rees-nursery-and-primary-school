@@ -27,6 +27,7 @@ import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
 import Payroll from "./pages/Payroll";
 import LeaveManagement from "./pages/LeaveManagement";
+import AuditLogs from "./pages/AuditLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />
             <Route path="/leave-management" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
+            <Route path="/audit-logs" element={<ProtectedRoute allowedRoles={['admin']}><AuditLogs /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
