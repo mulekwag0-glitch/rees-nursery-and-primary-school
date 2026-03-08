@@ -310,6 +310,7 @@ export default function Transcripts() {
       pdf.save(fileName);
 
       toast({ title: 'PDF Downloaded', description: `${type === 'transcript' ? 'Transcript' : 'Certificate'} saved as ${fileName}` });
+      await logDocumentGeneration(type);
 
       // Send notification
       if (studentData) {
