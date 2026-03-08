@@ -50,6 +50,7 @@ const navItems: NavItem[] = [
   { label: 'Results', href: '/results', icon: ClipboardList, roles: ['student', 'tutor', 'admin'] },
   { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['student', 'finance', 'admin'] },
   { label: 'Fee Structures', href: '/fee-structures', icon: CreditCard, roles: ['admin', 'finance'] },
+  { label: 'Expenses', href: '/expenses', icon: CreditCard, roles: ['admin', 'finance'] },
   { label: 'Transcripts', href: '/transcripts', icon: FileText, roles: ['admin'] },
   { label: 'Programs', href: '/programs', icon: Building2, roles: ['admin'] },
   { label: 'Semesters', href: '/semesters', icon: Calendar, roles: ['admin'] },
