@@ -601,6 +601,7 @@ export default function Transcripts() {
     }
   };
 
+  const getGPAProgressionData = () => {
     const allSemesters = getResultsBySemesterAll();
     let cumulativeGP = 0;
     let cumulativeCU = 0;
