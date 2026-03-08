@@ -82,6 +82,7 @@ export default function Transcripts() {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [studentResults, setStudentResults] = useState<ResultWithDetails[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
   const [showTranscript, setShowTranscript] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
