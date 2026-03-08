@@ -35,6 +35,7 @@ import {
   CalendarOff,
   ScrollText,
 } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 
 interface NavItem {
   label: string;
@@ -120,9 +121,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-sidebar-primary">
-              <Building2 className="w-6 h-6 text-sidebar-primary-foreground" />
-            </div>
+            <img src={salemLogo} alt="Salem Uganda Logo" className="w-10 h-10 object-contain" />
             <div>
               <h1 className="text-lg font-bold text-sidebar-foreground">Salem SIMS</h1>
               <p className="text-xs text-sidebar-foreground/60">Institution Management</p>

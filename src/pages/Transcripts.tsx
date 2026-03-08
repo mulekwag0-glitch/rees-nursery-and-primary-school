@@ -17,6 +17,7 @@ import {
   GraduationCap,
   Printer,
 } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 import {
   Select,
   SelectContent,
@@ -83,7 +84,8 @@ export default function Transcripts() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
-  const printRef = useRef<HTMLDivElement>(null);
+  const transcriptRef = useRef<HTMLDivElement>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStudents();
@@ -190,8 +192,8 @@ export default function Transcripts() {
     return 'Fail';
   };
 
-  const handlePrint = () => {
-    const printContent = printRef.current;
+  const handlePrint = (type: 'transcript' | 'certificate') => {
+    const printContent = type === 'transcript' ? transcriptRef.current : certificateRef.current;
     if (!printContent) return;
 
     const printWindow = window.open('', '_blank');
@@ -216,6 +218,7 @@ export default function Transcripts() {
               margin-bottom: 30px; 
             }
             .logo { font-size: 24px; font-weight: bold; }
+            .logo-img { width: 80px; height: 80px; margin: 0 auto 10px; }
             .subtitle { font-size: 14px; color: #666; }
             .title { font-size: 20px; font-weight: bold; margin: 20px 0; text-transform: uppercase; }
             .student-info { margin-bottom: 30px; }
@@ -444,13 +447,14 @@ export default function Transcripts() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end mb-4">
-              <Button onClick={handlePrint}>
+              <Button onClick={() => handlePrint('transcript')}>
                 <Printer className="w-4 h-4 mr-2" />
                 Print Transcript
               </Button>
             </div>
-            <div ref={printRef} className="p-6 bg-white text-black">
+            <div ref={transcriptRef} className="p-6 bg-white text-black">
               <div className="header">
+                <img src={salemLogo} alt="Salem Uganda" className="logo-img" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
                 <div className="logo">SALEM UGANDA</div>
                 <div className="subtitle">Institution of Higher Learning</div>
                 <div className="title">Official Academic Transcript</div>
@@ -527,13 +531,14 @@ export default function Transcripts() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end mb-4">
-              <Button onClick={handlePrint}>
+              <Button onClick={() => handlePrint('certificate')}>
                 <Printer className="w-4 h-4 mr-2" />
                 Print Certificate
               </Button>
             </div>
-            <div ref={printRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
+            <div ref={certificateRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
               <div className="header" style={{ borderBottom: 'none' }}>
+                <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
                 <div className="logo">SALEM UGANDA</div>
                 <div className="subtitle">Institution of Higher Learning</div>
                 <div className="title" style={{ marginTop: '30px' }}>Certificate of Completion</div>

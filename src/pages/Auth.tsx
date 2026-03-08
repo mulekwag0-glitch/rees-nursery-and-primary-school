@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Mail, Lock, Loader2, GraduationCap, Briefcase } from 'lucide-react';
+import { Mail, Lock, Loader2, GraduationCap, Briefcase } from 'lucide-react';
 import { z } from 'zod';
+import salemLogo from '@/assets/salem-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -201,9 +202,7 @@ export default function Auth() {
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary mb-4">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src={salemLogo} alt="Salem Uganda Logo" className="w-20 h-20 mx-auto mb-4 object-contain" />
           <h1 className="text-2xl font-bold text-foreground">Salem Uganda</h1>
           <p className="text-muted-foreground">Institution Management System</p>
         </div>
