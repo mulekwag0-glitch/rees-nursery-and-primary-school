@@ -137,7 +137,40 @@ export default function Transcripts() {
     }
   };
 
-  const fetchStudentResults = async () => {
+  const fetchDocumentLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('document_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setDocumentLogs(data || []);
+    } catch (err) {
+      console.error('Error fetching document logs:', err);
+    }
+  };
+
+  const logDocumentGeneration = async (type: 'transcript' | 'certificate') => {
+    const studentData = getSelectedStudentData();
+    if (!studentData) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from('document_logs').insert({
+        student_id: studentData.id,
+        document_type: type,
+        generated_by: user.id,
+        student_name: studentData.profiles.full_name,
+        student_number: studentData.student_id,
+        program_name: studentData.programs.name,
+      });
+      fetchDocumentLogs();
+    } catch (err) {
+      console.error('Failed to log document generation:', err);
+    }
+  };
+
     if (!selectedStudent) return;
 
     try {
