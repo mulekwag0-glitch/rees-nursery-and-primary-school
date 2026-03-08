@@ -109,6 +109,7 @@ function FinancePaymentsView() {
           *,
           students:student_id (
             student_id,
+            program_id,
             profiles:user_id (full_name)
           ),
           semesters:semester_id (name)
