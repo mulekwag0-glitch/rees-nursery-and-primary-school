@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, Search, Loader2, GraduationCap, Phone, MapPin } from 'lucide-react';
+import { UserPlus, Search, Loader2, GraduationCap, Phone, MapPin, Camera, X } from 'lucide-react';
 import { notifyStudentAdmitted } from '@/lib/notifications';
 import { logAudit } from '@/lib/audit';
 import { admissionSchema, validateForm } from '@/lib/validation';
@@ -21,6 +21,7 @@ export default function Admissions() {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [fullName, setFullName] = useState('');
@@ -28,6 +29,8 @@ export default function Admissions() {
   const [phone, setPhone] = useState('');
   const [programId, setProgramId] = useState('');
   const [currentYear, setCurrentYear] = useState('1');
+  const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const { data: programs } = useQuery({
     queryKey: ['programs'],
@@ -43,8 +46,20 @@ export default function Admissions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`*, profiles:user_id (full_name, email, phone), programs:program_id (name, code)`)
+        .select(`*, profiles:user_id (full_name, email, phone, avatar_url), programs:program_id (name, code)`)
         .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: semesters } = useQuery({
+    queryKey: ['current-semesters'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('semesters')
+        .select('id, name, semester_number, academic_year_id')
+        .eq('is_current', true);
       if (error) throw error;
       return data;
     },
@@ -57,6 +72,72 @@ export default function Admissions() {
     return `STU${year}${count.toString().padStart(3, '0')}`;
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: 'Error', description: 'Photo must be less than 5MB', variant: 'destructive' });
+        return;
+      }
+      setPassportPhoto(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadPassportPhoto = async (userId: string): Promise<string | null> => {
+    if (!passportPhoto) return null;
+    const fileExt = passportPhoto.name.split('.').pop();
+    const filePath = `${userId}/passport.${fileExt}`;
+    
+    const { error } = await supabase.storage
+      .from('student-photos')
+      .upload(filePath, passportPhoto, { upsert: true });
+    
+    if (error) {
+      console.error('Photo upload error:', error);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('student-photos')
+      .getPublicUrl(filePath);
+    
+    return urlData.publicUrl;
+  };
+
+  const autoEnrollInCourses = async (studentId: string, programId: string, year: number) => {
+    try {
+      // Get courses for this program and year
+      const { data: courses } = await supabase
+        .from('courses')
+        .select('id, semester_number')
+        .eq('program_id', programId)
+        .eq('year_of_study', year);
+
+      if (!courses?.length || !semesters?.length) return;
+
+      // Enroll in courses that match current semesters
+      const enrollments = [];
+      for (const course of courses) {
+        const matchingSemester = semesters.find(s => s.semester_number === course.semester_number);
+        if (matchingSemester) {
+          enrollments.push({
+            student_id: studentId,
+            course_id: course.id,
+            semester_id: matchingSemester.id,
+          });
+        }
+      }
+
+      if (enrollments.length > 0) {
+        const { error } = await supabase.from('student_courses').insert(enrollments);
+        if (error) console.error('Auto-enrollment error:', error);
+      }
+    } catch (err) {
+      console.error('Auto-enrollment failed:', err);
+    }
+  };
+
   const admitMutation = useMutation({
     mutationFn: async () => {
       const v = validateForm(admissionSchema, {
@@ -65,7 +146,7 @@ export default function Admissions() {
       const studentIdNumber = generateStudentId();
       const tempPassword = `Salem${new Date().getFullYear()}!`;
 
-      // Use the create-user edge function (runs as admin, doesn't affect current session)
+      // Use the create-user edge function
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           email,
@@ -81,25 +162,35 @@ export default function Admissions() {
       const userId = data.user?.id || data.userId;
       if (!userId) throw new Error('Failed to create user account');
 
-      // Update profile with phone if provided
-      if (phone) {
-        await supabase.from('profiles').update({ phone }).eq('id', userId);
+      // Upload passport photo
+      const photoUrl = await uploadPassportPhoto(userId);
+
+      // Update profile with phone and photo
+      const profileUpdate: any = {};
+      if (phone) profileUpdate.phone = phone;
+      if (photoUrl) profileUpdate.avatar_url = photoUrl;
+      if (Object.keys(profileUpdate).length > 0) {
+        await supabase.from('profiles').update(profileUpdate).eq('id', userId);
       }
 
       // Create student record
-      const { error: studentError } = await supabase.from('students').insert({
+      const { data: studentData, error: studentError } = await supabase.from('students').insert({
         user_id: userId,
         student_id: studentIdNumber,
         program_id: programId,
         current_year: parseInt(currentYear),
         status: 'active',
-      });
+      }).select('id').single();
       if (studentError) throw studentError;
 
-      // Send notification to the new student
+      // Auto-enroll in courses for their year
+      if (studentData) {
+        await autoEnrollInCourses(studentData.id, programId, parseInt(currentYear));
+      }
+
+      // Send notification
       const selectedProgram = programs?.find(p => p.id === programId);
       await notifyStudentAdmitted(userId, studentIdNumber, selectedProgram?.name || 'your program');
-
       await logAudit('student_admitted', 'students', userId, null, { student_id: studentIdNumber, email, program_id: programId });
 
       return { studentIdNumber, tempPassword };
@@ -123,6 +214,8 @@ export default function Admissions() {
     setPhone('');
     setProgramId('');
     setCurrentYear('1');
+    setPassportPhoto(null);
+    setPhotoPreview(null);
     setOpen(false);
   };
 
@@ -162,6 +255,41 @@ export default function Admissions() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={(e) => { e.preventDefault(); admitMutation.mutate(); }} className="space-y-4 mt-2">
+                {/* Passport Photo Upload */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div 
+                      className="w-28 h-28 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden bg-muted"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="Passport" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-center">
+                          <Camera className="w-6 h-6 mx-auto text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground mt-1 block">Passport Photo</span>
+                        </div>
+                      )}
+                    </div>
+                    {photoPreview && (
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                        onClick={(e) => { e.stopPropagation(); setPassportPhoto(null); setPhotoPreview(null); }}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoChange}
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2 space-y-2">
                     <Label>Full Name *</Label>
@@ -206,6 +334,11 @@ export default function Admissions() {
                   <p className="text-muted-foreground mt-1">
                     <strong>Temp Password:</strong> Salem{new Date().getFullYear()}!
                   </p>
+                  {semesters && semesters.length > 0 && (
+                    <p className="text-muted-foreground mt-1">
+                      <strong>Auto-enroll:</strong> Courses for Year {currentYear} will be assigned automatically
+                    </p>
+                  )}
                 </div>
 
                 <DialogFooter>
@@ -256,6 +389,7 @@ export default function Admissions() {
                 <table className="data-table">
                   <thead>
                     <tr>
+                      <th>Photo</th>
                       <th>Student ID</th>
                       <th>Name</th>
                       <th>Email</th>
@@ -268,6 +402,15 @@ export default function Admissions() {
                   <tbody>
                     {filteredStudents.map((s: any) => (
                       <tr key={s.id}>
+                        <td>
+                          <div className="w-8 h-8 rounded-full bg-muted overflow-hidden flex items-center justify-center">
+                            {s.profiles?.avatar_url ? (
+                              <img src={s.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        </td>
                         <td className="font-mono text-sm">{s.student_id}</td>
                         <td className="font-medium">{s.profiles?.full_name}</td>
                         <td className="text-sm text-muted-foreground">{s.profiles?.email}</td>
