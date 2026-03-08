@@ -97,8 +97,13 @@ export default function Transcripts() {
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
   const [documentLogs, setDocumentLogs] = useState<any[]>([]);
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
+  const [batchGenerating, setBatchGenerating] = useState(false);
+  const [assigningPhotos, setAssigningPhotos] = useState(false);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const certificateRef = useRef<HTMLDivElement>(null);
+  const batchTranscriptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStudents();
