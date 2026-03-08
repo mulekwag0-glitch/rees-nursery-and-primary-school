@@ -173,12 +173,19 @@ export default function Auth() {
           />
         </div>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      {lockoutRemaining > 0 && (
+        <p className="text-sm text-center text-destructive font-medium">
+          Too many failed attempts. Try again in {lockoutRemaining}s
+        </p>
+      )}
+      <Button type="submit" className="w-full" disabled={loading || lockoutRemaining > 0}>
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             Signing in...
           </>
+        ) : lockoutRemaining > 0 ? (
+          `Locked (${lockoutRemaining}s)`
         ) : (
           'Sign In'
         )}
