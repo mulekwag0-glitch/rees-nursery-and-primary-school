@@ -555,32 +555,37 @@ export default function Transcripts() {
                 </div>
               </div>
 
-              <table>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Course Name</th>
-                    <th>Semester</th>
-                    <th>CU</th>
-                    <th>Marks</th>
-                    <th>Grade</th>
-                    <th>GP</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {studentResults.map(result => (
-                    <tr key={result.id}>
-                      <td>{result.student_courses.courses.code}</td>
-                      <td>{result.student_courses.courses.name}</td>
-                      <td>{result.student_courses.semesters.name}</td>
-                      <td>{result.student_courses.courses.credit_units}</td>
-                      <td>{result.total_marks}</td>
-                      <td>{result.grade}</td>
-                      <td>{result.grade_point}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {getResultsBySemester().map((semGroup) => (
+                <div key={semGroup.semesterName} style={{ marginBottom: '20px' }}>
+                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '16px', color: '#1a365d', marginBottom: '8px', borderBottom: '1px solid #ccc', paddingBottom: '4px' }}>
+                    {semGroup.semesterName}
+                  </h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Course Name</th>
+                        <th>CU</th>
+                        <th>Marks</th>
+                        <th>Grade</th>
+                        <th>GP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {semGroup.results.map(result => (
+                        <tr key={result.id}>
+                          <td>{result.student_courses.courses.code}</td>
+                          <td>{result.student_courses.courses.name}</td>
+                          <td>{result.student_courses.courses.credit_units}</td>
+                          <td>{result.total_marks}</td>
+                          <td>{result.grade}</td>
+                          <td>{result.grade_point}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
 
               <div style={{ marginTop: '30px' }}>
                 <strong>Cumulative GPA: {cgpa}</strong>
