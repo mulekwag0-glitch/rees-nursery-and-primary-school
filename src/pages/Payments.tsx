@@ -78,6 +78,18 @@ function FinancePaymentsView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
+  const [programFilter, setProgramFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+
+  const { data: programs } = useQuery({
+    queryKey: ['programs'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('programs').select('id, name, code').order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: semesters } = useQuery({
     queryKey: ['semesters'],
