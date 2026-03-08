@@ -39,6 +39,7 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
         .select(`
           id,
           student_id,
+          user_id,
           profiles:user_id (full_name)
         `)
         .eq('status', 'active');
