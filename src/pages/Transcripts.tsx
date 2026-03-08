@@ -674,23 +674,35 @@ export default function Transcripts() {
                 <div className="title">Official Academic Transcript</div>
               </div>
               
-              <div className="student-info">
-                <div className="info-row">
-                  <span className="info-label">Student Name:</span>
-                  <span>{selectedStudentData?.profiles.full_name}</span>
+              <div className="student-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="info-row">
+                    <span className="info-label">Student Name:</span>
+                    <span>{selectedStudentData?.profiles.full_name}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Student ID:</span>
+                    <span>{selectedStudentData?.student_id}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Program:</span>
+                    <span>{selectedStudentData?.programs.name}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Enrollment Date:</span>
+                    <span>{selectedStudentData && new Date(selectedStudentData.enrollment_date).toLocaleDateString()}</span>
+                  </div>
                 </div>
-                <div className="info-row">
-                  <span className="info-label">Student ID:</span>
-                  <span>{selectedStudentData?.student_id}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Program:</span>
-                  <span>{selectedStudentData?.programs.name}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Enrollment Date:</span>
-                  <span>{selectedStudentData && new Date(selectedStudentData.enrollment_date).toLocaleDateString()}</span>
-                </div>
+                {selectedStudentData?.profiles.avatar_url && (
+                  <div style={{ width: '100px', height: '120px', border: '1px solid #ccc', overflow: 'hidden', flexShrink: 0, marginLeft: '20px' }}>
+                    <img 
+                      src={selectedStudentData.profiles.avatar_url} 
+                      alt="Passport Photo" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                )}
               </div>
 
               {getResultsBySemester().map((semGroup) => (
