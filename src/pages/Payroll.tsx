@@ -93,6 +93,52 @@ export default function Payroll() {
   });
 
   const resetForm = () => {
+
+  const printPayslip = (record: any) => {
+    const emp = record.employees;
+    const w = window.open('', '_blank', 'width=800,height=600');
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html><head><title>Payslip - ${emp?.full_name}</title>
+      <style>
+        body{font-family:Arial,sans-serif;margin:40px;color:#222}
+        h1{font-size:20px;margin-bottom:4px}
+        .sub{color:#666;font-size:13px;margin-bottom:24px}
+        table{width:100%;border-collapse:collapse;margin:16px 0}
+        th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #ddd}
+        th{background:#f5f5f5;font-weight:600}
+        .total{font-weight:700;font-size:16px}
+        .footer{margin-top:40px;font-size:12px;color:#999;border-top:1px solid #ddd;padding-top:12px}
+        @media print{body{margin:20px}}
+      </style>
+    </head><body>
+      <h1>Salem SIMS — Payslip</h1>
+      <p class="sub">Pay Period: ${record.pay_period} | Status: ${record.status}</p>
+      <table>
+        <tr><th>Employee</th><td>${emp?.full_name || '—'}</td></tr>
+        <tr><th>Department</th><td style="text-transform:capitalize">${emp?.department || '—'}</td></tr>
+      </table>
+      <table>
+        <tr><th colspan="2" style="background:#e8f5e9">Earnings</th></tr>
+        <tr><td>Basic Salary</td><td>UGX ${parseFloat(record.basic_salary).toLocaleString()}</td></tr>
+        <tr><td>Allowances</td><td>UGX ${parseFloat(record.allowances).toLocaleString()}</td></tr>
+        <tr><td class="total">Gross Pay</td><td class="total">UGX ${(parseFloat(record.basic_salary) + parseFloat(record.allowances)).toLocaleString()}</td></tr>
+      </table>
+      <table>
+        <tr><th colspan="2" style="background:#ffebee">Deductions</th></tr>
+        <tr><td>NSSF</td><td>UGX ${parseFloat(record.nssf_deduction).toLocaleString()}</td></tr>
+        <tr><td>PAYE Tax</td><td>UGX ${parseFloat(record.paye_tax).toLocaleString()}</td></tr>
+        <tr><td>Other Deductions</td><td>UGX ${parseFloat(record.other_deductions).toLocaleString()}</td></tr>
+        <tr><td class="total">Total Deductions</td><td class="total">UGX ${(parseFloat(record.nssf_deduction) + parseFloat(record.paye_tax) + parseFloat(record.other_deductions)).toLocaleString()}</td></tr>
+      </table>
+      <table>
+        <tr><td class="total" style="font-size:18px">Net Pay</td><td class="total" style="font-size:18px">UGX ${parseFloat(record.net_pay).toLocaleString()}</td></tr>
+      </table>
+      <div class="footer">Generated on ${new Date().toLocaleDateString()} — Salem Student Information Management System</div>
+    </body></html>`);
+    w.document.close();
+    w.print();
+  };
+
     setEmployeeId(''); setPayPeriod(''); setBasicSalary(''); setAllowances('0');
     setNssfDeduction('0'); setPayeTax('0'); setOtherDeductions('0'); setNotes('');
     setOpen(false);
