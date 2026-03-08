@@ -666,7 +666,51 @@ export default function Transcripts() {
             <h1 className="text-2xl font-bold text-foreground">Transcripts & Certificates</h1>
             <p className="text-muted-foreground">Generate academic transcripts and certificates for students</p>
           </div>
+          <div className="flex gap-2 flex-wrap">
+            {role === 'admin' && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleAssignSamplePhotos} disabled={assigningPhotos}>
+                  {assigningPhotos ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ImagePlus className="w-4 h-4 mr-2" />}
+                  Assign Sample Photos
+                </Button>
+                <Button
+                  variant={batchMode ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => { setBatchMode(!batchMode); setSelectedStudents(new Set()); }}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  {batchMode ? 'Exit Batch Mode' : 'Batch Transcripts'}
+                </Button>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* Batch Mode Controls */}
+        {batchMode && (
+          <Card className="border-primary/50 bg-primary/5">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedStudents.size === filteredStudents.length && filteredStudents.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-sm font-medium">
+                    {selectedStudents.size} of {filteredStudents.length} students selected
+                  </span>
+                </div>
+                <Button
+                  onClick={handleBatchGenerateTranscripts}
+                  disabled={selectedStudents.size === 0 || batchGenerating}
+                >
+                  {batchGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                  Download {selectedStudents.size} Transcript{selectedStudents.size !== 1 ? 's' : ''} as PDF
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Search & Select */}
         <Card>
