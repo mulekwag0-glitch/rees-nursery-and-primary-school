@@ -633,6 +633,9 @@ export default function Transcripts() {
                       ))}
                     </tbody>
                   </table>
+                  <div style={{ textAlign: 'right', marginTop: '5px', fontSize: '13px' }}>
+                    <strong>Semester GPA: {semGroup.semesterGPA}</strong>
+                  </div>
                 </div>
               ))}
 
