@@ -102,9 +102,28 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const filteredNavItems = navItems.filter(item => 
+  const filteredNavItems = standaloneNavItems.filter(item => 
     role && item.roles.includes(role)
   );
+
+  const filteredNavGroups = navGroups
+    .filter(group => role && group.roles.includes(role))
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item => role && item.roles.includes(role)),
+    }))
+    .filter(group => group.items.length > 0);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  // Check if any item in a group is active
+  const isGroupActive = (group: NavGroup) => {
+    return group.items.some(item => location.pathname === item.href);
+  };
 
   const handleSignOut = async () => {
     await signOut();
