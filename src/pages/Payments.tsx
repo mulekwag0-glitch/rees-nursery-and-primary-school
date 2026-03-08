@@ -460,14 +460,42 @@ function StudentPaymentsView() {
         </CardContent>
       </Card>
 
+      {/* Search & Filter */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by receipt or semester..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Semester" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Semesters</SelectItem>
+                {studentData?.semesters?.map((s: any) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Payment History</CardTitle>
-          <CardDescription>Your payment transactions</CardDescription>
+          <CardDescription>Showing {filteredPayments?.length || 0} transactions</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {studentData?.payments?.map((payment: any) => (
+            {filteredPayments?.map((payment: any) => (
               <div key={payment.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
@@ -486,8 +514,8 @@ function StudentPaymentsView() {
                 </div>
               </div>
             ))}
-            {!studentData?.payments?.length && (
-              <p className="text-center text-muted-foreground py-8">No payments recorded yet</p>
+            {!filteredPayments?.length && (
+              <p className="text-center text-muted-foreground py-8">No payments found</p>
             )}
           </div>
         </CardContent>
