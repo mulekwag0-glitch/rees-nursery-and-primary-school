@@ -282,6 +282,24 @@ export default function Transcripts() {
     `);
     printWindow.document.close();
     printWindow.print();
+
+    // Send in-app notification about document generation
+    const studentData = getSelectedStudentData();
+    if (studentData) {
+      try {
+        const { data: adminRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+        
+        if (adminRoles && adminRoles.length > 0) {
+          const adminIds = adminRoles.map(r => r.user_id);
+          await notifyDocumentGenerated(adminIds, studentData.profiles.full_name, type);
+        }
+      } catch (err) {
+        console.error('Failed to send document notification:', err);
+      }
+    }
   };
 
   const filteredStudents = students.filter(student =>
