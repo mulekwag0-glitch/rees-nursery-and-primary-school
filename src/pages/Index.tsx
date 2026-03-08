@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Building2, GraduationCap, CreditCard, ClipboardList, Users, Shield, ArrowRight } from 'lucide-react';
+import { GraduationCap, CreditCard, ClipboardList, Users, Shield, ArrowRight } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 
 const Index = () => {
   const features = [
