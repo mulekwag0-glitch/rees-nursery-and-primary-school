@@ -99,6 +99,7 @@ export default function Transcripts() {
 
   useEffect(() => {
     fetchStudents();
+    fetchDocumentLogs();
   }, []);
 
   useEffect(() => {
