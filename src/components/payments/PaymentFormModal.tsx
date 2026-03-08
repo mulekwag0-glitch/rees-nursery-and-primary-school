@@ -103,13 +103,9 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
       setShowReceipt(true);
 
       // Send notification to student
-      const student = students?.find((s: any) => s.id === studentId);
-      if (student?.profiles?.user_id) {
-        // Get user_id from student record
-        const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', studentId).single();
-        if (studentRecord?.user_id) {
-          await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
-        }
+      const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', studentId).single();
+      if (studentRecord?.user_id) {
+        await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
       }
 
       toast({
