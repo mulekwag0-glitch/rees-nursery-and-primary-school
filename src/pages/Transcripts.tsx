@@ -46,6 +46,7 @@ import {
 interface Student {
   id: string;
   student_id: string;
+  user_id: string;
   current_year: number;
   enrollment_date: string;
   profiles: {
