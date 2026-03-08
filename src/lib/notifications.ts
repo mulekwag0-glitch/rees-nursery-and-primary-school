@@ -60,3 +60,16 @@ export async function notifyResultsSubmitted(adminUserIds: string[], tutorName: 
     });
   }
 }
+
+export async function notifyDocumentGenerated(adminUserIds: string[], studentName: string, documentType: 'transcript' | 'certificate') {
+  const docLabel = documentType === 'transcript' ? 'Academic Transcript' : 'Certificate of Completion';
+  for (const adminId of adminUserIds) {
+    await sendNotification({
+      userId: adminId,
+      title: `${docLabel} Generated`,
+      message: `${docLabel} for ${studentName} was generated and printed.`,
+      type: 'info',
+      link: '/transcripts',
+    });
+  }
+}

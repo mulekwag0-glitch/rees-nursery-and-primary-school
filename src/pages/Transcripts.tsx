@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { notifyDocumentGenerated } from '@/lib/notifications';
 import {
   FileText,
   Download,
@@ -192,7 +193,7 @@ export default function Transcripts() {
     return 'Fail';
   };
 
-  const handlePrint = (type: 'transcript' | 'certificate') => {
+  const handlePrint = async (type: 'transcript' | 'certificate') => {
     const printContent = type === 'transcript' ? transcriptRef.current : certificateRef.current;
     if (!printContent) return;
 
@@ -281,6 +282,24 @@ export default function Transcripts() {
     `);
     printWindow.document.close();
     printWindow.print();
+
+    // Send in-app notification about document generation
+    const studentData = getSelectedStudentData();
+    if (studentData) {
+      try {
+        const { data: adminRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+        
+        if (adminRoles && adminRoles.length > 0) {
+          const adminIds = adminRoles.map(r => r.user_id);
+          await notifyDocumentGenerated(adminIds, studentData.profiles.full_name, type);
+        }
+      } catch (err) {
+        console.error('Failed to send document notification:', err);
+      }
+    }
   };
 
   const filteredStudents = students.filter(student =>
