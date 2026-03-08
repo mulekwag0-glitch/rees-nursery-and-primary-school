@@ -23,6 +23,7 @@ import Transcripts from "./pages/Transcripts";
 import StudentProfile from "./pages/StudentProfile";
 import FeeStructures from "./pages/FeeStructures";
 import TutorAssignment from "./pages/TutorAssignment";
+import Expenses from "./pages/Expenses";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
