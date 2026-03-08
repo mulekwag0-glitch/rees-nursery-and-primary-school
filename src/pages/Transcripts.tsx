@@ -125,6 +125,7 @@ export default function Transcripts() {
         .select(`
           id,
           student_id,
+          user_id,
           current_year,
           enrollment_date,
           profiles!students_user_id_profiles_fkey(full_name, email, avatar_url),
