@@ -59,11 +59,9 @@ export default function Admissions() {
 
   const admitMutation = useMutation({
     mutationFn: async () => {
-      const validation = validateForm(admissionSchema, {
+      const v = validateForm(admissionSchema, {
         fullName, email, phone, programId, currentYear: parseInt(currentYear),
       });
-      if (!validation.success) throw new Error(validation.error);
-      const v = validation.data;
       const studentIdNumber = generateStudentId();
       const tempPassword = `Salem${new Date().getFullYear()}!`;
 

@@ -52,12 +52,10 @@ export default function Employees() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const validation = validateForm(employeeSchema, {
+      const v = validateForm(employeeSchema, {
         fullName, email, phone, department, jobTitle, hireDate,
         salary: parseFloat(salary) || 0, bankName, bankAccount, nssfNumber, tinNumber,
       });
-      if (!validation.success) throw new Error(validation.error);
-      const v = validation.data;
       const { error } = await supabase.from('employees').insert({
         full_name: v.fullName,
         email: v.email,

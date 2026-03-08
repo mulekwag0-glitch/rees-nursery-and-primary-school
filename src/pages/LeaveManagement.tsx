@@ -61,11 +61,9 @@ export default function LeaveManagement() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const validation = validateForm(leaveRequestSchema, {
+      const v = validateForm(leaveRequestSchema, {
         employeeId, leaveType, startDate, endDate, reason,
       });
-      if (!validation.success) throw new Error(validation.error);
-      const v = validation.data;
       const { error } = await supabase.from('leave_requests').insert({
         employee_id: v.employeeId,
         leave_type: v.leaveType,

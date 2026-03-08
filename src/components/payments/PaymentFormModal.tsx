@@ -73,14 +73,13 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
     e.preventDefault();
     if (!user) return;
 
-    const validation = validateForm(paymentSchema, {
-      studentId, semesterId, amount: parseFloat(amount) || 0, paymentMethod, notes,
-    });
-    if (!validation.success) {
-      toast({ title: 'Validation Error', description: validation.error, variant: 'destructive' });
-      return;
-    }
-    const v = validation.data;
+    try {
+      const v = validateForm(paymentSchema, {
+        studentId, semesterId, amount: parseFloat(amount) || 0, paymentMethod, notes,
+      });
+
+      setLoading(true);
+      const receiptNumber = generateReceiptNumber();
 
     setLoading(true);
     const receiptNumber = generateReceiptNumber();

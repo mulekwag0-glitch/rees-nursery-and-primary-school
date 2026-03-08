@@ -55,14 +55,12 @@ export default function Payroll() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const validation = validateForm(payrollSchema, {
+      const v = validateForm(payrollSchema, {
         employeeId, payPeriod,
         basicSalary: parseFloat(basicSalary) || 0, allowances: parseFloat(allowances) || 0,
         nssfDeduction: parseFloat(nssfDeduction) || 0, payeTax: parseFloat(payeTax) || 0,
         otherDeductions: parseFloat(otherDeductions) || 0, notes,
       });
-      if (!validation.success) throw new Error(validation.error);
-      const v = validation.data;
       const { data, error } = await supabase.from('payroll_records').insert({
         employee_id: v.employeeId,
         pay_period: v.payPeriod,
