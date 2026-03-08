@@ -27,6 +27,7 @@ import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
 import Payroll from "./pages/Payroll";
 import LeaveManagement from "./pages/LeaveManagement";
+import AuditLogs from "./pages/AuditLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
