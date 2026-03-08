@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Loader2, Printer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { notifyPaymentRecorded } from '@/lib/notifications';
 
 interface PaymentFormModalProps {
   onSuccess?: () => void;
