@@ -457,25 +457,22 @@ export default function Transcripts() {
               </Card>
             </div>
 
-            {/* Results Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Academic Results</CardTitle>
-                <CardDescription>Approved results for all semesters</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {studentResults.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No approved results found
-                  </div>
-                ) : (
+            {/* Results Table grouped by semester */}
+            {getResultsBySemester().map((semGroup) => (
+              <Card key={semGroup.semesterName}>
+                <CardHeader>
+                  <CardTitle className="text-lg">{semGroup.semesterName}</CardTitle>
+                  <CardDescription>
+                    {semGroup.results.length} course{semGroup.results.length !== 1 ? 's' : ''}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
                   <div className="overflow-x-auto">
                     <table className="data-table">
                       <thead>
                         <tr>
                           <th>Course Code</th>
                           <th>Course Name</th>
-                          <th>Semester</th>
                           <th>CU</th>
                           <th>Marks</th>
                           <th>Grade</th>
@@ -483,11 +480,10 @@ export default function Transcripts() {
                         </tr>
                       </thead>
                       <tbody>
-                        {studentResults.map(result => (
+                        {semGroup.results.map(result => (
                           <tr key={result.id}>
                             <td className="font-mono">{result.student_courses.courses.code}</td>
                             <td>{result.student_courses.courses.name}</td>
-                            <td className="text-sm">{result.student_courses.semesters.name}</td>
                             <td>{result.student_courses.courses.credit_units}</td>
                             <td>{result.total_marks}</td>
                             <td>
@@ -501,9 +497,19 @@ export default function Transcripts() {
                       </tbody>
                     </table>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
+
+            {studentResults.length === 0 && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8 text-muted-foreground">
+                    No approved results found
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
