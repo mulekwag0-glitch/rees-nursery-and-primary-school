@@ -202,10 +202,11 @@ export default function Transcripts() {
     printWindow.document.write(`
       <html>
         <head>
-          <title>${documentType === 'transcript' ? 'Academic Transcript' : 'Certificate'}</title>
+          <title>${type === 'transcript' ? 'Academic Transcript' : 'Certificate'}</title>
           <style>
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap');
             body { 
-              font-family: 'Times New Roman', serif; 
+              font-family: 'Lora', 'Times New Roman', serif; 
               padding: 40px; 
               max-width: 800px; 
               margin: 0 auto;
@@ -213,26 +214,63 @@ export default function Transcripts() {
             }
             .header { 
               text-align: center; 
-              border-bottom: 2px solid #000; 
+              border-bottom: 2px solid #1a365d; 
               padding-bottom: 20px; 
               margin-bottom: 30px; 
             }
-            .logo { font-size: 24px; font-weight: bold; }
+            .logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: bold; color: #1a365d; letter-spacing: 3px; }
             .logo-img { width: 80px; height: 80px; margin: 0 auto 10px; }
-            .subtitle { font-size: 14px; color: #666; }
-            .title { font-size: 20px; font-weight: bold; margin: 20px 0; text-transform: uppercase; }
+            .subtitle { font-size: 14px; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+            .title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: bold; margin: 20px 0; text-transform: uppercase; color: #1a365d; letter-spacing: 2px; }
             .student-info { margin-bottom: 30px; }
             .info-row { display: flex; margin-bottom: 8px; }
             .info-label { width: 150px; font-weight: bold; }
             table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { border: 1px solid #000; padding: 8px; text-align: left; }
-            th { background: #f0f0f0; }
+            th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+            th { background: #1a365d; color: white; }
             .footer { margin-top: 40px; text-align: center; }
             .signature { margin-top: 60px; display: flex; justify-content: space-between; }
-            .signature-line { width: 200px; border-top: 1px solid #000; padding-top: 5px; text-align: center; }
-            .certificate-body { text-align: center; padding: 40px 20px; }
-            .certificate-name { font-size: 28px; font-weight: bold; margin: 20px 0; }
-            .certificate-program { font-size: 18px; margin: 10px 0; }
+            .signature-line { width: 200px; border-top: 1px solid #000; padding-top: 5px; text-align: center; font-size: 13px; }
+            
+            /* Certificate specific styles */
+            .cert-wrapper {
+              position: relative;
+              border: 8px double #b8860b;
+              padding: 60px 40px;
+              background: linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%);
+              overflow: hidden;
+            }
+            .cert-wrapper::before {
+              content: '';
+              position: absolute;
+              top: 15px; left: 15px; right: 15px; bottom: 15px;
+              border: 2px solid #b8860b;
+              pointer-events: none;
+            }
+            .cert-watermark {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(-30deg);
+              font-family: 'Playfair Display', serif;
+              font-size: 100px;
+              color: rgba(26, 54, 93, 0.04);
+              font-weight: bold;
+              letter-spacing: 10px;
+              white-space: nowrap;
+              pointer-events: none;
+              z-index: 0;
+            }
+            .cert-content { position: relative; z-index: 1; }
+            .cert-header { text-align: center; border-bottom: none; margin-bottom: 10px; }
+            .cert-ornament { text-align: center; color: #b8860b; font-size: 24px; margin: 10px 0; letter-spacing: 8px; }
+            .certificate-body { text-align: center; padding: 30px 20px; }
+            .certificate-name { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: bold; margin: 15px 0; color: #1a365d; border-bottom: 2px solid #b8860b; display: inline-block; padding-bottom: 5px; }
+            .certificate-program { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; color: #333; font-style: italic; }
+            .cert-classification { font-family: 'Playfair Display', serif; font-size: 20px; color: #b8860b; font-weight: bold; margin-top: 10px; }
+            .cert-date { font-size: 14px; margin-top: 25px; color: #666; font-style: italic; }
+            .cert-seal { width: 80px; height: 80px; margin: 20px auto; border: 3px solid #b8860b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #b8860b; font-weight: bold; text-transform: uppercase; }
+
             @media print { body { padding: 20px; } }
           </style>
         </head>
@@ -536,35 +574,55 @@ export default function Transcripts() {
                 Print Certificate
               </Button>
             </div>
-            <div ref={certificateRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
-              <div className="header" style={{ borderBottom: 'none' }}>
-                <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
-                <div className="logo">SALEM UGANDA</div>
-                <div className="subtitle">Institution of Higher Learning</div>
-                <div className="title" style={{ marginTop: '30px' }}>Certificate of Completion</div>
-              </div>
-              
-              <div className="certificate-body">
-                <p style={{ fontSize: '16px' }}>This is to certify that</p>
-                <div className="certificate-name">{selectedStudentData?.profiles.full_name}</div>
-                <p style={{ fontSize: '16px' }}>Student ID: {selectedStudentData?.student_id}</p>
-                <p style={{ fontSize: '16px', marginTop: '20px' }}>has successfully completed the requirements for</p>
-                <div className="certificate-program">{selectedStudentData?.programs.name}</div>
-                <p style={{ fontSize: '16px', marginTop: '20px' }}>
-                  with a Cumulative Grade Point Average of <strong>{cgpa}</strong>
-                </p>
-                <p style={{ fontSize: '18px', marginTop: '10px' }}>
-                  <strong>{getClassification(cgpa)}</strong>
-                </p>
-                <p style={{ fontSize: '14px', marginTop: '30px', color: '#666' }}>
-                  Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
+            <div ref={certificateRef} className="bg-white text-black">
+              <div className="cert-wrapper" style={{ position: 'relative', border: '8px double #b8860b', padding: '60px 40px', background: 'linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%)', overflow: 'hidden' }}>
+                {/* Inner border */}
+                <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '2px solid #b8860b', pointerEvents: 'none' }} />
+                {/* Watermark */}
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', fontFamily: 'Playfair Display, serif', fontSize: '100px', color: 'rgba(26, 54, 93, 0.04)', fontWeight: 'bold', letterSpacing: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
+                  SALEM UGANDA
+                </div>
+                {/* Content */}
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>SALEM UGANDA</div>
+                    <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' as const }}>Institution of Higher Learning</div>
+                    <div style={{ textAlign: 'center', color: '#b8860b', fontSize: '24px', margin: '10px 0', letterSpacing: '8px' }}>✦ ✦ ✦</div>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 'bold', marginTop: '20px', textTransform: 'uppercase' as const, color: '#1a365d', letterSpacing: '2px' }}>Certificate of Completion</div>
+                  </div>
+                  
+                  <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                    <p style={{ fontSize: '16px' }}>This is to certify that</p>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '36px', fontWeight: 'bold', margin: '15px auto', color: '#1a365d', borderBottom: '2px solid #b8860b', display: 'inline-block', paddingBottom: '5px' }}>
+                      {selectedStudentData?.profiles.full_name}
+                    </div>
+                    <p style={{ fontSize: '16px' }}>Student ID: {selectedStudentData?.student_id}</p>
+                    <p style={{ fontSize: '16px', marginTop: '20px' }}>has successfully completed the requirements for</p>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', margin: '10px 0', color: '#333', fontStyle: 'italic' }}>
+                      {selectedStudentData?.programs.name}
+                    </div>
+                    <p style={{ fontSize: '16px', marginTop: '20px' }}>
+                      with a Cumulative Grade Point Average of <strong>{cgpa}</strong>
+                    </p>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', color: '#b8860b', fontWeight: 'bold', marginTop: '10px' }}>
+                      {getClassification(cgpa)}
+                    </div>
+                    {/* Decorative seal */}
+                    <div style={{ width: '80px', height: '80px', margin: '20px auto', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' as const }}>
+                      Official<br/>Seal
+                    </div>
+                    <p style={{ fontSize: '14px', marginTop: '10px', color: '#666', fontStyle: 'italic' }}>
+                      Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </div>
 
-              <div className="signature">
-                <div className="signature-line">Principal</div>
-                <div className="signature-line">Academic Registrar</div>
-                <div className="signature-line">Official Stamp</div>
+                  <div className="signature" style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Principal</div>
+                    <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Academic Registrar</div>
+                    <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Official Stamp</div>
+                  </div>
+                </div>
               </div>
             </div>
           </DialogContent>

@@ -14,6 +14,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   LayoutDashboard,
   Users,
   GraduationCap,
@@ -25,6 +30,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
   Bell,
   Calendar,
   ClipboardList,
@@ -42,9 +48,17 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: string[];
+  group?: string;
 }
 
-const navItems: NavItem[] = [
+interface NavGroup {
+  label: string;
+  icon: React.ElementType;
+  roles: string[];
+  items: NavItem[];
+}
+
+const standaloneNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'tutor', 'finance', 'admin'] },
   { label: 'My Profile', href: '/profile', icon: Users, roles: ['student'] },
   { label: 'Students', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
@@ -56,9 +70,6 @@ const navItems: NavItem[] = [
   { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['student', 'finance', 'admin'] },
   { label: 'Fee Structures', href: '/fee-structures', icon: CreditCard, roles: ['admin', 'finance'] },
   { label: 'Expenses', href: '/expenses', icon: CreditCard, roles: ['admin', 'finance'] },
-  { label: 'Employees', href: '/employees', icon: Briefcase, roles: ['admin', 'finance'] },
-  { label: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['admin', 'finance'] },
-  { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'] },
   { label: 'Transcripts', href: '/transcripts', icon: FileText, roles: ['admin'] },
   { label: 'Programs', href: '/programs', icon: Building2, roles: ['admin'] },
   { label: 'Semesters', href: '/semesters', icon: Calendar, roles: ['admin'] },
@@ -66,6 +77,19 @@ const navItems: NavItem[] = [
   { label: 'User Management', href: '/users', icon: Shield, roles: ['admin'] },
   { label: 'Audit Logs', href: '/audit-logs', icon: ScrollText, roles: ['admin'] },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
+];
+
+const navGroups: NavGroup[] = [
+  {
+    label: 'Human Resource',
+    icon: Briefcase,
+    roles: ['admin', 'finance'],
+    items: [
+      { label: 'Employees', href: '/employees', icon: Users, roles: ['admin', 'finance'] },
+      { label: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['admin', 'finance'] },
+      { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'] },
+    ],
+  },
 ];
 
 interface DashboardLayoutProps {
@@ -78,9 +102,28 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const filteredNavItems = navItems.filter(item => 
+  const filteredNavItems = standaloneNavItems.filter(item => 
     role && item.roles.includes(role)
   );
+
+  const filteredNavGroups = navGroups
+    .filter(group => role && group.roles.includes(role))
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item => role && item.roles.includes(role)),
+    }))
+    .filter(group => group.items.length > 0);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  // Check if any item in a group is active
+  const isGroupActive = (group: NavGroup) => {
+    return group.items.some(item => location.pathname === item.href);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -139,19 +182,73 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
+
+              // Insert HR group after Expenses
+              const insertGroupAfter = item.href === '/expenses';
+
               return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "sidebar-link",
-                    isActive && "active"
-                  )}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                </Link>
+                <React.Fragment key={item.href}>
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "sidebar-link",
+                      isActive && "active"
+                    )}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </Link>
+
+                  {insertGroupAfter && filteredNavGroups.map((group) => {
+                    const GroupIcon = group.icon;
+                    const groupActive = isGroupActive(group);
+                    const isOpen = openGroups[group.label] ?? groupActive;
+
+                    return (
+                      <Collapsible
+                        key={group.label}
+                        open={isOpen}
+                        onOpenChange={() => toggleGroup(group.label)}
+                      >
+                        <CollapsibleTrigger className={cn(
+                          "sidebar-link w-full justify-between",
+                          groupActive && "text-sidebar-primary"
+                        )}>
+                          <div className="flex items-center gap-3">
+                            <GroupIcon className="w-5 h-5" />
+                            <span>{group.label}</span>
+                          </div>
+                          {isOpen ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                          {group.items.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            const subActive = location.pathname === subItem.href;
+                            return (
+                              <Link
+                                key={subItem.href}
+                                to={subItem.href}
+                                className={cn(
+                                  "sidebar-link text-sm",
+                                  subActive && "active"
+                                )}
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <SubIcon className="w-4 h-4" />
+                                <span>{subItem.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </React.Fragment>
               );
             })}
           </nav>

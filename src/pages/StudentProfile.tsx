@@ -18,7 +18,9 @@ import {
   Calendar,
   BookOpen,
   Award,
+  Printer,
 } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 
 interface StudentData {
   id: string;
@@ -82,6 +84,7 @@ export default function StudentProfile() {
   const [results, setResults] = useState<ResultData[]>([]);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -191,6 +194,41 @@ export default function StudentProfile() {
     return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
   };
 
+  const getClassification = (cgpa: number) => {
+    if (cgpa >= 4.5) return 'First Class Honours';
+    if (cgpa >= 3.5) return 'Second Class Honours (Upper Division)';
+    if (cgpa >= 2.5) return 'Second Class Honours (Lower Division)';
+    if (cgpa >= 2.0) return 'Pass';
+    return 'Fail';
+  };
+
+  const handlePrint = (ref: React.RefObject<HTMLDivElement | null>, title: string) => {
+    if (!ref.current) return;
+    const printWindow = window.open('', '', 'height=800,width=900');
+    if (!printWindow) return;
+    printWindow.document.write(`<html><head><title>${title}</title>`);
+    printWindow.document.write(`<style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap');
+      body{font-family:'Lora','Times New Roman',serif;padding:20px;max-width:800px;margin:0 auto;line-height:1.6}
+      .header{text-align:center;border-bottom:2px solid #1a365d;padding-bottom:20px;margin-bottom:30px}
+      .logo{font-family:'Playfair Display',serif;font-size:28px;font-weight:bold;color:#1a365d;letter-spacing:3px}
+      .subtitle{font-size:14px;color:#666;letter-spacing:2px;text-transform:uppercase}
+      .title{font-family:'Playfair Display',serif;font-size:22px;font-weight:bold;margin:20px 0;text-transform:uppercase;color:#1a365d;letter-spacing:2px}
+      table{width:100%;border-collapse:collapse;margin:20px 0}
+      th,td{border:1px solid #333;padding:8px;text-align:left}
+      th{background:#1a365d;color:white}
+      .signature{margin-top:60px;display:flex;justify-content:space-between}
+      .signature-line{width:200px;border-top:1px solid #000;padding-top:5px;text-align:center;font-size:13px}
+      .info-row{display:flex;margin-bottom:8px}
+      .info-label{width:150px;font-weight:bold}
+    </style>`);
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(ref.current.innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const getTotalPayments = () => {
     return payments.reduce((sum, p) => sum + Number(p.amount), 0);
   };
@@ -210,21 +248,7 @@ export default function StudentProfile() {
     return <Badge className={styles[grade] || ''}>{grade}</Badge>;
   };
 
-  const printTranscript = () => {
-    if (transcriptRef.current) {
-      const printContents = transcriptRef.current.innerHTML;
-      const printWindow = window.open('', '', 'height=800,width=900');
-      if (printWindow) {
-        printWindow.document.write('<html><head><title>Academic Transcript</title>');
-        printWindow.document.write('<style>body{font-family:Arial,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f4f4f4}.header{text-align:center;margin-bottom:20px}.grade-a{color:green}.grade-b{color:blue}.grade-c{color:orange}.grade-d{color:darkorange}.grade-f{color:red}</style>');
-        printWindow.document.write('</head><body>');
-        printWindow.document.write(printContents);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.print();
-      }
-    }
-  };
+  const cgpa = parseFloat(calculateCGPA() as string);
 
   if (loading) {
     return (
@@ -263,10 +287,16 @@ export default function StudentProfile() {
             <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
             <p className="text-muted-foreground">View your academic record and payments</p>
           </div>
-          <Button onClick={printTranscript}>
-            <Download className="w-4 h-4 mr-2" />
-            Download Transcript
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handlePrint(transcriptRef, 'Academic Transcript')}>
+              <FileText className="w-4 h-4 mr-2" />
+              Transcript
+            </Button>
+            <Button onClick={() => handlePrint(certificateRef, 'Certificate')}>
+              <Award className="w-4 h-4 mr-2" />
+              Certificate
+            </Button>
+          </div>
         </div>
 
         {/* Student Info Card */}
@@ -523,15 +553,17 @@ export default function StudentProfile() {
 
         {/* Hidden Transcript for printing */}
         <div ref={transcriptRef} className="hidden">
-          <div className="header">
-            <h1>Salem Uganda</h1>
-            <h2>Academic Transcript</h2>
+          <div className="header" style={{ textAlign: 'center', borderBottom: '2px solid #1a365d', paddingBottom: '20px', marginBottom: '30px' }}>
+            <img src={salemLogo} alt="Salem Uganda" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
+            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>SALEM UGANDA</div>
+            <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px' }}>INSTITUTION OF HIGHER LEARNING</div>
+            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 'bold', marginTop: '20px', color: '#1a365d', letterSpacing: '2px' }}>OFFICIAL ACADEMIC TRANSCRIPT</div>
           </div>
           <div style={{ marginBottom: '20px' }}>
-            <p><strong>Name:</strong> {studentData.profile.full_name}</p>
-            <p><strong>Student ID:</strong> {studentData.student_id}</p>
-            <p><strong>Program:</strong> {studentData.program.name}</p>
-            <p><strong>CGPA:</strong> {calculateCGPA()}</p>
+            <div style={{ display: 'flex', marginBottom: '8px' }}><span style={{ width: '150px', fontWeight: 'bold' }}>Student Name:</span><span>{studentData.profile.full_name}</span></div>
+            <div style={{ display: 'flex', marginBottom: '8px' }}><span style={{ width: '150px', fontWeight: 'bold' }}>Student ID:</span><span>{studentData.student_id}</span></div>
+            <div style={{ display: 'flex', marginBottom: '8px' }}><span style={{ width: '150px', fontWeight: 'bold' }}>Program:</span><span>{studentData.program.name}</span></div>
+            <div style={{ display: 'flex', marginBottom: '8px' }}><span style={{ width: '150px', fontWeight: 'bold' }}>Enrollment Date:</span><span>{new Date(studentData.enrollment_date).toLocaleDateString()}</span></div>
           </div>
           <table>
             <thead>
@@ -552,17 +584,66 @@ export default function StudentProfile() {
                   <td>{result.course?.name}</td>
                   <td>{result.course?.credit_units}</td>
                   <td>{result.total_marks}</td>
-                  <td className={`grade-${result.grade?.toLowerCase()}`}>{result.grade}</td>
+                  <td>{result.grade}</td>
                   <td>{result.grade_point}</td>
                   <td>{result.semester?.name}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop: '40px', textAlign: 'center' }}>
-            <p>Generated on: {new Date().toLocaleDateString()}</p>
-            <p style={{ marginTop: '60px' }}>________________________</p>
-            <p>Registrar's Signature</p>
+          <div style={{ marginTop: '30px' }}>
+            <strong>Cumulative GPA: {cgpa}</strong><br/>
+            <strong>Classification: {getClassification(cgpa)}</strong>
+          </div>
+          <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Registrar</div>
+            <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Date</div>
+            <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Official Stamp</div>
+          </div>
+        </div>
+
+        {/* Hidden Certificate for printing */}
+        <div ref={certificateRef} className="hidden">
+          <div style={{ position: 'relative', border: '8px double #b8860b', padding: '60px 40px', background: 'linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%)', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '2px solid #b8860b', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', fontSize: '100px', color: 'rgba(26, 54, 93, 0.04)', fontWeight: 'bold', letterSpacing: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
+              SALEM UGANDA
+            </div>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ textAlign: 'center' }}>
+                <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>SALEM UGANDA</div>
+                <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' }}>Institution of Higher Learning</div>
+                <div style={{ textAlign: 'center', color: '#b8860b', fontSize: '24px', margin: '10px 0', letterSpacing: '8px' }}>✦ ✦ ✦</div>
+                <div style={{ fontSize: '22px', fontWeight: 'bold', marginTop: '20px', textTransform: 'uppercase', color: '#1a365d', letterSpacing: '2px' }}>Certificate of Completion</div>
+              </div>
+              <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                <p style={{ fontSize: '16px' }}>This is to certify that</p>
+                <div style={{ fontSize: '36px', fontWeight: 'bold', margin: '15px auto', color: '#1a365d', borderBottom: '2px solid #b8860b', display: 'inline-block', paddingBottom: '5px' }}>
+                  {studentData.profile.full_name}
+                </div>
+                <p style={{ fontSize: '16px' }}>Student ID: {studentData.student_id}</p>
+                <p style={{ fontSize: '16px', marginTop: '20px' }}>has successfully completed the requirements for</p>
+                <div style={{ fontSize: '22px', margin: '10px 0', color: '#333', fontStyle: 'italic' }}>{studentData.program.name}</div>
+                <p style={{ fontSize: '16px', marginTop: '20px' }}>
+                  with a Cumulative Grade Point Average of <strong>{cgpa}</strong>
+                </p>
+                <div style={{ fontSize: '20px', color: '#b8860b', fontWeight: 'bold', marginTop: '10px' }}>
+                  {getClassification(cgpa)}
+                </div>
+                <div style={{ width: '80px', height: '80px', margin: '20px auto', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                  Official<br/>Seal
+                </div>
+                <p style={{ fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
+                  Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+              <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Principal</div>
+                <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Academic Registrar</div>
+                <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Official Stamp</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
