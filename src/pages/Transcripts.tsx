@@ -542,7 +542,49 @@ export default function Transcripts() {
               </Card>
             </div>
 
-            {/* Results Table grouped by semester */}
+            {/* GPA Progression Chart */}
+            {studentResults.length > 0 && getGPAProgressionData().length > 1 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    GPA Progression
+                  </CardTitle>
+                  <CardDescription>Semester GPA vs Cumulative GPA across semesters</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={getGPAProgressionData()}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis dataKey="semester" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                        <YAxis domain={[0, 5]} tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--background))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            color: 'hsl(var(--foreground))',
+                          }}
+                        />
+                        <Line type="monotone" dataKey="semesterGPA" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} name="Semester GPA" />
+                        <Line type="monotone" dataKey="cumulativeGPA" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} strokeDasharray="5 5" name="Cumulative GPA" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-center gap-6 mt-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-0.5 bg-primary" />
+                      <span className="text-muted-foreground">Semester GPA</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-0.5 bg-destructive border-dashed" style={{ borderTop: '2px dashed hsl(var(--destructive))' }} />
+                      <span className="text-muted-foreground">Cumulative GPA</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             {getResultsBySemester().map((semGroup) => (
               <Card key={semGroup.semesterName}>
                 <CardHeader>
