@@ -21,6 +21,8 @@ import {
   GraduationCap,
   Printer,
   TrendingUp,
+  History,
+  Clock,
 } from 'lucide-react';
 import salemLogo from '@/assets/salem-logo.png';
 import {
@@ -91,11 +93,13 @@ export default function Transcripts() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
+  const [documentLogs, setDocumentLogs] = useState<any[]>([]);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStudents();
+    fetchDocumentLogs();
   }, []);
 
   useEffect(() => {
@@ -130,6 +134,40 @@ export default function Transcripts() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDocumentLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('document_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      setDocumentLogs(data || []);
+    } catch (err) {
+      console.error('Error fetching document logs:', err);
+    }
+  };
+
+  const logDocumentGeneration = async (type: 'transcript' | 'certificate') => {
+    const studentData = getSelectedStudentData();
+    if (!studentData) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from('document_logs').insert({
+        student_id: studentData.id,
+        document_type: type,
+        generated_by: user.id,
+        student_name: studentData.profiles.full_name,
+        student_number: studentData.student_id,
+        program_name: studentData.programs.name,
+      });
+      fetchDocumentLogs();
+    } catch (err) {
+      console.error('Failed to log document generation:', err);
     }
   };
 
@@ -272,6 +310,7 @@ export default function Transcripts() {
       pdf.save(fileName);
 
       toast({ title: 'PDF Downloaded', description: `${type === 'transcript' ? 'Transcript' : 'Certificate'} saved as ${fileName}` });
+      await logDocumentGeneration(type);
 
       // Send notification
       if (studentData) {
@@ -325,6 +364,7 @@ export default function Transcripts() {
     `);
     printWindow.document.close();
     printWindow.print();
+    await logDocumentGeneration(type);
 
     const studentData = getSelectedStudentData();
     if (studentData) {
@@ -827,6 +867,54 @@ export default function Transcripts() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Document Generation History */}
+        {role === 'admin' && documentLogs.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                Document Generation History
+              </CardTitle>
+              <CardDescription>Recent transcript and certificate generations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date & Time</th>
+                      <th>Document Type</th>
+                      <th>Student</th>
+                      <th>Student ID</th>
+                      <th>Program</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {documentLogs.map((log: any) => (
+                      <tr key={log.id}>
+                        <td className="text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                            {new Date(log.created_at).toLocaleString()}
+                          </div>
+                        </td>
+                        <td>
+                          <Badge variant={log.document_type === 'transcript' ? 'default' : 'secondary'}>
+                            {log.document_type === 'transcript' ? '📄 Transcript' : '🎓 Certificate'}
+                          </Badge>
+                        </td>
+                        <td className="font-medium">{log.student_name}</td>
+                        <td className="font-mono text-sm">{log.student_number}</td>
+                        <td className="text-sm text-muted-foreground">{log.program_name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
