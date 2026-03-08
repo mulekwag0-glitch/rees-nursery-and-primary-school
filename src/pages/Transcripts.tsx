@@ -46,6 +46,7 @@ interface Student {
   profiles: {
     full_name: string;
     email: string;
+    avatar_url: string | null;
   };
   programs: {
     name: string;
