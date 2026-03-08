@@ -260,11 +260,16 @@ export default function Payroll() {
                           </Badge>
                         </td>
                         <td>
-                          {r.status === 'draft' && role === 'admin' && (
-                            <Button size="sm" variant="outline" onClick={() => approveMutation.mutate(r.id)}>
-                              <CheckCircle className="w-3 h-3 mr-1" />Approve
+                          <div className="flex gap-1">
+                            {r.status === 'draft' && role === 'admin' && (
+                              <Button size="sm" variant="outline" onClick={() => approveMutation.mutate(r.id)}>
+                                <CheckCircle className="w-3 h-3 mr-1" />Approve
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" onClick={() => printPayslip(r)}>
+                              <Printer className="w-3 h-3" />
                             </Button>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     ))}
