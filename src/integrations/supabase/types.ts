@@ -124,6 +124,47 @@ export type Database = {
           },
         ]
       }
+      document_logs: {
+        Row: {
+          created_at: string
+          document_type: string
+          generated_by: string
+          id: string
+          program_name: string | null
+          student_id: string
+          student_name: string
+          student_number: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          generated_by: string
+          id?: string
+          program_name?: string | null
+          student_id: string
+          student_name: string
+          student_number: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          generated_by?: string
+          id?: string
+          program_name?: string | null
+          student_id?: string
+          student_name?: string
+          student_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           bank_account: string | null
