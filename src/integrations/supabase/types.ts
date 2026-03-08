@@ -124,6 +124,60 @@ export type Database = {
           },
         ]
       }
+      employees: {
+        Row: {
+          bank_account: string | null
+          bank_name: string | null
+          created_at: string
+          department: string
+          email: string
+          full_name: string
+          hire_date: string
+          id: string
+          job_title: string
+          nssf_number: string | null
+          phone: string | null
+          salary: number
+          status: string
+          tin_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_account?: string | null
+          bank_name?: string | null
+          created_at?: string
+          department?: string
+          email: string
+          full_name: string
+          hire_date?: string
+          id?: string
+          job_title: string
+          nssf_number?: string | null
+          phone?: string | null
+          salary?: number
+          status?: string
+          tin_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_account?: string | null
+          bank_name?: string | null
+          created_at?: string
+          department?: string
+          email?: string
+          full_name?: string
+          hire_date?: string
+          id?: string
+          job_title?: string
+          nssf_number?: string | null
+          phone?: string | null
+          salary?: number
+          status?: string
+          tin_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -214,6 +268,56 @@ export type Database = {
           },
         ]
       }
+      leave_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: string
+          reason: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -297,6 +401,68 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_records: {
+        Row: {
+          allowances: number
+          basic_salary: number
+          created_at: string
+          employee_id: string
+          id: string
+          net_pay: number | null
+          notes: string | null
+          nssf_deduction: number
+          other_deductions: number
+          pay_period: string
+          paye_tax: number
+          processed_at: string | null
+          processed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          allowances?: number
+          basic_salary?: number
+          created_at?: string
+          employee_id: string
+          id?: string
+          net_pay?: number | null
+          notes?: string | null
+          nssf_deduction?: number
+          other_deductions?: number
+          pay_period: string
+          paye_tax?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          allowances?: number
+          basic_salary?: number
+          created_at?: string
+          employee_id?: string
+          id?: string
+          net_pay?: number | null
+          notes?: string | null
+          nssf_deduction?: number
+          other_deductions?: number
+          pay_period?: string
+          paye_tax?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]

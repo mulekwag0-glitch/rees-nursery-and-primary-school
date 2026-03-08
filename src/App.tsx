@@ -24,6 +24,9 @@ import StudentProfile from "./pages/StudentProfile";
 import FeeStructures from "./pages/FeeStructures";
 import TutorAssignment from "./pages/TutorAssignment";
 import Expenses from "./pages/Expenses";
+import Employees from "./pages/Employees";
+import Payroll from "./pages/Payroll";
+import LeaveManagement from "./pages/LeaveManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +57,9 @@ const App = () => (
             <Route path="/fee-structures" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><FeeStructures /></ProtectedRoute>} />
             <Route path="/tutor-assignments" element={<ProtectedRoute allowedRoles={['admin']}><TutorAssignment /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Expenses /></ProtectedRoute>} />
+            <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Employees /></ProtectedRoute>} />
+            <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />
+            <Route path="/leave-management" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute allowedRoles={['student']}><StudentProfile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
