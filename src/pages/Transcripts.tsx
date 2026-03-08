@@ -17,6 +17,7 @@ import {
   GraduationCap,
   Printer,
 } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 import {
   Select,
   SelectContent,
