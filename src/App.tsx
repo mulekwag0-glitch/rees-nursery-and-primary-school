@@ -24,6 +24,9 @@ import StudentProfile from "./pages/StudentProfile";
 import FeeStructures from "./pages/FeeStructures";
 import TutorAssignment from "./pages/TutorAssignment";
 import Expenses from "./pages/Expenses";
+import Employees from "./pages/Employees";
+import Payroll from "./pages/Payroll";
+import LeaveManagement from "./pages/LeaveManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
