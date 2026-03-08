@@ -235,6 +235,58 @@ export default function Transcripts() {
     });
   };
 
+  const handleExportPDF = async (type: 'transcript' | 'certificate') => {
+    const contentRef = type === 'transcript' ? transcriptRef.current : certificateRef.current;
+    if (!contentRef) return;
+
+    try {
+      toast({ title: 'Generating PDF...', description: 'Please wait while we create your document.' });
+
+      const canvas = await html2canvas(contentRef, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      // Handle multi-page if content is tall
+      if (pdfHeight <= pdf.internal.pageSize.getHeight()) {
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      } else {
+        let position = 0;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        while (position < pdfHeight) {
+          pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, pdfHeight);
+          position += pageHeight;
+          if (position < pdfHeight) pdf.addPage();
+        }
+      }
+
+      const studentData = getSelectedStudentData();
+      const fileName = `${type}_${studentData?.student_id || 'unknown'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+
+      toast({ title: 'PDF Downloaded', description: `${type === 'transcript' ? 'Transcript' : 'Certificate'} saved as ${fileName}` });
+
+      // Send notification
+      if (studentData) {
+        try {
+          const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+          if (adminRoles?.length) {
+            await notifyDocumentGenerated(adminRoles.map(r => r.user_id), studentData.profiles.full_name, type);
+          }
+        } catch (err) { console.error('Failed to send notification:', err); }
+      }
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      toast({ title: 'Error', description: 'Failed to generate PDF', variant: 'destructive' });
+    }
+  };
+
   const handlePrint = async (type: 'transcript' | 'certificate') => {
     const printContent = type === 'transcript' ? transcriptRef.current : certificateRef.current;
     if (!printContent) return;
@@ -248,19 +300,8 @@ export default function Transcripts() {
           <title>${type === 'transcript' ? 'Academic Transcript' : 'Certificate'}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap');
-            body { 
-              font-family: 'Lora', 'Times New Roman', serif; 
-              padding: 40px; 
-              max-width: 800px; 
-              margin: 0 auto;
-              line-height: 1.6;
-            }
-            .header { 
-              text-align: center; 
-              border-bottom: 2px solid #1a365d; 
-              padding-bottom: 20px; 
-              margin-bottom: 30px; 
-            }
+            body { font-family: 'Lora', 'Times New Roman', serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 2px solid #1a365d; padding-bottom: 20px; margin-bottom: 30px; }
             .logo { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: bold; color: #1a365d; letter-spacing: 3px; }
             .logo-img { width: 80px; height: 80px; margin: 0 auto 10px; }
             .subtitle { font-size: 14px; color: #666; letter-spacing: 2px; text-transform: uppercase; }
@@ -274,74 +315,71 @@ export default function Transcripts() {
             .footer { margin-top: 40px; text-align: center; }
             .signature { margin-top: 60px; display: flex; justify-content: space-between; }
             .signature-line { width: 200px; border-top: 1px solid #000; padding-top: 5px; text-align: center; font-size: 13px; }
-            
-            /* Certificate specific styles */
-            .cert-wrapper {
-              position: relative;
-              border: 8px double #b8860b;
-              padding: 60px 40px;
-              background: linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%);
-              overflow: hidden;
-            }
-            .cert-wrapper::before {
-              content: '';
-              position: absolute;
-              top: 15px; left: 15px; right: 15px; bottom: 15px;
-              border: 2px solid #b8860b;
-              pointer-events: none;
-            }
-            .cert-watermark {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%) rotate(-30deg);
-              font-family: 'Playfair Display', serif;
-              font-size: 100px;
-              color: rgba(26, 54, 93, 0.04);
-              font-weight: bold;
-              letter-spacing: 10px;
-              white-space: nowrap;
-              pointer-events: none;
-              z-index: 0;
-            }
-            .cert-content { position: relative; z-index: 1; }
-            .cert-header { text-align: center; border-bottom: none; margin-bottom: 10px; }
-            .cert-ornament { text-align: center; color: #b8860b; font-size: 24px; margin: 10px 0; letter-spacing: 8px; }
-            .certificate-body { text-align: center; padding: 30px 20px; }
-            .certificate-name { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: bold; margin: 15px 0; color: #1a365d; border-bottom: 2px solid #b8860b; display: inline-block; padding-bottom: 5px; }
-            .certificate-program { font-family: 'Playfair Display', serif; font-size: 22px; margin: 10px 0; color: #333; font-style: italic; }
-            .cert-classification { font-family: 'Playfair Display', serif; font-size: 20px; color: #b8860b; font-weight: bold; margin-top: 10px; }
-            .cert-date { font-size: 14px; margin-top: 25px; color: #666; font-style: italic; }
-            .cert-seal { width: 80px; height: 80px; margin: 20px auto; border: 3px solid #b8860b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; text-align: center; color: #b8860b; font-weight: bold; text-transform: uppercase; }
-
+            .cert-wrapper { position: relative; border: 8px double #b8860b; padding: 60px 40px; background: linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%); overflow: hidden; }
             @media print { body { padding: 20px; } }
           </style>
         </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
+        <body>${printContent.innerHTML}</body>
       </html>
     `);
     printWindow.document.close();
     printWindow.print();
 
-    // Send in-app notification about document generation
     const studentData = getSelectedStudentData();
     if (studentData) {
       try {
-        const { data: adminRoles } = await supabase
-          .from('user_roles')
-          .select('user_id')
-          .eq('role', 'admin');
-        
-        if (adminRoles && adminRoles.length > 0) {
-          const adminIds = adminRoles.map(r => r.user_id);
-          await notifyDocumentGenerated(adminIds, studentData.profiles.full_name, type);
+        const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+        if (adminRoles?.length) {
+          await notifyDocumentGenerated(adminRoles.map(r => r.user_id), studentData.profiles.full_name, type);
         }
-      } catch (err) {
-        console.error('Failed to send document notification:', err);
-      }
+      } catch (err) { console.error('Failed to send notification:', err); }
     }
+  };
+
+  const getGPAProgressionData = () => {
+    const allSemesters = getResultsBySemesterAll();
+    let cumulativeGP = 0;
+    let cumulativeCU = 0;
+    return allSemesters.map(sem => {
+      sem.results.forEach(r => {
+        const cu = r.student_courses.courses.credit_units;
+        cumulativeGP += (r.grade_point || 0) * cu;
+        cumulativeCU += cu;
+      });
+      const cGPA = cumulativeCU > 0 ? parseFloat((cumulativeGP / cumulativeCU).toFixed(2)) : 0;
+      return {
+        semester: sem.semesterName,
+        semesterGPA: parseFloat(sem.semesterGPA),
+        cumulativeGPA: cGPA,
+      };
+    });
+  };
+
+  const getResultsBySemesterAll = () => {
+    // Same as getResultsBySemester but always uses all results (ignores year filter)
+    const grouped: Record<string, { semesterName: string; semesterNumber: number; academicYear: string; results: ResultWithDetails[]; semesterGPA: string }> = {};
+    studentResults.forEach(result => {
+      const semName = result.student_courses.semesters.name;
+      const semNum = result.student_courses.semesters.semester_number;
+      const ayName = result.student_courses.semesters.academic_years.name;
+      if (!grouped[semName]) {
+        grouped[semName] = { semesterName: semName, semesterNumber: semNum, academicYear: ayName, results: [], semesterGPA: '0.00' };
+      }
+      grouped[semName].results.push(result);
+    });
+    Object.values(grouped).forEach(g => {
+      let totalGP = 0, totalCU = 0;
+      g.results.forEach(r => {
+        const cu = r.student_courses.courses.credit_units;
+        totalGP += (r.grade_point || 0) * cu;
+        totalCU += cu;
+      });
+      g.semesterGPA = totalCU > 0 ? (totalGP / totalCU).toFixed(2) : '0.00';
+    });
+    return Object.values(grouped).sort((a, b) => {
+      if (a.academicYear !== b.academicYear) return a.academicYear.localeCompare(b.academicYear);
+      return a.semesterNumber - b.semesterNumber;
+    });
   };
 
   const filteredStudents = students.filter(student =>
