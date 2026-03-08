@@ -218,6 +218,7 @@ export default function Transcripts() {
               margin-bottom: 30px; 
             }
             .logo { font-size: 24px; font-weight: bold; }
+            .logo-img { width: 80px; height: 80px; margin: 0 auto 10px; }
             .subtitle { font-size: 14px; color: #666; }
             .title { font-size: 20px; font-weight: bold; margin: 20px 0; text-transform: uppercase; }
             .student-info { margin-bottom: 30px; }
