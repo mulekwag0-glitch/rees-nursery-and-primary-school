@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Loader2, Printer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { notifyPaymentRecorded } from '@/lib/notifications';
+import { logAudit } from '@/lib/audit';
 
 interface PaymentFormModalProps {
   onSuccess?: () => void;
