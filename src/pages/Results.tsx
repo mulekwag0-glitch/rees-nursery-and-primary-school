@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { notifyResultsApproved } from '@/lib/notifications';
+import { logAudit } from '@/lib/audit';
 import {
   ClipboardList,
   CheckCircle,
@@ -251,6 +252,8 @@ function AdminResultsView() {
         .update({ status: 'approved', approved_at: new Date().toISOString() })
         .eq('status', 'submitted');
       if (error) throw error;
+
+      await logAudit('results_approved', 'results', null, null, { course: courseCode });
 
       // Send notifications to students
       const notified = new Set<string>();

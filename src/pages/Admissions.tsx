@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Search, Loader2, GraduationCap, Phone, MapPin } from 'lucide-react';
 import { notifyStudentAdmitted } from '@/lib/notifications';
+import { logAudit } from '@/lib/audit';
 
 export default function Admissions() {
   const { toast } = useToast();
@@ -94,6 +95,8 @@ export default function Admissions() {
       // Send notification to the new student
       const selectedProgram = programs?.find(p => p.id === programId);
       await notifyStudentAdmitted(userId, studentIdNumber, selectedProgram?.name || 'your program');
+
+      await logAudit('student_admitted', 'students', userId, null, { student_id: studentIdNumber, email, program_id: programId });
 
       return { studentIdNumber, tempPassword };
     },

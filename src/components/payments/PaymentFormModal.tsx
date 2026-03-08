@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Loader2, Printer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { notifyPaymentRecorded } from '@/lib/notifications';
+import { logAudit } from '@/lib/audit';
 
 interface PaymentFormModalProps {
   onSuccess?: () => void;
@@ -106,6 +107,8 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
       if (studentRecord?.user_id) {
         await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
       }
+
+      await logAudit('payment_recorded', 'payments', data.id, null, { student_id: studentId, amount: parseFloat(amount), receipt_number: receiptNumber });
 
       toast({
         title: 'Payment Recorded',
