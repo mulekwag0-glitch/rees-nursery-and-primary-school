@@ -233,7 +233,7 @@ function FinancePaymentsView() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -244,6 +244,13 @@ function FinancePaymentsView() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Button variant="outline" onClick={exportCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+            <PaymentFormModal onSuccess={refetch} />
+          </div>
+          <div className="flex flex-wrap gap-3">
             <Select value={methodFilter} onValueChange={setMethodFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Method" />
@@ -267,11 +274,45 @@ function FinancePaymentsView() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={exportCSV}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <PaymentFormModal onSuccess={refetch} />
+            <Select value={programFilter} onValueChange={setProgramFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Program" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Programs</SelectItem>
+                {programs?.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>{p.code} - {p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "From date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateTo ? format(dateTo, "dd/MM/yyyy") : "To date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                <X className="w-4 h-4 mr-1" />
+                Clear filters
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
