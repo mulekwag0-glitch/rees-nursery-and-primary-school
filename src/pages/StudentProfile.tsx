@@ -18,7 +18,9 @@ import {
   Calendar,
   BookOpen,
   Award,
+  Printer,
 } from 'lucide-react';
+import salemLogo from '@/assets/salem-logo.png';
 
 interface StudentData {
   id: string;
