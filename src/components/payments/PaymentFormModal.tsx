@@ -81,20 +81,16 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
       setLoading(true);
       const receiptNumber = generateReceiptNumber();
 
-    setLoading(true);
-    const receiptNumber = generateReceiptNumber();
-
-    try {
       const { data, error } = await supabase
         .from('payments')
         .insert({
-          student_id: studentId,
-          semester_id: semesterId,
-          amount: parseFloat(amount),
-          payment_method: paymentMethod,
+          student_id: v.studentId,
+          semester_id: v.semesterId,
+          amount: v.amount,
+          payment_method: v.paymentMethod,
           receipt_number: receiptNumber,
           recorded_by: user.id,
-          notes: notes || null,
+          notes: v.notes || null,
         })
         .select(`
           *,
@@ -111,13 +107,12 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
       setReceiptData(data);
       setShowReceipt(true);
 
-      // Send notification to student
-      const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', studentId).single();
+      const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', v.studentId).single();
       if (studentRecord?.user_id) {
-        await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
+        await notifyPaymentRecorded(studentRecord.user_id, v.amount, receiptNumber);
       }
 
-      await logAudit('payment_recorded', 'payments', data.id, null, { student_id: studentId, amount: parseFloat(amount), receipt_number: receiptNumber });
+      await logAudit('payment_recorded', 'payments', data.id, null, { student_id: v.studentId, amount: v.amount, receipt_number: receiptNumber });
 
       toast({
         title: 'Payment Recorded',
