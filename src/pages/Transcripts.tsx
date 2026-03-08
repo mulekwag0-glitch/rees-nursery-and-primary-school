@@ -655,7 +655,11 @@ export default function Transcripts() {
                 Official academic transcript for {selectedStudentData?.profiles.full_name}
               </DialogDescription>
             </DialogHeader>
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end gap-2 mb-4">
+              <Button variant="outline" onClick={() => handleExportPDF('transcript')}>
+                <Download className="w-4 h-4 mr-2" />
+                Download PDF
+              </Button>
               <Button onClick={() => handlePrint('transcript')}>
                 <Printer className="w-4 h-4 mr-2" />
                 Print Transcript
