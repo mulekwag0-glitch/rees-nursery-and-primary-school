@@ -62,7 +62,6 @@ export default function FeeStructures() {
         semester_id: data.semester_id,
         tuition_fee: tuition,
         other_fees: other,
-        total_fee: tuition + other,
       };
       if (editingId) {
         const { error } = await supabase.from('fee_structures').update(payload).eq('id', editingId);
