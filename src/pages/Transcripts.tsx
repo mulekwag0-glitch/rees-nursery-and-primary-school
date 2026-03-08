@@ -107,7 +107,7 @@ export default function Transcripts() {
           student_id,
           current_year,
           enrollment_date,
-          profiles!students_user_id_fkey(full_name, email),
+          profiles!students_user_id_profiles_fkey(full_name, email),
           programs(name, code, duration_years)
         `)
         .order('student_id');
