@@ -364,6 +364,7 @@ export default function Transcripts() {
     `);
     printWindow.document.close();
     printWindow.print();
+    await logDocumentGeneration(type);
 
     const studentData = getSelectedStudentData();
     if (studentData) {
