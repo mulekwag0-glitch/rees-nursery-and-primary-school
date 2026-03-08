@@ -30,6 +30,9 @@ import {
   ClipboardList,
   Building2,
   Shield,
+  Briefcase,
+  DollarSign,
+  CalendarOff,
 } from 'lucide-react';
 
 interface NavItem {
