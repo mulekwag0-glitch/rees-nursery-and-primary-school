@@ -93,6 +93,7 @@ export default function Transcripts() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
+  const [documentLogs, setDocumentLogs] = useState<any[]>([]);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const certificateRef = useRef<HTMLDivElement>(null);
 
