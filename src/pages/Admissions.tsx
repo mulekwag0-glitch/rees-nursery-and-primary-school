@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Search, Loader2, GraduationCap, Phone, MapPin } from 'lucide-react';
 import { notifyStudentAdmitted } from '@/lib/notifications';
+import { logAudit } from '@/lib/audit';
 
 export default function Admissions() {
   const { toast } = useToast();
