@@ -388,6 +388,24 @@ export default function Transcripts() {
           </CardContent>
         </Card>
 
+        {/* Academic Year Filter */}
+        {selectedStudent && getAcademicYears().length > 0 && (
+          <div className="flex items-center gap-3">
+            <Label className="text-sm font-medium">Academic Year:</Label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Years" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Years</SelectItem>
+                {getAcademicYears().map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {selectedStudent && selectedStudentData && (
           <>
             {/* Student Info Card */}
