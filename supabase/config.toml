@@ -19,7 +19,3 @@ verify_jwt = true
 [functions.reset-password]
 enabled = true
 verify_jwt = true
-
-[functions.setup-admin]
-enabled = true
-verify_jwt = false
