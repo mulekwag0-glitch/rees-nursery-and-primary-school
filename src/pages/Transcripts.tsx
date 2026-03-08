@@ -725,19 +725,47 @@ export default function Transcripts() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Select value={selectedStudent} onValueChange={setSelectedStudent}>
-                <SelectTrigger className="w-full sm:w-80">
-                  <SelectValue placeholder="Select a student" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredStudents.map(student => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.profiles.full_name} ({student.student_id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!batchMode && (
+                <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                  <SelectTrigger className="w-full sm:w-80">
+                    <SelectValue placeholder="Select a student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredStudents.map(student => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.profiles.full_name} ({student.student_id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
+
+            {/* Batch student list with checkboxes */}
+            {batchMode && (
+              <div className="mt-4 max-h-80 overflow-y-auto space-y-1">
+                {filteredStudents.map(student => (
+                  <div
+                    key={student.id}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                    onClick={() => toggleStudentSelection(student.id)}
+                  >
+                    <Checkbox checked={selectedStudents.has(student.id)} />
+                    <div className="w-8 h-8 rounded-full bg-muted overflow-hidden flex items-center justify-center flex-shrink-0">
+                      {student.profiles.avatar_url ? (
+                        <img src={student.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{student.profiles.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{student.student_id} • {student.programs.code}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
