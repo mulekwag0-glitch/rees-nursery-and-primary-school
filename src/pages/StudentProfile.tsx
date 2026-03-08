@@ -84,6 +84,7 @@ export default function StudentProfile() {
   const [results, setResults] = useState<ResultData[]>([]);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
