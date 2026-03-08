@@ -540,6 +540,12 @@ export default function Transcripts() {
                       </tbody>
                     </table>
                   </div>
+                  <div className="mt-4 flex justify-end">
+                    <div className="bg-muted px-4 py-2 rounded-lg">
+                      <span className="text-sm text-muted-foreground mr-2">Semester GPA:</span>
+                      <span className="font-bold text-foreground">{semGroup.semesterGPA}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
