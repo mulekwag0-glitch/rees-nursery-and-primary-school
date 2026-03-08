@@ -91,6 +91,10 @@ export default function Admissions() {
       });
       if (studentError) throw studentError;
 
+      // Send notification to the new student
+      const selectedProgram = programs?.find(p => p.id === programId);
+      await notifyStudentAdmitted(userId, studentIdNumber, selectedProgram?.name || 'your program');
+
       return { studentIdNumber, tempPassword };
     },
     onSuccess: (data) => {
