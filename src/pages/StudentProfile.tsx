@@ -286,10 +286,16 @@ export default function StudentProfile() {
             <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
             <p className="text-muted-foreground">View your academic record and payments</p>
           </div>
-          <Button onClick={printTranscript}>
-            <Download className="w-4 h-4 mr-2" />
-            Download Transcript
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handlePrint(transcriptRef, 'Academic Transcript')}>
+              <FileText className="w-4 h-4 mr-2" />
+              Transcript
+            </Button>
+            <Button onClick={() => handlePrint(certificateRef, 'Certificate')}>
+              <Award className="w-4 h-4 mr-2" />
+              Certificate
+            </Button>
+          </div>
         </div>
 
         {/* Student Info Card */}
