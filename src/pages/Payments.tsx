@@ -383,6 +383,8 @@ function FinancePaymentsView() {
 
 function StudentPaymentsView() {
   const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [semesterFilter, setSemesterFilter] = useState('all');
 
   const { data: studentData, isLoading } = useQuery({
     queryKey: ['student-payments', user?.id],
@@ -411,9 +413,19 @@ function StudentPaymentsView() {
       const balance = totalFee - totalPaid;
       const percentage = totalFee > 0 ? Math.min(100, (totalPaid / totalFee) * 100) : 0;
 
-      return { payments, totalFee, totalPaid, balance, percentage };
+      const semesters = [...new Set(payments?.map((p: any) => JSON.stringify({ id: p.semester_id, name: p.semesters?.name })))].map(s => JSON.parse(s));
+
+      return { payments, totalFee, totalPaid, balance, percentage, semesters };
     },
     enabled: !!user?.id,
+  });
+
+  const filteredPayments = studentData?.payments?.filter((p: any) => {
+    const matchesSearch = !searchTerm ||
+      p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.semesters?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
+    return matchesSearch && matchesSemester;
   });
 
   if (isLoading) {
