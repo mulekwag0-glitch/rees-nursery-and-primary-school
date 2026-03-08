@@ -161,10 +161,32 @@ export default function Expenses() {
             <h1 className="text-2xl font-bold text-foreground">Expenses</h1>
             <p className="text-muted-foreground">Track and manage institutional expenditure</p>
           </div>
-          <Dialog open={open} onOpenChange={(o) => { if (!o) resetForm(); setOpen(o); }}>
-            <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 mr-2" />Record Expense</Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => {
+              if (!filtered?.length) return;
+              const headers = ['Date', 'Title', 'Category', 'Amount', 'Receipt Ref', 'Status', 'Recorded By'];
+              const rows = filtered.map((e: any) => [
+                new Date(e.expense_date).toLocaleDateString(),
+                `"${e.title}"`,
+                CATEGORIES.find(c => c.value === e.category)?.label || e.category,
+                parseFloat(e.amount),
+                e.receipt_reference || '',
+                e.status,
+                profileMap[e.recorded_by] || 'Unknown',
+              ]);
+              const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = `expenses-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+            }}>
+              <Download className="w-4 h-4 mr-2" />Export CSV
+            </Button>
+            <Dialog open={open} onOpenChange={(o) => { if (!o) resetForm(); setOpen(o); }}>
+              <DialogTrigger asChild>
+                <Button><Plus className="w-4 h-4 mr-2" />Record Expense</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>Record New Expense</DialogTitle>
