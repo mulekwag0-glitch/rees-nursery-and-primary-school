@@ -178,7 +178,7 @@ export default function Enrollments() {
           semester_id,
           students(
             student_id,
-            profiles:profiles!students_user_id_fkey(full_name)
+            profiles:profiles!students_user_id_profiles_fkey(full_name)
           ),
           courses(code, name, credit_units)
         `)
