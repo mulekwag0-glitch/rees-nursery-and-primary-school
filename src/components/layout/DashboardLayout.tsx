@@ -63,6 +63,7 @@ const navItems: NavItem[] = [
   { label: 'Semesters', href: '/semesters', icon: Calendar, roles: ['admin'] },
   { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'] },
   { label: 'User Management', href: '/users', icon: Shield, roles: ['admin'] },
+  { label: 'Audit Logs', href: '/audit-logs', icon: ScrollText, roles: ['admin'] },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
