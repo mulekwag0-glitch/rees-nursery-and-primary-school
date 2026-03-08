@@ -193,6 +193,19 @@ export default function Transcripts() {
     return 'Fail';
   };
 
+  const getResultsBySemester = () => {
+    const grouped: Record<string, { semesterName: string; semesterNumber: number; results: ResultWithDetails[] }> = {};
+    studentResults.forEach(result => {
+      const semName = result.student_courses.semesters.name;
+      const semNum = result.student_courses.semesters.semester_number;
+      if (!grouped[semName]) {
+        grouped[semName] = { semesterName: semName, semesterNumber: semNum, results: [] };
+      }
+      grouped[semName].results.push(result);
+    });
+    return Object.values(grouped).sort((a, b) => a.semesterNumber - b.semesterNumber);
+  };
+
   const handlePrint = async (type: 'transcript' | 'certificate') => {
     const printContent = type === 'transcript' ? transcriptRef.current : certificateRef.current;
     if (!printContent) return;
