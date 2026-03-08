@@ -235,7 +235,8 @@ export default function Expenses() {
                 </DialogFooter>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         {/* Summary Cards */}

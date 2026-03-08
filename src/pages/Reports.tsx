@@ -334,12 +334,14 @@ export default function Reports() {
         </div>
 
         <Tabs defaultValue="payments" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-4 max-w-lg">
             <TabsTrigger value="payments"><CreditCard className="w-4 h-4 mr-2" />Payments</TabsTrigger>
+            <TabsTrigger value="expenses"><TrendingDown className="w-4 h-4 mr-2" />Expenses</TabsTrigger>
             <TabsTrigger value="enrollments"><Users className="w-4 h-4 mr-2" />Enrollments</TabsTrigger>
             <TabsTrigger value="results"><GraduationCap className="w-4 h-4 mr-2" />Results</TabsTrigger>
           </TabsList>
           <TabsContent value="payments" className="mt-6"><PaymentReports /></TabsContent>
+          <TabsContent value="expenses" className="mt-6"><ExpenseReports /></TabsContent>
           <TabsContent value="enrollments" className="mt-6"><EnrollmentReports /></TabsContent>
           <TabsContent value="results" className="mt-6"><ResultReports /></TabsContent>
         </Tabs>
