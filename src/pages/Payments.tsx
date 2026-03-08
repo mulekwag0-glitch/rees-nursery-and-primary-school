@@ -7,10 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { PaymentFormModal } from '@/components/payments/PaymentFormModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import {
+  CalendarIcon,
   CreditCard,
   Search,
   Download,
@@ -20,6 +25,7 @@ import {
   Loader2,
   Printer,
   Filter,
+  X,
 } from 'lucide-react';
 
 function printReceipt(payment: any) {
@@ -72,6 +78,18 @@ function FinancePaymentsView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
+  const [programFilter, setProgramFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+
+  const { data: programs } = useQuery({
+    queryKey: ['programs'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('programs').select('id, name, code').order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: semesters } = useQuery({
     queryKey: ['semesters'],
@@ -91,6 +109,7 @@ function FinancePaymentsView() {
           *,
           students:student_id (
             student_id,
+            program_id,
             profiles:user_id (full_name)
           ),
           semesters:semester_id (name)
@@ -121,6 +140,17 @@ function FinancePaymentsView() {
     },
   });
 
+  const hasActiveFilters = methodFilter !== 'all' || semesterFilter !== 'all' || programFilter !== 'all' || !!dateFrom || !!dateTo;
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setMethodFilter('all');
+    setSemesterFilter('all');
+    setProgramFilter('all');
+    setDateFrom(undefined);
+    setDateTo(undefined);
+  };
+
   const filteredPayments = payments?.filter((p: any) => {
     const matchesSearch =
       !searchTerm ||
@@ -129,7 +159,11 @@ function FinancePaymentsView() {
       p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMethod = methodFilter === 'all' || p.payment_method === methodFilter;
     const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
-    return matchesSearch && matchesMethod && matchesSemester;
+    const matchesProgram = programFilter === 'all' || p.students?.program_id === programFilter;
+    const paymentDate = new Date(p.payment_date);
+    const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
+    const matchesDateTo = !dateTo || paymentDate <= dateTo;
+    return matchesSearch && matchesMethod && matchesSemester && matchesProgram && matchesDateFrom && matchesDateTo;
   });
 
   const exportCSV = () => {
@@ -199,7 +233,7 @@ function FinancePaymentsView() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -210,6 +244,13 @@ function FinancePaymentsView() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Button variant="outline" onClick={exportCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+            <PaymentFormModal onSuccess={refetch} />
+          </div>
+          <div className="flex flex-wrap gap-3">
             <Select value={methodFilter} onValueChange={setMethodFilter}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Method" />
@@ -233,11 +274,45 @@ function FinancePaymentsView() {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={exportCSV}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <PaymentFormModal onSuccess={refetch} />
+            <Select value={programFilter} onValueChange={setProgramFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Program" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Programs</SelectItem>
+                {programs?.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>{p.code} - {p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "From date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateTo ? format(dateTo, "dd/MM/yyyy") : "To date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                <X className="w-4 h-4 mr-1" />
+                Clear filters
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -308,6 +383,8 @@ function FinancePaymentsView() {
 
 function StudentPaymentsView() {
   const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [semesterFilter, setSemesterFilter] = useState('all');
 
   const { data: studentData, isLoading } = useQuery({
     queryKey: ['student-payments', user?.id],
@@ -336,9 +413,19 @@ function StudentPaymentsView() {
       const balance = totalFee - totalPaid;
       const percentage = totalFee > 0 ? Math.min(100, (totalPaid / totalFee) * 100) : 0;
 
-      return { payments, totalFee, totalPaid, balance, percentage };
+      const semesters = [...new Set(payments?.map((p: any) => JSON.stringify({ id: p.semester_id, name: p.semesters?.name })))].map(s => JSON.parse(s));
+
+      return { payments, totalFee, totalPaid, balance, percentage, semesters };
     },
     enabled: !!user?.id,
+  });
+
+  const filteredPayments = studentData?.payments?.filter((p: any) => {
+    const matchesSearch = !searchTerm ||
+      p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.semesters?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
+    return matchesSearch && matchesSemester;
   });
 
   if (isLoading) {
@@ -373,14 +460,42 @@ function StudentPaymentsView() {
         </CardContent>
       </Card>
 
+      {/* Search & Filter */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by receipt or semester..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Semester" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Semesters</SelectItem>
+                {studentData?.semesters?.map((s: any) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Payment History</CardTitle>
-          <CardDescription>Your payment transactions</CardDescription>
+          <CardDescription>Showing {filteredPayments?.length || 0} transactions</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {studentData?.payments?.map((payment: any) => (
+            {filteredPayments?.map((payment: any) => (
               <div key={payment.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
@@ -399,8 +514,8 @@ function StudentPaymentsView() {
                 </div>
               </div>
             ))}
-            {!studentData?.payments?.length && (
-              <p className="text-center text-muted-foreground py-8">No payments recorded yet</p>
+            {!filteredPayments?.length && (
+              <p className="text-center text-muted-foreground py-8">No payments found</p>
             )}
           </div>
         </CardContent>
