@@ -75,13 +75,18 @@ export default function Expenses() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated');
+      const validation = validateForm(expenseSchema, {
+        title, description, amount: parseFloat(amount) || 0, category, expenseDate, receiptRef,
+      });
+      if (!validation.success) throw new Error(validation.error);
+      const v = validation.data;
       const { data, error } = await supabase.from('expenses').insert({
-        title,
-        description: description || null,
-        amount: parseFloat(amount),
-        category,
-        expense_date: expenseDate,
-        receipt_reference: receiptRef || null,
+        title: v.title,
+        description: v.description || null,
+        amount: v.amount,
+        category: v.category,
+        expense_date: v.expenseDate,
+        receipt_reference: v.receiptRef || null,
         recorded_by: user.id,
       }).select().single();
       if (error) throw error;
