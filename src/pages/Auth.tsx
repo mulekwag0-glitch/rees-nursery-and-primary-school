@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Building2, Mail, Lock, Loader2, GraduationCap, Briefcase } from 'lucide-react';
+import { Mail, Lock, Loader2, GraduationCap, Briefcase } from 'lucide-react';
 import { z } from 'zod';
+import salemLogo from '@/assets/salem-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
