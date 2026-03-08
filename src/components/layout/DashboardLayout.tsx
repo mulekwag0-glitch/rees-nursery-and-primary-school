@@ -14,6 +14,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   LayoutDashboard,
   Users,
   GraduationCap,
@@ -25,6 +30,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
   Bell,
   Calendar,
   ClipboardList,
@@ -42,9 +48,17 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: string[];
+  group?: string;
 }
 
-const navItems: NavItem[] = [
+interface NavGroup {
+  label: string;
+  icon: React.ElementType;
+  roles: string[];
+  items: NavItem[];
+}
+
+const standaloneNavItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'tutor', 'finance', 'admin'] },
   { label: 'My Profile', href: '/profile', icon: Users, roles: ['student'] },
   { label: 'Students', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
@@ -56,9 +70,6 @@ const navItems: NavItem[] = [
   { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['student', 'finance', 'admin'] },
   { label: 'Fee Structures', href: '/fee-structures', icon: CreditCard, roles: ['admin', 'finance'] },
   { label: 'Expenses', href: '/expenses', icon: CreditCard, roles: ['admin', 'finance'] },
-  { label: 'Employees', href: '/employees', icon: Briefcase, roles: ['admin', 'finance'] },
-  { label: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['admin', 'finance'] },
-  { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'] },
   { label: 'Transcripts', href: '/transcripts', icon: FileText, roles: ['admin'] },
   { label: 'Programs', href: '/programs', icon: Building2, roles: ['admin'] },
   { label: 'Semesters', href: '/semesters', icon: Calendar, roles: ['admin'] },
@@ -66,6 +77,19 @@ const navItems: NavItem[] = [
   { label: 'User Management', href: '/users', icon: Shield, roles: ['admin'] },
   { label: 'Audit Logs', href: '/audit-logs', icon: ScrollText, roles: ['admin'] },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
+];
+
+const navGroups: NavGroup[] = [
+  {
+    label: 'Human Resource',
+    icon: Briefcase,
+    roles: ['admin', 'finance'],
+    items: [
+      { label: 'Employees', href: '/employees', icon: Users, roles: ['admin', 'finance'] },
+      { label: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['admin', 'finance'] },
+      { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'] },
+    ],
+  },
 ];
 
 interface DashboardLayoutProps {
