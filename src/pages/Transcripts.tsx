@@ -538,6 +538,7 @@ export default function Transcripts() {
             </div>
             <div ref={certificateRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
               <div className="header" style={{ borderBottom: 'none' }}>
+                <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
                 <div className="logo">SALEM UGANDA</div>
                 <div className="subtitle">Institution of Higher Learning</div>
                 <div className="title" style={{ marginTop: '30px' }}>Certificate of Completion</div>
