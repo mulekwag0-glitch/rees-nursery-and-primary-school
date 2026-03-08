@@ -250,6 +250,7 @@ export default function StudentProfile() {
 
   const cgpa = parseFloat(calculateCGPA() as string);
 
+  if (loading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
