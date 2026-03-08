@@ -21,6 +21,8 @@ import {
   GraduationCap,
   Printer,
   TrendingUp,
+  History,
+  Clock,
 } from 'lucide-react';
 import salemLogo from '@/assets/salem-logo.png';
 import {
