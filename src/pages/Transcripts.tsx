@@ -446,12 +446,12 @@ export default function Transcripts() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end mb-4">
-              <Button onClick={handlePrint}>
+              <Button onClick={() => handlePrint('transcript')}>
                 <Printer className="w-4 h-4 mr-2" />
                 Print Transcript
               </Button>
             </div>
-            <div ref={printRef} className="p-6 bg-white text-black">
+            <div ref={transcriptRef} className="p-6 bg-white text-black">
               <div className="header">
                 <div className="logo">SALEM UGANDA</div>
                 <div className="subtitle">Institution of Higher Learning</div>
