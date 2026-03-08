@@ -108,6 +108,8 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
         await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
       }
 
+      await logAudit('payment_recorded', 'payments', data.id, null, { student_id: studentId, amount: parseFloat(amount), receipt_number: receiptNumber });
+
       toast({
         title: 'Payment Recorded',
         description: `Receipt ${receiptNumber} generated successfully.`,

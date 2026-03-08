@@ -96,6 +96,8 @@ export default function Admissions() {
       const selectedProgram = programs?.find(p => p.id === programId);
       await notifyStudentAdmitted(userId, studentIdNumber, selectedProgram?.name || 'your program');
 
+      await logAudit('student_admitted', 'students', userId, null, { student_id: studentIdNumber, email, program_id: programId });
+
       return { studentIdNumber, tempPassword };
     },
     onSuccess: (data) => {

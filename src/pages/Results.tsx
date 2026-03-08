@@ -253,6 +253,8 @@ function AdminResultsView() {
         .eq('status', 'submitted');
       if (error) throw error;
 
+      await logAudit('results_approved', 'results', null, null, { course: courseCode });
+
       // Send notifications to students
       const notified = new Set<string>();
       for (const r of submittedResults || []) {
