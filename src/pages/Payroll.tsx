@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logAudit } from '@/lib/audit';
 import { Plus, Loader2, CheckCircle, DollarSign, TrendingDown, Search, Printer } from 'lucide-react';
+import { payrollSchema, validateForm } from '@/lib/validation';
 
 export default function Payroll() {
   const { toast } = useToast();
