@@ -590,7 +590,7 @@ export default function Transcripts() {
         await supabase.storage.from('student-photos').upload(filePath, blob, { upsert: true });
         const { data: urlData } = supabase.storage.from('student-photos').getPublicUrl(filePath);
 
-        await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', (student as any).user_id || student.id);
+        await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', student.user_id);
       }
 
       toast({ title: 'Photos Assigned', description: `Sample photos assigned to ${studentsWithoutPhotos.length} students.` });
