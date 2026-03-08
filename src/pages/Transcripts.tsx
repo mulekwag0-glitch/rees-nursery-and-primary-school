@@ -194,17 +194,41 @@ export default function Transcripts() {
     return 'Fail';
   };
 
+  const getAcademicYears = () => {
+    const years = new Set<string>();
+    studentResults.forEach(r => years.add(r.student_courses.semesters.academic_years.name));
+    return Array.from(years).sort();
+  };
+
+  const filteredResults = selectedYear === 'all' 
+    ? studentResults 
+    : studentResults.filter(r => r.student_courses.semesters.academic_years.name === selectedYear);
+
   const getResultsBySemester = () => {
-    const grouped: Record<string, { semesterName: string; semesterNumber: number; results: ResultWithDetails[] }> = {};
-    studentResults.forEach(result => {
+    const grouped: Record<string, { semesterName: string; semesterNumber: number; academicYear: string; results: ResultWithDetails[]; semesterGPA: string }> = {};
+    filteredResults.forEach(result => {
       const semName = result.student_courses.semesters.name;
       const semNum = result.student_courses.semesters.semester_number;
+      const ayName = result.student_courses.semesters.academic_years.name;
       if (!grouped[semName]) {
-        grouped[semName] = { semesterName: semName, semesterNumber: semNum, results: [] };
+        grouped[semName] = { semesterName: semName, semesterNumber: semNum, academicYear: ayName, results: [], semesterGPA: '0.00' };
       }
       grouped[semName].results.push(result);
     });
-    return Object.values(grouped).sort((a, b) => a.semesterNumber - b.semesterNumber);
+    // Calculate per-semester GPA
+    Object.values(grouped).forEach(g => {
+      let totalGP = 0, totalCU = 0;
+      g.results.forEach(r => {
+        const cu = r.student_courses.courses.credit_units;
+        totalGP += (r.grade_point || 0) * cu;
+        totalCU += cu;
+      });
+      g.semesterGPA = totalCU > 0 ? (totalGP / totalCU).toFixed(2) : '0.00';
+    });
+    return Object.values(grouped).sort((a, b) => {
+      if (a.academicYear !== b.academicYear) return a.academicYear.localeCompare(b.academicYear);
+      return a.semesterNumber - b.semesterNumber;
+    });
   };
 
   const handlePrint = async (type: 'transcript' | 'certificate') => {
