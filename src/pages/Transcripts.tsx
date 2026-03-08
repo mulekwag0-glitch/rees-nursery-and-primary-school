@@ -385,7 +385,222 @@ export default function Transcripts() {
     }
   };
 
-  const getGPAProgressionData = () => {
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudents(prev => {
+      const next = new Set(prev);
+      if (next.has(studentId)) next.delete(studentId);
+      else next.add(studentId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedStudents.size === filteredStudents.length) {
+      setSelectedStudents(new Set());
+    } else {
+      setSelectedStudents(new Set(filteredStudents.map(s => s.id)));
+    }
+  };
+
+  const handleBatchGenerateTranscripts = async () => {
+    if (selectedStudents.size === 0) return;
+    setBatchGenerating(true);
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let isFirstPage = true;
+      const { data: { user } } = await supabase.auth.getUser();
+
+      for (const studentId of selectedStudents) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) continue;
+
+        // Fetch results for this student
+        const { data: scData } = await supabase
+          .from('student_courses')
+          .select('id')
+          .eq('student_id', studentId);
+
+        if (!scData?.length) continue;
+
+        const { data: resultsData } = await supabase
+          .from('results')
+          .select(`
+            id, coursework_marks, exam_marks, total_marks, grade, grade_point, status,
+            student_courses(
+              courses(code, name, credit_units),
+              semesters(name, semester_number, academic_years(name))
+            )
+          `)
+          .eq('status', 'approved')
+          .in('student_course_id', scData.map(sc => sc.id));
+
+        const results = (resultsData || []) as unknown as ResultWithDetails[];
+
+        // Calculate CGPA
+        let totalGP = 0, totalCU = 0;
+        results.forEach(r => {
+          const cu = r.student_courses.courses.credit_units;
+          totalGP += (r.grade_point || 0) * cu;
+          totalCU += cu;
+        });
+        const studentCGPA = totalCU > 0 ? (totalGP / totalCU).toFixed(2) : '0.00';
+
+        // Group by semester
+        const grouped: Record<string, { semesterName: string; results: ResultWithDetails[]; semesterGPA: string }> = {};
+        results.forEach(r => {
+          const semName = r.student_courses.semesters.name;
+          if (!grouped[semName]) grouped[semName] = { semesterName: semName, results: [], semesterGPA: '0.00' };
+          grouped[semName].results.push(r);
+        });
+        Object.values(grouped).forEach(g => {
+          let gp = 0, cu = 0;
+          g.results.forEach(r => { const c = r.student_courses.courses.credit_units; gp += (r.grade_point || 0) * c; cu += c; });
+          g.semesterGPA = cu > 0 ? (gp / cu).toFixed(2) : '0.00';
+        });
+
+        // Build transcript page using jsPDF directly
+        if (!isFirstPage) pdf.addPage();
+        isFirstPage = false;
+
+        let y = 20;
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('SALEM UGANDA', 105, y, { align: 'center' });
+        y += 7;
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Institution of Higher Learning', 105, y, { align: 'center' });
+        y += 7;
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('OFFICIAL ACADEMIC TRANSCRIPT', 105, y, { align: 'center' });
+        y += 10;
+
+        pdf.setDrawColor(26, 54, 93);
+        pdf.line(20, y, 190, y);
+        y += 10;
+
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Student Name: ${student.profiles.full_name}`, 20, y);
+        pdf.text(`Student ID: ${student.student_id}`, 120, y);
+        y += 6;
+        pdf.text(`Program: ${student.programs.name}`, 20, y);
+        pdf.text(`Enrollment: ${new Date(student.enrollment_date).toLocaleDateString()}`, 120, y);
+        y += 10;
+
+        for (const sem of Object.values(grouped)) {
+          if (y > 260) { pdf.addPage(); y = 20; }
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(sem.semesterName, 20, y);
+          y += 6;
+
+          // Table header
+          pdf.setFontSize(8);
+          pdf.setFillColor(26, 54, 93);
+          pdf.setTextColor(255, 255, 255);
+          pdf.rect(20, y, 170, 6, 'F');
+          pdf.text('Code', 22, y + 4);
+          pdf.text('Course Name', 45, y + 4);
+          pdf.text('CU', 120, y + 4);
+          pdf.text('Marks', 135, y + 4);
+          pdf.text('Grade', 155, y + 4);
+          pdf.text('GP', 175, y + 4);
+          y += 6;
+          pdf.setTextColor(0, 0, 0);
+
+          for (const r of sem.results) {
+            if (y > 275) { pdf.addPage(); y = 20; }
+            pdf.setFont('helvetica', 'normal');
+            pdf.text(r.student_courses.courses.code, 22, y + 4);
+            pdf.text(r.student_courses.courses.name.substring(0, 40), 45, y + 4);
+            pdf.text(String(r.student_courses.courses.credit_units), 122, y + 4);
+            pdf.text(String(r.total_marks || 0), 137, y + 4);
+            pdf.text(r.grade || '-', 157, y + 4);
+            pdf.text(String(r.grade_point || 0), 177, y + 4);
+            pdf.line(20, y + 6, 190, y + 6);
+            y += 6;
+          }
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`Semester GPA: ${sem.semesterGPA}`, 140, y + 5);
+          y += 10;
+        }
+
+        if (y > 260) { pdf.addPage(); y = 20; }
+        y += 5;
+        pdf.setFontSize(11);
+        pdf.text(`Cumulative GPA: ${studentCGPA}`, 20, y);
+        y += 6;
+        pdf.text(`Classification: ${getClassification(parseFloat(studentCGPA))}`, 20, y);
+
+        // Log generation
+        if (user) {
+          await supabase.from('document_logs').insert({
+            student_id: student.id,
+            document_type: 'transcript',
+            generated_by: user.id,
+            student_name: student.profiles.full_name,
+            student_number: student.student_id,
+            program_name: student.programs.name,
+          });
+        }
+      }
+
+      pdf.save(`batch_transcripts_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast({ title: 'Batch PDF Generated', description: `${selectedStudents.size} transcripts downloaded.` });
+      fetchDocumentLogs();
+      setSelectedStudents(new Set());
+      setBatchMode(false);
+    } catch (error) {
+      console.error('Batch generation error:', error);
+      toast({ title: 'Error', description: 'Failed to generate batch transcripts', variant: 'destructive' });
+    } finally {
+      setBatchGenerating(false);
+    }
+  };
+
+  const SAMPLE_PHOTOS = [
+    '/sample-photos/male-student-1.jpg',
+    '/sample-photos/female-student-1.jpg',
+    '/sample-photos/male-student-2.jpg',
+    '/sample-photos/female-student-2.jpg',
+  ];
+
+  const handleAssignSamplePhotos = async () => {
+    setAssigningPhotos(true);
+    try {
+      const studentsWithoutPhotos = students.filter(s => !s.profiles.avatar_url);
+      if (studentsWithoutPhotos.length === 0) {
+        toast({ title: 'All Set', description: 'All students already have photos assigned.' });
+        return;
+      }
+
+      for (let i = 0; i < studentsWithoutPhotos.length; i++) {
+        const student = studentsWithoutPhotos[i];
+        const photoUrl = window.location.origin + SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
+
+        // Fetch the sample image
+        const response = await fetch(SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length]);
+        const blob = await response.blob();
+        const filePath = `${student.id}/passport.jpg`;
+
+        await supabase.storage.from('student-photos').upload(filePath, blob, { upsert: true });
+        const { data: urlData } = supabase.storage.from('student-photos').getPublicUrl(filePath);
+
+        await supabase.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', (student as any).user_id || student.id);
+      }
+
+      toast({ title: 'Photos Assigned', description: `Sample photos assigned to ${studentsWithoutPhotos.length} students.` });
+      fetchStudents();
+    } catch (error) {
+      console.error('Error assigning photos:', error);
+      toast({ title: 'Error', description: 'Failed to assign sample photos', variant: 'destructive' });
+    } finally {
+      setAssigningPhotos(false);
+    }
+  };
+
     const allSemesters = getResultsBySemesterAll();
     let cumulativeGP = 0;
     let cumulativeCU = 0;
