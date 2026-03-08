@@ -171,6 +171,7 @@ export default function Transcripts() {
     }
   };
 
+  const fetchStudentResults = async () => {
     if (!selectedStudent) return;
 
     try {
