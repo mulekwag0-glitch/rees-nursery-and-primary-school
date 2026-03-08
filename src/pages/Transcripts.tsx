@@ -529,12 +529,12 @@ export default function Transcripts() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end mb-4">
-              <Button onClick={handlePrint}>
+              <Button onClick={() => handlePrint('certificate')}>
                 <Printer className="w-4 h-4 mr-2" />
                 Print Certificate
               </Button>
             </div>
-            <div ref={printRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
+            <div ref={certificateRef} className="p-6 bg-white text-black" style={{ border: '3px double #000', margin: '10px' }}>
               <div className="header" style={{ borderBottom: 'none' }}>
                 <div className="logo">SALEM UGANDA</div>
                 <div className="subtitle">Institution of Higher Learning</div>
