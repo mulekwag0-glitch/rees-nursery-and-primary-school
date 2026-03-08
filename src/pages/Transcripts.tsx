@@ -1130,32 +1130,76 @@ export default function Transcripts() {
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 'bold', marginTop: '20px', textTransform: 'uppercase' as const, color: '#1a365d', letterSpacing: '2px' }}>Certificate of Completion</div>
                   </div>
                   
-                  <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                  <div style={{ textAlign: 'center', padding: '20px 20px 10px' }}>
                     <p style={{ fontSize: '16px' }}>This is to certify that</p>
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '36px', fontWeight: 'bold', margin: '15px auto', color: '#1a365d', borderBottom: '2px solid #b8860b', display: 'inline-block', paddingBottom: '5px' }}>
                       {selectedStudentData?.profiles.full_name}
                     </div>
                     <p style={{ fontSize: '16px' }}>Student ID: {selectedStudentData?.student_id}</p>
-                    <p style={{ fontSize: '16px', marginTop: '20px' }}>has successfully completed the requirements for</p>
+                    <p style={{ fontSize: '16px', marginTop: '15px' }}>has successfully completed the requirements for</p>
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', margin: '10px 0', color: '#333', fontStyle: 'italic' }}>
                       {selectedStudentData?.programs.name}
                     </div>
-                    <p style={{ fontSize: '16px', marginTop: '20px' }}>
+                    <p style={{ fontSize: '16px', marginTop: '10px' }}>
                       with a Cumulative Grade Point Average of <strong>{cgpa}</strong>
                     </p>
-                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', color: '#b8860b', fontWeight: 'bold', marginTop: '10px' }}>
+                    <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '20px', color: '#b8860b', fontWeight: 'bold', marginTop: '5px' }}>
                       {getClassification(cgpa)}
                     </div>
-                    {/* Decorative seal */}
-                    <div style={{ width: '80px', height: '80px', margin: '20px auto', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' as const }}>
+                  </div>
+
+                  {/* Academic Results Summary */}
+                  {studentResults.length > 0 && (
+                    <div style={{ margin: '15px 0', padding: '0 10px' }}>
+                      <div style={{ textAlign: 'center', fontSize: '14px', fontWeight: 'bold', color: '#1a365d', marginBottom: '10px', textTransform: 'uppercase' as const, letterSpacing: '1px' }}>Academic Results Summary</div>
+                      {getResultsBySemester().map((semester, idx) => (
+                        <div key={idx} style={{ marginBottom: '12px' }}>
+                          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#1a365d', marginBottom: '4px' }}>
+                            {semester.semesterName}, {semester.academicYear}
+                          </div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                            <thead>
+                              <tr style={{ background: '#1a365d', color: 'white' }}>
+                                <th style={{ border: '1px solid #333', padding: '4px 6px', textAlign: 'left' }}>Code</th>
+                                <th style={{ border: '1px solid #333', padding: '4px 6px', textAlign: 'left' }}>Course</th>
+                                <th style={{ border: '1px solid #333', padding: '4px 6px', textAlign: 'center' }}>CU</th>
+                                <th style={{ border: '1px solid #333', padding: '4px 6px', textAlign: 'center' }}>Marks</th>
+                                <th style={{ border: '1px solid #333', padding: '4px 6px', textAlign: 'center' }}>Grade</th>
+                                <th style={{ border: '1px solid #333', padding: '4px 6px', textAlign: 'center' }}>GP</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {semester.results.map((r, rIdx) => (
+                                <tr key={rIdx}>
+                                  <td style={{ border: '1px solid #ccc', padding: '3px 6px' }}>{r.student_courses.courses.code}</td>
+                                  <td style={{ border: '1px solid #ccc', padding: '3px 6px' }}>{r.student_courses.courses.name}</td>
+                                  <td style={{ border: '1px solid #ccc', padding: '3px 6px', textAlign: 'center' }}>{r.student_courses.courses.credit_units}</td>
+                                  <td style={{ border: '1px solid #ccc', padding: '3px 6px', textAlign: 'center' }}>{r.total_marks}</td>
+                                  <td style={{ border: '1px solid #ccc', padding: '3px 6px', textAlign: 'center', fontWeight: 'bold' }}>{r.grade}</td>
+                                  <td style={{ border: '1px solid #ccc', padding: '3px 6px', textAlign: 'center' }}>{r.grade_point}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          <div style={{ textAlign: 'right', fontSize: '11px', fontWeight: 'bold', marginTop: '2px', color: '#333' }}>
+                            Semester GPA: {semester.semesterGPA}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Seal and date */}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ width: '80px', height: '80px', margin: '10px auto', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' as const }}>
                       Official<br/>Seal
                     </div>
-                    <p style={{ fontSize: '14px', marginTop: '10px', color: '#666', fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '14px', marginTop: '5px', color: '#666', fontStyle: 'italic' }}>
                       Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   </div>
 
-                  <div className="signature" style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="signature" style={{ marginTop: '30px', display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Principal</div>
                     <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Academic Registrar</div>
                     <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Official Stamp</div>
