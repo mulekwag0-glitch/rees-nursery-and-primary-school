@@ -84,7 +84,8 @@ export default function Transcripts() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
-  const printRef = useRef<HTMLDivElement>(null);
+  const transcriptRef = useRef<HTMLDivElement>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchStudents();
