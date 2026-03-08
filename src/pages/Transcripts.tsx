@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { notifyDocumentGenerated } from '@/lib/notifications';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   FileText,
   Download,
@@ -17,6 +20,7 @@ import {
   Award,
   GraduationCap,
   Printer,
+  TrendingUp,
 } from 'lucide-react';
 import salemLogo from '@/assets/salem-logo.png';
 import {
