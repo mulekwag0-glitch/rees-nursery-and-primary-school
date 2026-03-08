@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
 type AppRole = 'student' | 'tutor' | 'finance' | 'admin';
 
@@ -78,6 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setRole(null);
   };
+
+  // Auto-logout after 30 minutes of inactivity
+  useSessionTimeout(!!user);
 
   return (
     <AuthContext.Provider value={{ user, session, role, loading, signIn, signOut }}>

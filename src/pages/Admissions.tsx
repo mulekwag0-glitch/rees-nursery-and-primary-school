@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Search, Loader2, GraduationCap, Phone, MapPin } from 'lucide-react';
 import { notifyStudentAdmitted } from '@/lib/notifications';
 import { logAudit } from '@/lib/audit';
+import { admissionSchema, validateForm } from '@/lib/validation';
 
 export default function Admissions() {
   const { toast } = useToast();
@@ -58,6 +59,9 @@ export default function Admissions() {
 
   const admitMutation = useMutation({
     mutationFn: async () => {
+      const v = validateForm(admissionSchema, {
+        fullName, email, phone, programId, currentYear: parseInt(currentYear),
+      });
       const studentIdNumber = generateStudentId();
       const tempPassword = `Salem${new Date().getFullYear()}!`;
 

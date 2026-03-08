@@ -12,6 +12,7 @@ import { Plus, Loader2, Printer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { notifyPaymentRecorded } from '@/lib/notifications';
 import { logAudit } from '@/lib/audit';
+import { paymentSchema, validateForm } from '@/lib/validation';
 
 interface PaymentFormModalProps {
   onSuccess?: () => void;
@@ -70,22 +71,26 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentId || !semesterId || !amount || !user) return;
-
-    setLoading(true);
-    const receiptNumber = generateReceiptNumber();
+    if (!user) return;
 
     try {
+      const v = validateForm(paymentSchema, {
+        studentId, semesterId, amount: parseFloat(amount) || 0, paymentMethod, notes,
+      });
+
+      setLoading(true);
+      const receiptNumber = generateReceiptNumber();
+
       const { data, error } = await supabase
         .from('payments')
         .insert({
-          student_id: studentId,
-          semester_id: semesterId,
-          amount: parseFloat(amount),
-          payment_method: paymentMethod,
+          student_id: v.studentId,
+          semester_id: v.semesterId,
+          amount: v.amount,
+          payment_method: v.paymentMethod,
           receipt_number: receiptNumber,
           recorded_by: user.id,
-          notes: notes || null,
+          notes: v.notes || null,
         })
         .select(`
           *,
@@ -102,13 +107,12 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
       setReceiptData(data);
       setShowReceipt(true);
 
-      // Send notification to student
-      const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', studentId).single();
+      const { data: studentRecord } = await supabase.from('students').select('user_id').eq('id', v.studentId).single();
       if (studentRecord?.user_id) {
-        await notifyPaymentRecorded(studentRecord.user_id, parseFloat(amount), receiptNumber);
+        await notifyPaymentRecorded(studentRecord.user_id, v.amount, receiptNumber);
       }
 
-      await logAudit('payment_recorded', 'payments', data.id, null, { student_id: studentId, amount: parseFloat(amount), receipt_number: receiptNumber });
+      await logAudit('payment_recorded', 'payments', data.id, null, { student_id: v.studentId, amount: v.amount, receipt_number: receiptNumber });
 
       toast({
         title: 'Payment Recorded',

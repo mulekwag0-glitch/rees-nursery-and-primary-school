@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logAudit } from '@/lib/audit';
 import { Plus, Loader2, CheckCircle, DollarSign, TrendingDown, Search, Printer } from 'lucide-react';
+import { payrollSchema, validateForm } from '@/lib/validation';
 
 export default function Payroll() {
   const { toast } = useToast();
@@ -54,15 +55,21 @@ export default function Payroll() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const v = validateForm(payrollSchema, {
+        employeeId, payPeriod,
+        basicSalary: parseFloat(basicSalary) || 0, allowances: parseFloat(allowances) || 0,
+        nssfDeduction: parseFloat(nssfDeduction) || 0, payeTax: parseFloat(payeTax) || 0,
+        otherDeductions: parseFloat(otherDeductions) || 0, notes,
+      });
       const { data, error } = await supabase.from('payroll_records').insert({
-        employee_id: employeeId,
-        pay_period: payPeriod,
-        basic_salary: parseFloat(basicSalary) || 0,
-        allowances: parseFloat(allowances) || 0,
-        nssf_deduction: parseFloat(nssfDeduction) || 0,
-        paye_tax: parseFloat(payeTax) || 0,
-        other_deductions: parseFloat(otherDeductions) || 0,
-        notes: notes || null,
+        employee_id: v.employeeId,
+        pay_period: v.payPeriod,
+        basic_salary: v.basicSalary,
+        allowances: v.allowances,
+        nssf_deduction: v.nssfDeduction,
+        paye_tax: v.payeTax,
+        other_deductions: v.otherDeductions,
+        notes: v.notes || null,
       }).select().single();
       if (error) throw error;
       await logAudit('payroll_created', 'payroll_records', data.id, null, { employee_id: employeeId, pay_period: payPeriod });

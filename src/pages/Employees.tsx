@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Loader2, Users, Trash2, Edit } from 'lucide-react';
+import { employeeSchema, validateForm } from '@/lib/validation';
 
 const DEPARTMENTS = [
   'Administration', 'Academic', 'Finance', 'IT', 'Library', 'Maintenance', 'Security', 'General',
@@ -51,18 +52,22 @@ export default function Employees() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const v = validateForm(employeeSchema, {
+        fullName, email, phone, department, jobTitle, hireDate,
+        salary: parseFloat(salary) || 0, bankName, bankAccount, nssfNumber, tinNumber,
+      });
       const { error } = await supabase.from('employees').insert({
-        full_name: fullName,
-        email,
-        phone: phone || null,
-        department: department.toLowerCase(),
-        job_title: jobTitle,
-        hire_date: hireDate,
-        salary: parseFloat(salary) || 0,
-        bank_name: bankName || null,
-        bank_account: bankAccount || null,
-        nssf_number: nssfNumber || null,
-        tin_number: tinNumber || null,
+        full_name: v.fullName,
+        email: v.email,
+        phone: v.phone || null,
+        department: v.department.toLowerCase(),
+        job_title: v.jobTitle,
+        hire_date: v.hireDate,
+        salary: v.salary,
+        bank_name: v.bankName || null,
+        bank_account: v.bankAccount || null,
+        nssf_number: v.nssfNumber || null,
+        tin_number: v.tinNumber || null,
       });
       if (error) throw error;
     },

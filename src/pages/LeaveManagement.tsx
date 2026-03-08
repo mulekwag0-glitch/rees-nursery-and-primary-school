@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Loader2, CheckCircle, XCircle, Calendar, Search } from 'lucide-react';
+import { leaveRequestSchema, validateForm } from '@/lib/validation';
 
 const LEAVE_TYPES = [
   { value: 'annual', label: 'Annual Leave' },
@@ -60,12 +61,15 @@ export default function LeaveManagement() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      const v = validateForm(leaveRequestSchema, {
+        employeeId, leaveType, startDate, endDate, reason,
+      });
       const { error } = await supabase.from('leave_requests').insert({
-        employee_id: employeeId,
-        leave_type: leaveType,
-        start_date: startDate,
-        end_date: endDate,
-        reason: reason || null,
+        employee_id: v.employeeId,
+        leave_type: v.leaveType,
+        start_date: v.startDate,
+        end_date: v.endDate,
+        reason: v.reason || null,
       });
       if (error) throw error;
     },

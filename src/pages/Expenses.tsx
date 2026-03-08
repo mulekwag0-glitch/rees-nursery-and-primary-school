@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logAudit } from '@/lib/audit';
 import { Plus, Search, Loader2, Receipt, TrendingDown, CheckCircle, Clock, Trash2, Download } from 'lucide-react';
+import { expenseSchema, validateForm, sanitizeCsvValue } from '@/lib/validation';
 
 const CATEGORIES = [
   { value: 'salaries', label: 'Salaries & Wages' },
@@ -74,13 +75,16 @@ export default function Expenses() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Not authenticated');
+      const v = validateForm(expenseSchema, {
+        title, description, amount: parseFloat(amount) || 0, category, expenseDate, receiptRef,
+      });
       const { data, error } = await supabase.from('expenses').insert({
-        title,
-        description: description || null,
-        amount: parseFloat(amount),
-        category,
-        expense_date: expenseDate,
-        receipt_reference: receiptRef || null,
+        title: v.title,
+        description: v.description || null,
+        amount: v.amount,
+        category: v.category,
+        expense_date: v.expenseDate,
+        receipt_reference: v.receiptRef || null,
         recorded_by: user.id,
       }).select().single();
       if (error) throw error;
@@ -166,13 +170,13 @@ export default function Expenses() {
               if (!filtered?.length) return;
               const headers = ['Date', 'Title', 'Category', 'Amount', 'Receipt Ref', 'Status', 'Recorded By'];
               const rows = filtered.map((e: any) => [
-                new Date(e.expense_date).toLocaleDateString(),
-                `"${e.title}"`,
-                CATEGORIES.find(c => c.value === e.category)?.label || e.category,
-                parseFloat(e.amount),
-                e.receipt_reference || '',
-                e.status,
-                profileMap[e.recorded_by] || 'Unknown',
+                sanitizeCsvValue(new Date(e.expense_date).toLocaleDateString()),
+                sanitizeCsvValue(e.title),
+                sanitizeCsvValue(CATEGORIES.find(c => c.value === e.category)?.label || e.category),
+                sanitizeCsvValue(parseFloat(e.amount)),
+                sanitizeCsvValue(e.receipt_reference),
+                sanitizeCsvValue(e.status),
+                sanitizeCsvValue(profileMap[e.recorded_by] || 'Unknown'),
               ]);
               const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
               const blob = new Blob([csv], { type: 'text/csv' });
