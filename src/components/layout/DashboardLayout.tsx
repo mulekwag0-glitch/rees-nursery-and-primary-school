@@ -33,6 +33,7 @@ import {
   Briefcase,
   DollarSign,
   CalendarOff,
+  ScrollText,
 } from 'lucide-react';
 
 interface NavItem {
