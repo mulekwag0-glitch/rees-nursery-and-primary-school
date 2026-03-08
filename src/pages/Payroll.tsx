@@ -93,6 +93,10 @@ export default function Payroll() {
   });
 
   const resetForm = () => {
+    setEmployeeId(''); setPayPeriod(''); setBasicSalary(''); setAllowances('0');
+    setNssfDeduction('0'); setPayeTax('0'); setOtherDeductions('0'); setNotes('');
+    setOpen(false);
+  };
 
   const printPayslip = (record: any) => {
     const emp = record.employees;
@@ -137,11 +141,6 @@ export default function Payroll() {
     </body></html>`);
     w.document.close();
     w.print();
-  };
-
-    setEmployeeId(''); setPayPeriod(''); setBasicSalary(''); setAllowances('0');
-    setNssfDeduction('0'); setPayeTax('0'); setOtherDeductions('0'); setNotes('');
-    setOpen(false);
   };
 
   const handleEmployeeSelect = (id: string) => {
