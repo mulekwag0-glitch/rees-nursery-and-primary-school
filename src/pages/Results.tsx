@@ -239,12 +239,29 @@ function AdminResultsView() {
 
   const approveMutation = useMutation({
     mutationFn: async (courseCode: string) => {
-      // Approve all submitted results for this course
+      // Get student user IDs for notification before approving
+      const { data: submittedResults } = await supabase
+        .from('results')
+        .select('student_course_id, student_courses:student_course_id (students:student_id (user_id), courses:course_id (name))')
+        .eq('status', 'submitted');
+
+      // Approve all submitted results
       const { error } = await supabase
         .from('results')
         .update({ status: 'approved', approved_at: new Date().toISOString() })
         .eq('status', 'submitted');
       if (error) throw error;
+
+      // Send notifications to students
+      const notified = new Set<string>();
+      for (const r of submittedResults || []) {
+        const userId = (r as any).student_courses?.students?.user_id;
+        const courseName = (r as any).student_courses?.courses?.name;
+        if (userId && !notified.has(userId)) {
+          notified.add(userId);
+          await notifyResultsApproved(userId, courseName || courseCode);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-results'] });
