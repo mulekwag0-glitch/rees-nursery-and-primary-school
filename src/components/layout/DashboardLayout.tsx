@@ -182,19 +182,73 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
+
+              // Insert HR group after Expenses
+              const insertGroupAfter = item.href === '/expenses';
+
               return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "sidebar-link",
-                    isActive && "active"
-                  )}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                </Link>
+                <React.Fragment key={item.href}>
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "sidebar-link",
+                      isActive && "active"
+                    )}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </Link>
+
+                  {insertGroupAfter && filteredNavGroups.map((group) => {
+                    const GroupIcon = group.icon;
+                    const groupActive = isGroupActive(group);
+                    const isOpen = openGroups[group.label] ?? groupActive;
+
+                    return (
+                      <Collapsible
+                        key={group.label}
+                        open={isOpen}
+                        onOpenChange={() => toggleGroup(group.label)}
+                      >
+                        <CollapsibleTrigger className={cn(
+                          "sidebar-link w-full justify-between",
+                          groupActive && "text-sidebar-primary"
+                        )}>
+                          <div className="flex items-center gap-3">
+                            <GroupIcon className="w-5 h-5" />
+                            <span>{group.label}</span>
+                          </div>
+                          {isOpen ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                          {group.items.map((subItem) => {
+                            const SubIcon = subItem.icon;
+                            const subActive = location.pathname === subItem.href;
+                            return (
+                              <Link
+                                key={subItem.href}
+                                to={subItem.href}
+                                className={cn(
+                                  "sidebar-link text-sm",
+                                  subActive && "active"
+                                )}
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <SubIcon className="w-4 h-4" />
+                                <span>{subItem.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </React.Fragment>
               );
             })}
           </nav>
