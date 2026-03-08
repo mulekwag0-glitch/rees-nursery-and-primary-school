@@ -82,6 +82,7 @@ export default function Transcripts() {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [studentResults, setStudentResults] = useState<ResultWithDetails[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
   const [showTranscript, setShowTranscript] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [documentType, setDocumentType] = useState<'transcript' | 'certificate'>('transcript');
@@ -193,17 +194,41 @@ export default function Transcripts() {
     return 'Fail';
   };
 
+  const getAcademicYears = () => {
+    const years = new Set<string>();
+    studentResults.forEach(r => years.add(r.student_courses.semesters.academic_years.name));
+    return Array.from(years).sort();
+  };
+
+  const filteredResults = selectedYear === 'all' 
+    ? studentResults 
+    : studentResults.filter(r => r.student_courses.semesters.academic_years.name === selectedYear);
+
   const getResultsBySemester = () => {
-    const grouped: Record<string, { semesterName: string; semesterNumber: number; results: ResultWithDetails[] }> = {};
-    studentResults.forEach(result => {
+    const grouped: Record<string, { semesterName: string; semesterNumber: number; academicYear: string; results: ResultWithDetails[]; semesterGPA: string }> = {};
+    filteredResults.forEach(result => {
       const semName = result.student_courses.semesters.name;
       const semNum = result.student_courses.semesters.semester_number;
+      const ayName = result.student_courses.semesters.academic_years.name;
       if (!grouped[semName]) {
-        grouped[semName] = { semesterName: semName, semesterNumber: semNum, results: [] };
+        grouped[semName] = { semesterName: semName, semesterNumber: semNum, academicYear: ayName, results: [], semesterGPA: '0.00' };
       }
       grouped[semName].results.push(result);
     });
-    return Object.values(grouped).sort((a, b) => a.semesterNumber - b.semesterNumber);
+    // Calculate per-semester GPA
+    Object.values(grouped).forEach(g => {
+      let totalGP = 0, totalCU = 0;
+      g.results.forEach(r => {
+        const cu = r.student_courses.courses.credit_units;
+        totalGP += (r.grade_point || 0) * cu;
+        totalCU += cu;
+      });
+      g.semesterGPA = totalCU > 0 ? (totalGP / totalCU).toFixed(2) : '0.00';
+    });
+    return Object.values(grouped).sort((a, b) => {
+      if (a.academicYear !== b.academicYear) return a.academicYear.localeCompare(b.academicYear);
+      return a.semesterNumber - b.semesterNumber;
+    });
   };
 
   const handlePrint = async (type: 'transcript' | 'certificate') => {
@@ -363,6 +388,24 @@ export default function Transcripts() {
           </CardContent>
         </Card>
 
+        {/* Academic Year Filter */}
+        {selectedStudent && getAcademicYears().length > 0 && (
+          <div className="flex items-center gap-3">
+            <Label className="text-sm font-medium">Academic Year:</Label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Years" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Years</SelectItem>
+                {getAcademicYears().map(year => (
+                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {selectedStudent && selectedStudentData && (
           <>
             {/* Student Info Card */}
@@ -497,6 +540,12 @@ export default function Transcripts() {
                       </tbody>
                     </table>
                   </div>
+                  <div className="mt-4 flex justify-end">
+                    <div className="bg-muted px-4 py-2 rounded-lg">
+                      <span className="text-sm text-muted-foreground mr-2">Semester GPA:</span>
+                      <span className="font-bold text-foreground">{semGroup.semesterGPA}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -584,6 +633,9 @@ export default function Transcripts() {
                       ))}
                     </tbody>
                   </table>
+                  <div style={{ textAlign: 'right', marginTop: '5px', fontSize: '13px' }}>
+                    <strong>Semester GPA: {semGroup.semesterGPA}</strong>
+                  </div>
                 </div>
               ))}
 
