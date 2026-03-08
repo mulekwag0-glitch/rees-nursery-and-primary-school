@@ -104,12 +104,12 @@ export const admissionSchema = z.object({
 });
 
 // ==================== Utility ====================
-export function validateForm<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
+export function validateForm<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
-  if (result.success) {
-    return { success: true, data: result.data };
+  if (!result.success) {
+    throw new Error(result.error.errors[0]?.message || 'Validation failed');
   }
-  return { success: false, error: result.error.errors[0]?.message || 'Validation failed' };
+  return result.data;
 }
 
 // CSV sanitization for exports
