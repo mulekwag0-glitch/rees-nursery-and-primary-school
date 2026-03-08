@@ -194,39 +194,39 @@ export default function StudentProfile() {
     return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
   };
 
-  const getTotalPayments = () => {
-    return payments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const getClassification = (cgpa: number) => {
+    if (cgpa >= 4.5) return 'First Class Honours';
+    if (cgpa >= 3.5) return 'Second Class Honours (Upper Division)';
+    if (cgpa >= 2.5) return 'Second Class Honours (Lower Division)';
+    if (cgpa >= 2.0) return 'Pass';
+    return 'Fail';
   };
 
-  const formatCurrency = (amount: number) => {
-    return `UGX ${amount.toLocaleString()}`;
-  };
-
-  const getGradeBadge = (grade: string) => {
-    const styles: Record<string, string> = {
-      'A': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      'B': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      'C': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-      'D': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-      'F': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    };
-    return <Badge className={styles[grade] || ''}>{grade}</Badge>;
-  };
-
-  const printTranscript = () => {
-    if (transcriptRef.current) {
-      const printContents = transcriptRef.current.innerHTML;
-      const printWindow = window.open('', '', 'height=800,width=900');
-      if (printWindow) {
-        printWindow.document.write('<html><head><title>Academic Transcript</title>');
-        printWindow.document.write('<style>body{font-family:Arial,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f4f4f4}.header{text-align:center;margin-bottom:20px}.grade-a{color:green}.grade-b{color:blue}.grade-c{color:orange}.grade-d{color:darkorange}.grade-f{color:red}</style>');
-        printWindow.document.write('</head><body>');
-        printWindow.document.write(printContents);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.print();
-      }
-    }
+  const handlePrint = (ref: React.RefObject<HTMLDivElement | null>, title: string) => {
+    if (!ref.current) return;
+    const printWindow = window.open('', '', 'height=800,width=900');
+    if (!printWindow) return;
+    printWindow.document.write(`<html><head><title>${title}</title>`);
+    printWindow.document.write(`<style>
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap');
+      body{font-family:'Lora','Times New Roman',serif;padding:20px;max-width:800px;margin:0 auto;line-height:1.6}
+      .header{text-align:center;border-bottom:2px solid #1a365d;padding-bottom:20px;margin-bottom:30px}
+      .logo{font-family:'Playfair Display',serif;font-size:28px;font-weight:bold;color:#1a365d;letter-spacing:3px}
+      .subtitle{font-size:14px;color:#666;letter-spacing:2px;text-transform:uppercase}
+      .title{font-family:'Playfair Display',serif;font-size:22px;font-weight:bold;margin:20px 0;text-transform:uppercase;color:#1a365d;letter-spacing:2px}
+      table{width:100%;border-collapse:collapse;margin:20px 0}
+      th,td{border:1px solid #333;padding:8px;text-align:left}
+      th{background:#1a365d;color:white}
+      .signature{margin-top:60px;display:flex;justify-content:space-between}
+      .signature-line{width:200px;border-top:1px solid #000;padding-top:5px;text-align:center;font-size:13px}
+      .info-row{display:flex;margin-bottom:8px}
+      .info-label{width:150px;font-weight:bold}
+    </style>`);
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(ref.current.innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
   };
 
   if (loading) {
