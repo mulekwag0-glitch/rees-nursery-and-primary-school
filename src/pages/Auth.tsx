@@ -92,16 +92,19 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Check lockout
+    const { count, lockedUntil } = getLoginAttempts();
+    if (lockedUntil && Date.now() < lockedUntil) {
+      toast({ title: 'Account Temporarily Locked', description: `Too many failed attempts. Try again in ${Math.ceil((lockedUntil - Date.now()) / 1000)}s.`, variant: 'destructive' });
+      return;
+    }
+
     try {
       loginSchema.parse({ email: loginEmail, password: loginPassword });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        toast({
-          title: 'Validation Error',
-          description: error.errors[0].message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Validation Error', description: error.errors[0].message, variant: 'destructive' });
         return;
       }
     }
@@ -111,18 +114,30 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({
-        title: 'Login Failed',
-        description: error.message === 'Invalid login credentials' 
-          ? 'Invalid email or password. Please try again.'
-          : error.message,
-        variant: 'destructive',
-      });
+      const newCount = count + 1;
+      if (newCount >= MAX_ATTEMPTS) {
+        const until = Date.now() + LOCKOUT_DURATION_MS;
+        setLoginAttempts(newCount, until);
+        setLockoutRemaining(Math.ceil(LOCKOUT_DURATION_MS / 1000));
+        // Start countdown
+        const interval = setInterval(() => {
+          const r = (until - Date.now()) / 1000;
+          if (r <= 0) { setLoginAttempts(0, null); setLockoutRemaining(0); clearInterval(interval); }
+          else setLockoutRemaining(Math.ceil(r));
+        }, 1000);
+        toast({ title: 'Account Temporarily Locked', description: `Too many failed attempts. Try again in 2 minutes.`, variant: 'destructive' });
+      } else {
+        setLoginAttempts(newCount, null);
+        const remaining = MAX_ATTEMPTS - newCount;
+        toast({
+          title: 'Login Failed',
+          description: `Invalid email or password. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
+          variant: 'destructive',
+        });
+      }
     } else {
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-      });
+      clearLoginAttempts();
+      toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });
     }
   };
 
