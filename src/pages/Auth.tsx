@@ -202,9 +202,9 @@ export default function Auth() {
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src={salemLogo} alt="Salem Uganda Logo" className="w-20 h-20 mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-foreground">Salem Uganda</h1>
-          <p className="text-muted-foreground">Institution Management System</p>
+          <img src={hfiLogo} alt="HFI Logo" className="w-20 h-20 mx-auto mb-4 object-contain" />
+          <h1 className="text-2xl font-bold text-foreground">Humanity First</h1>
+          <p className="text-muted-foreground">Vocational Training Institute</p>
         </div>
 
         <Card className="shadow-elevated border-0">
