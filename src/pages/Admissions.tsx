@@ -332,7 +332,7 @@ export default function Admissions() {
                     <strong>Auto-generated ID:</strong> {generateStudentId()}
                   </p>
                   <p className="text-muted-foreground mt-1">
-                    <strong>Temp Password:</strong> Salem{new Date().getFullYear()}!
+                    <strong>Temp Password:</strong> HFI{new Date().getFullYear()}!
                   </p>
                   {semesters && semesters.length > 0 && (
                     <p className="text-muted-foreground mt-1">

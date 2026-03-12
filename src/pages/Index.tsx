@@ -76,7 +76,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Salem Uganda. All rights reserved.
+          © {new Date().getFullYear()} Humanity First Vocational Training Institute. All rights reserved.
         </div>
       </footer>
     </div>

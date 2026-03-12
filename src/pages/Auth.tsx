@@ -249,7 +249,7 @@ export default function Auth() {
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © {new Date().getFullYear()} Salem Uganda. All rights reserved.
+          © {new Date().getFullYear()} Humanity First VTI. All rights reserved.
         </p>
       </div>
     </div>
