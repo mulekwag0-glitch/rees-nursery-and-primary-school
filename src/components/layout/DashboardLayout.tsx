@@ -41,7 +41,7 @@ import {
   CalendarOff,
   ScrollText,
 } from 'lucide-react';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
 
 interface NavItem {
   label: string;
