@@ -641,8 +641,17 @@ export default function StudentProfile() {
                 <div style={{ fontSize: '20px', color: '#b8860b', fontWeight: 'bold', marginTop: '10px' }}>
                   {getClassification(cgpa)}
                 </div>
-                <div style={{ width: '80px', height: '80px', margin: '20px auto', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                  Official<br/>Seal
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '30px', margin: '20px 0' }}>
+                  <div style={{ width: '80px', height: '80px', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Official<br/>Seal
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <QRCodeSVG 
+                      value={`https://hfi.ac.ug/verify/certificate/${studentData.student_id}?cgpa=${cgpa}&program=${encodeURIComponent(studentData.program.name)}&date=${new Date().toISOString().split('T')[0]}`}
+                      size={80}
+                    />
+                    <p style={{ fontSize: '8px', marginTop: '4px', color: '#666' }}>Scan to verify</p>
+                  </div>
                 </div>
                 <p style={{ fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
                   Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
