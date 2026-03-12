@@ -1007,9 +1007,9 @@ export default function Transcripts() {
             </div>
             <div ref={transcriptRef} className="p-6 bg-white text-black">
               <div className="header">
-                <img src={salemLogo} alt="Salem Uganda" className="logo-img" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
-                <div className="logo">SALEM UGANDA</div>
-                <div className="subtitle">Institution of Higher Learning</div>
+                <img src={hfiLogo} alt="HFI" className="logo-img" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
+                <div className="logo">HUMANITY FIRST INSTITUTE</div>
+                <div className="subtitle">Vocational Training Institute</div>
                 <div className="title">Official Academic Transcript</div>
               </div>
               
