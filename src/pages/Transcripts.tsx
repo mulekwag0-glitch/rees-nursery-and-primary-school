@@ -468,7 +468,7 @@ export default function Transcripts() {
         let y = 20;
         pdf.setFontSize(18);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('SALEM UGANDA', 105, y, { align: 'center' });
+        pdf.text('HUMANITY FIRST INSTITUTE', 105, y, { align: 'center' });
         y += 7;
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
