@@ -617,13 +617,13 @@ export default function StudentProfile() {
           <div style={{ position: 'relative', border: '8px double #b8860b', padding: '60px 40px', background: 'linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%)', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '2px solid #b8860b', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', fontSize: '100px', color: 'rgba(26, 54, 93, 0.04)', fontWeight: 'bold', letterSpacing: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
-              SALEM UGANDA
+              HUMANITY FIRST
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={{ textAlign: 'center' }}>
-                <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
-                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>SALEM UGANDA</div>
-                <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' }}>Institution of Higher Learning</div>
+                <img src={hfiLogo} alt="HFI" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>HUMANITY FIRST INSTITUTE</div>
+                <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' }}>Vocational Training Institute</div>
                 <div style={{ textAlign: 'center', color: '#b8860b', fontSize: '24px', margin: '10px 0', letterSpacing: '8px' }}>✦ ✦ ✦</div>
                 <div style={{ fontSize: '22px', fontWeight: 'bold', marginTop: '20px', textTransform: 'uppercase', color: '#1a365d', letterSpacing: '2px' }}>Certificate of Completion</div>
               </div>
