@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, CreditCard, ClipboardList, Users, Shield, ArrowRight } from 'lucide-react';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
 
 const Index = () => {
   const features = [
