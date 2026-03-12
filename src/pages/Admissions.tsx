@@ -144,7 +144,7 @@ export default function Admissions() {
         fullName, email, phone, programId, currentYear: parseInt(currentYear),
       });
       const studentIdNumber = generateStudentId();
-      const tempPassword = `Salem${new Date().getFullYear()}!`;
+      const tempPassword = `HFI${new Date().getFullYear()}!`;
 
       // Use the create-user edge function
       const { data, error } = await supabase.functions.invoke('create-user', {
