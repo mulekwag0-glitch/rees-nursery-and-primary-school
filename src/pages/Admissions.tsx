@@ -159,7 +159,7 @@ export default function Admissions() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const userId = data.user?.id || data.userId;
+      const userId = data.user?.id || data.userId || data.user_id;
       if (!userId) throw new Error('Failed to create user account');
 
       // Upload passport photo
