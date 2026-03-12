@@ -65,11 +65,11 @@ export default function Admissions() {
     },
   });
 
-  // Auto-generate student ID
+  // Auto-generate student ID in HFI/YYYY/NNN format
   const generateStudentId = () => {
     const year = new Date().getFullYear();
     const count = (students?.length || 0) + 1;
-    return `STU${year}${count.toString().padStart(3, '0')}`;
+    return `HFI/${year}/${count.toString().padStart(3, '0')}`;
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

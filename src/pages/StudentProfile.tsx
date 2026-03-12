@@ -20,7 +20,8 @@ import {
   Award,
   Printer,
 } from 'lucide-react';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface StudentData {
   id: string;
@@ -554,9 +555,9 @@ export default function StudentProfile() {
         {/* Hidden Transcript for printing */}
         <div ref={transcriptRef} className="hidden">
           <div className="header" style={{ textAlign: 'center', borderBottom: '2px solid #1a365d', paddingBottom: '20px', marginBottom: '30px' }}>
-            <img src={salemLogo} alt="Salem Uganda" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
-            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>SALEM UGANDA</div>
-            <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px' }}>INSTITUTION OF HIGHER LEARNING</div>
+            <img src={hfiLogo} alt="HFI" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
+            <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>HUMANITY FIRST INSTITUTE</div>
+            <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px' }}>VOCATIONAL TRAINING INSTITUTE</div>
             <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 'bold', marginTop: '20px', color: '#1a365d', letterSpacing: '2px' }}>OFFICIAL ACADEMIC TRANSCRIPT</div>
           </div>
           <div style={{ marginBottom: '20px' }}>
@@ -591,9 +592,18 @@ export default function StudentProfile() {
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop: '30px' }}>
-            <strong>Cumulative GPA: {cgpa}</strong><br/>
-            <strong>Classification: {getClassification(cgpa)}</strong>
+          <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div>
+              <strong>Cumulative GPA: {cgpa}</strong><br/>
+              <strong>Classification: {getClassification(cgpa)}</strong>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <QRCodeSVG 
+                value={`https://hfi.ac.ug/verify/transcript/${studentData.student_id}?cgpa=${cgpa}&date=${new Date().toISOString().split('T')[0]}`}
+                size={80}
+              />
+              <p style={{ fontSize: '8px', marginTop: '4px', color: '#666' }}>Scan to verify</p>
+            </div>
           </div>
           <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-between' }}>
             <div style={{ width: '200px', borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center', fontSize: '13px' }}>Registrar</div>
@@ -607,13 +617,13 @@ export default function StudentProfile() {
           <div style={{ position: 'relative', border: '8px double #b8860b', padding: '60px 40px', background: 'linear-gradient(135deg, #fffef5 0%, #fff 50%, #fffef5 100%)', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '2px solid #b8860b', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', fontSize: '100px', color: 'rgba(26, 54, 93, 0.04)', fontWeight: 'bold', letterSpacing: '10px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
-              SALEM UGANDA
+              HUMANITY FIRST
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={{ textAlign: 'center' }}>
-                <img src={salemLogo} alt="Salem Uganda" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
-                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>SALEM UGANDA</div>
-                <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' }}>Institution of Higher Learning</div>
+                <img src={hfiLogo} alt="HFI" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>HUMANITY FIRST INSTITUTE</div>
+                <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' }}>Vocational Training Institute</div>
                 <div style={{ textAlign: 'center', color: '#b8860b', fontSize: '24px', margin: '10px 0', letterSpacing: '8px' }}>✦ ✦ ✦</div>
                 <div style={{ fontSize: '22px', fontWeight: 'bold', marginTop: '20px', textTransform: 'uppercase', color: '#1a365d', letterSpacing: '2px' }}>Certificate of Completion</div>
               </div>
@@ -631,8 +641,17 @@ export default function StudentProfile() {
                 <div style={{ fontSize: '20px', color: '#b8860b', fontWeight: 'bold', marginTop: '10px' }}>
                   {getClassification(cgpa)}
                 </div>
-                <div style={{ width: '80px', height: '80px', margin: '20px auto', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                  Official<br/>Seal
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '30px', margin: '20px 0' }}>
+                  <div style={{ width: '80px', height: '80px', border: '3px solid #b8860b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', textAlign: 'center', color: '#b8860b', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                    Official<br/>Seal
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <QRCodeSVG 
+                      value={`https://hfi.ac.ug/verify/certificate/${studentData.student_id}?cgpa=${cgpa}&program=${encodeURIComponent(studentData.program.name)}&date=${new Date().toISOString().split('T')[0]}`}
+                      size={80}
+                    />
+                    <p style={{ fontSize: '8px', marginTop: '4px', color: '#666' }}>Scan to verify</p>
+                  </div>
                 </div>
                 <p style={{ fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
                   Awarded on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
