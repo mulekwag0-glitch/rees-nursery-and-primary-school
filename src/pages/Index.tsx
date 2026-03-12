@@ -18,10 +18,10 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={salemLogo} alt="Salem Uganda Logo" className="w-10 h-10 object-contain" />
+            <img src={hfiLogo} alt="HFI Logo" className="w-10 h-10 object-contain" />
             <div>
-              <h1 className="font-bold text-lg">Salem SIMS</h1>
-              <p className="text-xs text-muted-foreground">Institution Management</p>
+              <h1 className="font-bold text-lg">HFI SIMS</h1>
+              <p className="text-xs text-muted-foreground">Vocational Training Institute</p>
             </div>
           </div>
           <Link to="/auth">
