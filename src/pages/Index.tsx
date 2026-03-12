@@ -35,7 +35,7 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <GraduationCap className="w-4 h-4" />
-            Salem Uganda Institution Management System
+            Humanity First Vocational Training Institute
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
             Manage Your Institution<br />
