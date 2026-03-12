@@ -472,7 +472,7 @@ export default function Transcripts() {
         y += 7;
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Institution of Higher Learning', 105, y, { align: 'center' });
+        pdf.text('Vocational Training Institute', 105, y, { align: 'center' });
         y += 7;
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
