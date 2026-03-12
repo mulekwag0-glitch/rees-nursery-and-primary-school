@@ -6,72 +6,72 @@
 
 @layer base {
   :root {
-    /* Salem Uganda SIMS - Professional Education Theme */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Humanity First VTI - Red, Green, Gold Brand */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Primary: Deep Navy Blue - Trust & Education */
-    --primary: 222 65% 25%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: Bold Red - from shield */
+    --primary: 0 72% 44%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Teal - Growth & Success */
-    --secondary: 173 58% 39%;
+    /* Secondary: Forest Green - from emblem */
+    --secondary: 145 63% 32%;
     --secondary-foreground: 0 0% 100%;
 
     /* Muted backgrounds */
-    --muted: 210 20% 94%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 40 15% 94%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Accent: Warm Gold */
-    --accent: 38 92% 50%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent: Warm Gold - from gear/crest */
+    --accent: 43 96% 50%;
+    --accent-foreground: 0 0% 10%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     /* Borders & Inputs */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 65% 25%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 72% 44%;
 
     --radius: 0.75rem;
 
-    /* Custom colors for SIMS */
-    --success: 142 76% 36%;
+    /* Custom colors */
+    --success: 145 63% 32%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
-    --info: 199 89% 48%;
+    --warning: 43 96% 50%;
+    --warning-foreground: 0 0% 10%;
+    --info: 210 80% 50%;
     --info-foreground: 0 0% 100%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(222 65% 25%) 0%, hsl(222 65% 35%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(173 58% 39%) 0%, hsl(173 58% 49%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 60%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(222 65% 20%) 0%, hsl(173 58% 35%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(0 72% 44%) 0%, hsl(0 72% 54%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(145 63% 32%) 0%, hsl(145 63% 42%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(43 96% 50%) 0%, hsl(43 96% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 72% 38%) 0%, hsl(145 63% 30%) 100%);
 
-    /* Sidebar */
-    --sidebar-background: 222 65% 20%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 38 92% 50%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 65% 30%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 50% 30%;
-    --sidebar-ring: 38 92% 50%;
+    /* Sidebar - Deep green */
+    --sidebar-background: 145 55% 18%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 43 96% 50%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 145 50% 25%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 145 45% 25%;
+    --sidebar-ring: 43 96% 50%;
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1), 0 8px 10px -6px hsl(222 47% 11% / 0.1);
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 10% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 10% / 0.1), 0 2px 4px -2px hsl(0 0% 10% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 10% / 0.1), 0 4px 6px -4px hsl(0 0% 10% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 10% / 0.1), 0 8px 10px -6px hsl(0 0% 10% / 0.1);
   }
 
   .dark {
