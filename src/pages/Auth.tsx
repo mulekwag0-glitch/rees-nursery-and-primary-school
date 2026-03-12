@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock, Loader2, GraduationCap, Briefcase } from 'lucide-react';
 import { z } from 'zod';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
