@@ -38,8 +38,8 @@ const Index = () => {
             Humanity First Vocational Training Institute
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-            Manage Your Institution<br />
-            <span className="text-primary">Efficiently & Securely</span>
+            Learning Skills<br />
+            <span className="text-primary">For Life</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Track student payments, manage academic results, calculate GPA automatically, 
