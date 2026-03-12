@@ -1079,10 +1079,19 @@ export default function Transcripts() {
                 </div>
               ))}
 
-              <div style={{ marginTop: '30px' }}>
-                <strong>Cumulative GPA: {cgpa}</strong>
-                <br />
-                <strong>Classification: {getClassification(cgpa)}</strong>
+              <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div>
+                  <strong>Cumulative GPA: {cgpa}</strong>
+                  <br />
+                  <strong>Classification: {getClassification(cgpa)}</strong>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <QRCodeSVG 
+                    value={`https://hfi.ac.ug/verify/transcript/${selectedStudentData?.student_id}?cgpa=${cgpa}&date=${new Date().toISOString().split('T')[0]}`}
+                    size={80}
+                  />
+                  <p style={{ fontSize: '8px', marginTop: '4px', color: '#666' }}>Scan to verify</p>
+                </div>
               </div>
 
               <div className="signature">
