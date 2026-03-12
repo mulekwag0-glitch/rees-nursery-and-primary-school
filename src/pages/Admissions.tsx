@@ -144,7 +144,7 @@ export default function Admissions() {
         fullName, email, phone, programId, currentYear: parseInt(currentYear),
       });
       const studentIdNumber = generateStudentId();
-      const tempPassword = `Salem${new Date().getFullYear()}!`;
+      const tempPassword = `HFI${new Date().getFullYear()}!`;
 
       // Use the create-user edge function
       const { data, error } = await supabase.functions.invoke('create-user', {
@@ -159,7 +159,7 @@ export default function Admissions() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const userId = data.user?.id || data.userId;
+      const userId = data.user?.id || data.userId || data.user_id;
       if (!userId) throw new Error('Failed to create user account');
 
       // Upload passport photo
@@ -332,7 +332,7 @@ export default function Admissions() {
                     <strong>Auto-generated ID:</strong> {generateStudentId()}
                   </p>
                   <p className="text-muted-foreground mt-1">
-                    <strong>Temp Password:</strong> Salem{new Date().getFullYear()}!
+                    <strong>Temp Password:</strong> HFI{new Date().getFullYear()}!
                   </p>
                   {semesters && semesters.length > 0 && (
                     <p className="text-muted-foreground mt-1">

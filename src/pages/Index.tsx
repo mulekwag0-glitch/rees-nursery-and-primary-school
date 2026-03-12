@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, CreditCard, ClipboardList, Users, Shield, ArrowRight } from 'lucide-react';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
 
 const Index = () => {
   const features = [
@@ -18,10 +18,10 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={salemLogo} alt="Salem Uganda Logo" className="w-10 h-10 object-contain" />
+            <img src={hfiLogo} alt="HFI Logo" className="w-10 h-10 object-contain" />
             <div>
-              <h1 className="font-bold text-lg">Salem SIMS</h1>
-              <p className="text-xs text-muted-foreground">Institution Management</p>
+              <h1 className="font-bold text-lg">HFI SIMS</h1>
+              <p className="text-xs text-muted-foreground">Vocational Training Institute</p>
             </div>
           </div>
           <Link to="/auth">
@@ -35,11 +35,11 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <GraduationCap className="w-4 h-4" />
-            Salem Uganda Institution Management System
+            Humanity First Vocational Training Institute
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-            Manage Your Institution<br />
-            <span className="text-primary">Efficiently & Securely</span>
+            Learning Skills<br />
+            <span className="text-primary">For Life</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Track student payments, manage academic results, calculate GPA automatically, 
@@ -76,7 +76,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Salem Uganda. All rights reserved.
+          © {new Date().getFullYear()} Humanity First Vocational Training Institute. All rights reserved.
         </div>
       </footer>
     </div>
