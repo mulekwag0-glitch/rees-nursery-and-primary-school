@@ -27,7 +27,8 @@ import {
   Users,
   ImagePlus,
 } from 'lucide-react';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Select,
   SelectContent,

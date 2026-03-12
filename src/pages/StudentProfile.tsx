@@ -20,7 +20,8 @@ import {
   Award,
   Printer,
 } from 'lucide-react';
-import salemLogo from '@/assets/salem-logo.png';
+import hfiLogo from '@/assets/hfi-logo.png';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface StudentData {
   id: string;
