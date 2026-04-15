@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/collapsible';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, CreditCard, FileText, Settings, LogOut, Menu, X,
-  ChevronDown, ChevronRight, Calendar, ClipboardList, Building2, Shield, Briefcase, DollarSign, CalendarOff, ScrollText,
+  ChevronDown, ChevronRight, Calendar, ClipboardList, Building2, Shield, Briefcase, DollarSign, CalendarOff, Award, Wallet,
 } from 'lucide-react';
 import reesLogo from '@/assets/rees-logo.png';
 
@@ -40,15 +40,11 @@ const standaloneNavItems: NavItem[] = [
   { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'] },
   { label: 'Results', href: '/results', icon: ClipboardList, roles: ['tutor', 'admin'] },
   { label: 'Report Cards', href: '/report-cards', icon: FileText, roles: ['admin'] },
-  { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['finance', 'admin'] },
-  { label: 'Fee Structures', href: '/fee-structures', icon: CreditCard, roles: ['admin', 'finance'] },
-  { label: 'Expenses', href: '/expenses', icon: CreditCard, roles: ['admin', 'finance'] },
-  { label: 'Transcripts', href: '/transcripts', icon: FileText, roles: ['admin'] },
+  { label: 'Certificates', href: '/certificates', icon: Award, roles: ['admin'] },
+  { label: 'Accounts', href: '/accounts', icon: Wallet, roles: ['finance', 'admin'] },
   { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'] },
   { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'] },
   { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'] },
-  { label: 'User Management', href: '/users', icon: Shield, roles: ['admin'] },
-  { label: 'Audit Logs', href: '/audit-logs', icon: ScrollText, roles: ['admin'] },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
@@ -89,13 +85,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const getInitials = (email: string) => email.substring(0, 2).toUpperCase();
 
   const getRoleLabel = (role: string | null) => {
-    const labels: Record<string, string> = {
-      tutor: 'Teacher',
-      finance: 'Finance Officer',
-      admin: 'System Administrator',
-    };
+    const labels: Record<string, string> = { tutor: 'Teacher', finance: 'Finance Officer', admin: 'System Administrator' };
     return role ? labels[role] || role : 'User';
   };
+
+  // Insert HR group after "Accounts"
+  const insertGroupAfterHref = '/accounts';
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,7 +118,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
-              const insertGroupAfter = item.href === '/expenses';
+              const shouldInsertGroup = item.href === insertGroupAfterHref;
 
               return (
                 <React.Fragment key={item.href}>
@@ -131,7 +126,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </Link>
-                  {insertGroupAfter && filteredNavGroups.map((group) => {
+                  {shouldInsertGroup && filteredNavGroups.map((group) => {
                     const GroupIcon = group.icon;
                     const groupActive = isGroupActive(group);
                     const isOpen = openGroups[group.label] ?? groupActive;
