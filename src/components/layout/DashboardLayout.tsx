@@ -44,6 +44,7 @@ const navigation: NavEntry[] = [
   { label: 'Pupils', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
   { label: 'Admissions', href: '/admissions', icon: GraduationCap, roles: ['admin'] },
   { label: 'Enrollments', href: '/enrollments', icon: BookOpen, roles: ['admin'] },
+  { label: 'Attendance', href: '/attendance', icon: Calendar, roles: ['admin', 'tutor'] },
 
   // Structures
   {

@@ -35,6 +35,7 @@ import LessonPlans from "./pages/LessonPlans";
 import Administration from "./pages/Administration";
 import StoreAssets from "./pages/StoreAssets";
 import WorkPlan from "./pages/WorkPlan";
+import Attendance from "./pages/Attendance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/leave-management" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
             <Route path="/administration" element={<ProtectedRoute allowedRoles={['admin']}><Administration /></ProtectedRoute>} />
             <Route path="/store-assets" element={<ProtectedRoute allowedRoles={['admin']}><StoreAssets /></ProtectedRoute>} />
+            <Route path="/attendance" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Attendance /></ProtectedRoute>} />
             <Route path="/programs" element={<ProtectedRoute allowedRoles={['admin']}><Programs /></ProtectedRoute>} />
             <Route path="/semesters" element={<ProtectedRoute allowedRoles={['admin']}><Semesters /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Reports /></ProtectedRoute>} />
