@@ -65,11 +65,11 @@ export default function Admissions() {
     },
   });
 
-  // Auto-generate student ID in HFI/YYYY/NNN format
+  // Auto-generate student ID in REES/YYYY/NNN format
   const generateStudentId = () => {
     const year = new Date().getFullYear();
     const count = (students?.length || 0) + 1;
-    return `HFI/${year}/${count.toString().padStart(3, '0')}`;
+    return `REES/${year}/${count.toString().padStart(3, '0')}`;
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +144,7 @@ export default function Admissions() {
         fullName, email, phone, programId, currentYear: parseInt(currentYear),
       });
       const studentIdNumber = generateStudentId();
-      const tempPassword = `HFI${new Date().getFullYear()}!`;
+      const tempPassword = `REES${new Date().getFullYear()}!`;
 
       // Use the create-user edge function
       const { data, error } = await supabase.functions.invoke('create-user', {
@@ -332,7 +332,7 @@ export default function Admissions() {
                     <strong>Auto-generated ID:</strong> {generateStudentId()}
                   </p>
                   <p className="text-muted-foreground mt-1">
-                    <strong>Temp Password:</strong> HFI{new Date().getFullYear()}!
+                    <strong>Temp Password:</strong> REES{new Date().getFullYear()}!
                   </p>
                   {semesters && semesters.length > 0 && (
                     <p className="text-muted-foreground mt-1">

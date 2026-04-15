@@ -2,14 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, CreditCard, ClipboardList, Users, Shield, ArrowRight } from 'lucide-react';
-import hfiLogo from '@/assets/hfi-logo.png';
+import reesLogo from '@/assets/rees-logo.png';
 
 const Index = () => {
   const features = [
-    { icon: Users, title: 'Student Management', description: 'Register and manage student records efficiently' },
-    { icon: ClipboardList, title: 'Results & GPA', description: 'Enter marks and auto-calculate grades and GPA' },
+    { icon: Users, title: 'Pupil Management', description: 'Register and manage pupil records efficiently' },
+    { icon: ClipboardList, title: 'Report Cards', description: 'Enter marks with Uganda new curriculum grading' },
     { icon: CreditCard, title: 'Fee Payments', description: 'Track payments and generate receipts' },
-    { icon: Shield, title: 'Role-Based Access', description: 'Secure access for students, tutors, finance & admin' },
+    { icon: Shield, title: 'Role-Based Access', description: 'Secure access for teachers, finance & admin' },
   ];
 
   return (
@@ -18,10 +18,10 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={hfiLogo} alt="HFI Logo" className="w-10 h-10 object-contain" />
+            <img src={reesLogo} alt="Rees Daycare Logo" className="w-10 h-10 object-contain" />
             <div>
-              <h1 className="font-bold text-lg">HFI SIMS</h1>
-              <p className="text-xs text-muted-foreground">Vocational Training Institute</p>
+              <h1 className="font-bold text-lg">Rees Daycare</h1>
+              <p className="text-xs text-muted-foreground">Nursery & Primary School</p>
             </div>
           </div>
           <Link to="/auth">
@@ -35,15 +35,15 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
             <GraduationCap className="w-4 h-4" />
-            Humanity First Vocational Training Institute
+            Rees Daycare Nursery & Primary School
           </div>
           <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-            Learning Skills<br />
-            <span className="text-primary">For Life</span>
+            Building Bright<br />
+            <span className="text-primary">Futures</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Track student payments, manage academic results, calculate GPA automatically, 
-            and give tutors and administrators full control over the system.
+            Manage pupil records, track fee payments, generate report cards with Uganda's new curriculum grading, 
+            and give teachers and administrators full control.
           </p>
           <div className="flex gap-4 justify-center">
             <Link to="/auth">
@@ -76,7 +76,8 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Humanity First Vocational Training Institute. All rights reserved.
+          <p>© {new Date().getFullYear()} Rees Daycare Nursery & Primary School. All rights reserved.</p>
+          <p className="mt-1">Mbale City | +256780306692</p>
         </div>
       </footer>
     </div>
