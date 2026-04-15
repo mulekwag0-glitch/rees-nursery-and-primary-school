@@ -13,12 +13,10 @@ import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Courses from "./pages/Courses";
 import Results from "./pages/Results";
-import Accounts from "./pages/Accounts";
 import Payments from "./pages/Payments";
 import Programs from "./pages/Programs";
 import Semesters from "./pages/Semesters";
 import Reports from "./pages/Reports";
-import UserManagement from "./pages/UserManagement";
 import Settings from "./pages/Settings";
 import Admissions from "./pages/Admissions";
 import Enrollments from "./pages/Enrollments";
@@ -29,9 +27,14 @@ import Expenses from "./pages/Expenses";
 import Employees from "./pages/Employees";
 import Payroll from "./pages/Payroll";
 import LeaveManagement from "./pages/LeaveManagement";
-import AuditLogs from "./pages/AuditLogs";
 import ReportCards from "./pages/ReportCards";
 import Verify from "./pages/Verify";
+import Schemes from "./pages/Schemes";
+import Timetables from "./pages/Timetables";
+import LessonPlans from "./pages/LessonPlans";
+import Administration from "./pages/Administration";
+import StoreAssets from "./pages/StoreAssets";
+import WorkPlan from "./pages/WorkPlan";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,26 +54,29 @@ const App = () => (
             <Route path="/verify" element={<Verify />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/students" element={<ProtectedRoute allowedRoles={['admin', 'tutor', 'finance']}><Students /></ProtectedRoute>} />
-            <Route path="/courses" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Courses /></ProtectedRoute>} />
-            <Route path="/results" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Results /></ProtectedRoute>} />
-            <Route path="/accounts" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Accounts /></ProtectedRoute>} />
-            <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payments /></ProtectedRoute>} />
-            <Route path="/programs" element={<ProtectedRoute allowedRoles={['admin']}><Programs /></ProtectedRoute>} />
-            <Route path="/semesters" element={<ProtectedRoute allowedRoles={['admin']}><Semesters /></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Reports /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
             <Route path="/admissions" element={<ProtectedRoute allowedRoles={['admin']}><Admissions /></ProtectedRoute>} />
             <Route path="/enrollments" element={<ProtectedRoute allowedRoles={['admin']}><Enrollments /></ProtectedRoute>} />
-            <Route path="/certificates" element={<ProtectedRoute allowedRoles={['admin']}><Certificates /></ProtectedRoute>} />
-            <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['admin']}><ReportCards /></ProtectedRoute>} />
-            <Route path="/fee-structures" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><FeeStructures /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Courses /></ProtectedRoute>} />
+            <Route path="/schemes" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Schemes /></ProtectedRoute>} />
+            <Route path="/timetables" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Timetables /></ProtectedRoute>} />
+            <Route path="/lesson-plans" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><LessonPlans /></ProtectedRoute>} />
             <Route path="/tutor-assignments" element={<ProtectedRoute allowedRoles={['admin']}><TutorAssignment /></ProtectedRoute>} />
+            <Route path="/results" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Results /></ProtectedRoute>} />
+            <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['admin']}><ReportCards /></ProtectedRoute>} />
+            <Route path="/certificates" element={<ProtectedRoute allowedRoles={['admin']}><Certificates /></ProtectedRoute>} />
+            <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payments /></ProtectedRoute>} />
+            <Route path="/fee-structures" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><FeeStructures /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Expenses /></ProtectedRoute>} />
+            <Route path="/work-plan" element={<ProtectedRoute allowedRoles={['admin']}><WorkPlan /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Employees /></ProtectedRoute>} />
             <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />
             <Route path="/leave-management" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
-            <Route path="/audit-logs" element={<ProtectedRoute allowedRoles={['admin']}><AuditLogs /></ProtectedRoute>} />
+            <Route path="/administration" element={<ProtectedRoute allowedRoles={['admin']}><Administration /></ProtectedRoute>} />
+            <Route path="/store-assets" element={<ProtectedRoute allowedRoles={['admin']}><StoreAssets /></ProtectedRoute>} />
+            <Route path="/programs" element={<ProtectedRoute allowedRoles={['admin']}><Programs /></ProtectedRoute>} />
+            <Route path="/semesters" element={<ProtectedRoute allowedRoles={['admin']}><Semesters /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Reports /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
