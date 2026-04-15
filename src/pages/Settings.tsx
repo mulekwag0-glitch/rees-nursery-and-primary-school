@@ -257,15 +257,20 @@ function UserManagementTab() {
             <div className="space-y-2"><Label>Email</Label><Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} /></div>
             <div className="space-y-2"><Label>Password</Label><Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} /></div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>Role / Access Level</Label>
               <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="tutor">Teacher</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="admin">Administrator (Full Access)</SelectItem>
+                  <SelectItem value="tutor">Teacher (Academic Access)</SelectItem>
+                  <SelectItem value="finance">Bursar / Finance (Financial Access)</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {newRole === 'admin' && 'Full system access: pupils, results, finance, HR, settings, user management.'}
+                {newRole === 'tutor' && 'Can manage results, lesson plans, attendance, schemes of work for assigned classes.'}
+                {newRole === 'finance' && 'Can manage payments, fee structures, expenses, payroll, and financial reports.'}
+              </p>
             </div>
           </div>
           <DialogFooter>
