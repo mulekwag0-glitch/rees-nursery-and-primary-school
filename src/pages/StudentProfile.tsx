@@ -555,7 +555,7 @@ export default function StudentProfile() {
         {/* Hidden Transcript for printing */}
         <div ref={transcriptRef} className="hidden">
           <div className="header" style={{ textAlign: 'center', borderBottom: '2px solid #1a365d', paddingBottom: '20px', marginBottom: '30px' }}>
-            <img src={reesLogo} alt="HFI" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
+            <img src={reesLogo} alt="Rees" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
             <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>HUMANITY FIRST INSTITUTE</div>
             <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px' }}>VOCATIONAL TRAINING INSTITUTE</div>
             <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '22px', fontWeight: 'bold', marginTop: '20px', color: '#1a365d', letterSpacing: '2px' }}>OFFICIAL ACADEMIC TRANSCRIPT</div>
@@ -599,7 +599,7 @@ export default function StudentProfile() {
             </div>
             <div style={{ textAlign: 'center' }}>
               <QRCodeSVG 
-                value={`https://hfi.ac.ug/verify/transcript/${studentData.student_id}?cgpa=${cgpa}&date=${new Date().toISOString().split('T')[0]}`}
+                value={`https://rees.ac.ug/verify/transcript/${studentData.student_id}?cgpa=${cgpa}&date=${new Date().toISOString().split('T')[0]}`}
                 size={80}
               />
               <p style={{ fontSize: '8px', marginTop: '4px', color: '#666' }}>Scan to verify</p>
@@ -621,7 +621,7 @@ export default function StudentProfile() {
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={{ textAlign: 'center' }}>
-                <img src={reesLogo} alt="HFI" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
+                <img src={reesLogo} alt="Rees" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
                 <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>HUMANITY FIRST INSTITUTE</div>
                 <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' }}>Vocational Training Institute</div>
                 <div style={{ textAlign: 'center', color: '#b8860b', fontSize: '24px', margin: '10px 0', letterSpacing: '8px' }}>✦ ✦ ✦</div>
@@ -647,7 +647,7 @@ export default function StudentProfile() {
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <QRCodeSVG 
-                      value={`https://hfi.ac.ug/verify/certificate/${studentData.student_id}?cgpa=${cgpa}&program=${encodeURIComponent(studentData.program.name)}&date=${new Date().toISOString().split('T')[0]}`}
+                      value={`https://rees.ac.ug/verify/certificate/${studentData.student_id}?cgpa=${cgpa}&program=${encodeURIComponent(studentData.program.name)}&date=${new Date().toISOString().split('T')[0]}`}
                       size={80}
                     />
                     <p style={{ fontSize: '8px', marginTop: '4px', color: '#666' }}>Scan to verify</p>
