@@ -21,9 +21,9 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
       manifest: {
-        name: "HFI SIMS - Vocational Training Institute",
-        short_name: "HFI SIMS",
-        description: "Humanity First Vocational Training Institute Management System",
+        name: "Rees Daycare Nursery & Primary School",
+        short_name: "Rees Daycare",
+        description: "Rees Daycare Nursery And Primary School Management System",
         theme_color: "#b91c1c",
         background_color: "#fafafa",
         display: "standalone",
