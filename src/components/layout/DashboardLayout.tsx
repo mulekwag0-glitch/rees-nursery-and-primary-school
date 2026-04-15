@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import {
@@ -13,7 +12,8 @@ import {
 } from '@/components/ui/collapsible';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, CreditCard, FileText, Settings, LogOut, Menu, X,
-  ChevronDown, ChevronRight, Calendar, ClipboardList, Building2, Shield, Briefcase, DollarSign, CalendarOff, Award, Wallet,
+  ChevronDown, ChevronRight, Calendar, ClipboardList, Building2, Briefcase, DollarSign, CalendarOff, Award, Wallet,
+  Clock, FileEdit, Star, Package, Heart, Target,
 } from 'lucide-react';
 import reesLogo from '@/assets/rees-logo.png';
 
@@ -31,24 +31,61 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const standaloneNavItems: NavItem[] = [
+type NavEntry = NavItem | NavGroup;
+
+function isGroup(entry: NavEntry): entry is NavGroup {
+  return 'items' in entry;
+}
+
+const navigation: NavEntry[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['tutor', 'finance', 'admin'] },
+
+  // Students / Pupils
   { label: 'Pupils', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
   { label: 'Admissions', href: '/admissions', icon: GraduationCap, roles: ['admin'] },
   { label: 'Enrollments', href: '/enrollments', icon: BookOpen, roles: ['admin'] },
-  { label: 'Subjects', href: '/courses', icon: BookOpen, roles: ['admin', 'tutor'] },
+
+  // Structures
+  {
+    label: 'Structures',
+    icon: BookOpen,
+    roles: ['admin', 'tutor'],
+    items: [
+      { label: 'Subjects', href: '/courses', icon: BookOpen, roles: ['admin', 'tutor'] },
+      { label: 'Schemes of Work', href: '/schemes', icon: FileEdit, roles: ['admin', 'tutor'] },
+      { label: 'Lesson Timetables', href: '/timetables', icon: Clock, roles: ['admin', 'tutor'] },
+      { label: 'Lesson Plans', href: '/lesson-plans', icon: FileText, roles: ['admin', 'tutor'] },
+    ],
+  },
+
   { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'] },
+
+  // Academic
   { label: 'Results', href: '/results', icon: ClipboardList, roles: ['tutor', 'admin'] },
   { label: 'Report Cards', href: '/report-cards', icon: FileText, roles: ['admin'] },
   { label: 'Certificates', href: '/certificates', icon: Award, roles: ['admin'] },
-  { label: 'Accounts', href: '/accounts', icon: Wallet, roles: ['finance', 'admin'] },
-  { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'] },
-  { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'] },
-  { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'] },
-  { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
-];
 
-const navGroups: NavGroup[] = [
+  // Finance
+  {
+    label: 'Payments',
+    icon: CreditCard,
+    roles: ['admin', 'finance'],
+    items: [
+      { label: 'All Payments', href: '/payments', icon: CreditCard, roles: ['admin', 'finance'] },
+      { label: 'Fee Structures', href: '/fee-structures', icon: DollarSign, roles: ['admin', 'finance'] },
+    ],
+  },
+  {
+    label: 'Expenses',
+    icon: Wallet,
+    roles: ['admin', 'finance'],
+    items: [
+      { label: 'Expenses', href: '/expenses', icon: Wallet, roles: ['admin', 'finance'] },
+      { label: 'School Budget', href: '/work-plan', icon: Target, roles: ['admin'] },
+    ],
+  },
+
+  // HR
   {
     label: 'Human Resource',
     icon: Briefcase,
@@ -59,6 +96,23 @@ const navGroups: NavGroup[] = [
       { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'] },
     ],
   },
+
+  // Administration
+  {
+    label: 'Administration',
+    icon: Building2,
+    roles: ['admin'],
+    items: [
+      { label: 'PTA & Appraisal', href: '/administration', icon: Star, roles: ['admin'] },
+      { label: 'Store & Assets', href: '/store-assets', icon: Package, roles: ['admin'] },
+    ],
+  },
+
+  // Programs & Semesters
+  { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'] },
+  { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'] },
+  { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'] },
+  { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
 interface DashboardLayoutProps {
@@ -70,27 +124,77 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const filteredNavItems = standaloneNavItems.filter(item => role && item.roles.includes(role));
-  const filteredNavGroups = navGroups
-    .filter(group => role && group.roles.includes(role))
-    .map(group => ({ ...group, items: group.items.filter(item => role && item.roles.includes(role)) }))
-    .filter(group => group.items.length > 0);
-
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-  const toggleGroup = (label: string) => setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
-  const isGroupActive = (group: NavGroup) => group.items.some(item => location.pathname === item.href);
 
+  const toggleGroup = (label: string) => setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
   const handleSignOut = async () => { await signOut(); navigate('/auth'); };
   const getInitials = (email: string) => email.substring(0, 2).toUpperCase();
-
-  const getRoleLabel = (role: string | null) => {
+  const getRoleLabel = (r: string | null) => {
     const labels: Record<string, string> = { tutor: 'Teacher', finance: 'Finance Officer', admin: 'System Administrator' };
-    return role ? labels[role] || role : 'User';
+    return r ? labels[r] || r : 'User';
   };
 
-  // Insert HR group after "Accounts"
-  const insertGroupAfterHref = '/accounts';
+  const filteredNav = navigation.filter(entry => {
+    if (!role) return false;
+    if (!entry.roles.includes(role)) return false;
+    if (isGroup(entry)) {
+      return entry.items.some(item => item.roles.includes(role));
+    }
+    return true;
+  });
+
+  const renderNavItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const isActive = location.pathname === item.href;
+    return (
+      <Link
+        key={item.href}
+        to={item.href}
+        className={cn("sidebar-link", isActive && "active")}
+        onClick={() => setSidebarOpen(false)}
+      >
+        <Icon className="w-5 h-5" />
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
+  const renderNavGroup = (group: NavGroup) => {
+    const GroupIcon = group.icon;
+    const groupActive = group.items.some(item => location.pathname === item.href);
+    const isOpen = openGroups[group.label] ?? groupActive;
+    const filteredItems = group.items.filter(item => role && item.roles.includes(role));
+    if (filteredItems.length === 0) return null;
+
+    return (
+      <Collapsible key={group.label} open={isOpen} onOpenChange={() => toggleGroup(group.label)}>
+        <CollapsibleTrigger className={cn("sidebar-link w-full justify-between", groupActive && "text-sidebar-primary")}>
+          <div className="flex items-center gap-3">
+            <GroupIcon className="w-5 h-5" />
+            <span>{group.label}</span>
+          </div>
+          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pl-4 space-y-1 mt-1">
+          {filteredItems.map(subItem => {
+            const SubIcon = subItem.icon;
+            const subActive = location.pathname === subItem.href;
+            return (
+              <Link
+                key={subItem.href}
+                to={subItem.href}
+                className={cn("sidebar-link text-sm", subActive && "active")}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <SubIcon className="w-4 h-4" />
+                <span>{subItem.label}</span>
+              </Link>
+            );
+          })}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -115,48 +219,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {filteredNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              const shouldInsertGroup = item.href === insertGroupAfterHref;
-
-              return (
-                <React.Fragment key={item.href}>
-                  <Link to={item.href} className={cn("sidebar-link", isActive && "active")} onClick={() => setSidebarOpen(false)}>
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                  {shouldInsertGroup && filteredNavGroups.map((group) => {
-                    const GroupIcon = group.icon;
-                    const groupActive = isGroupActive(group);
-                    const isOpen = openGroups[group.label] ?? groupActive;
-                    return (
-                      <Collapsible key={group.label} open={isOpen} onOpenChange={() => toggleGroup(group.label)}>
-                        <CollapsibleTrigger className={cn("sidebar-link w-full justify-between", groupActive && "text-sidebar-primary")}>
-                          <div className="flex items-center gap-3">
-                            <GroupIcon className="w-5 h-5" />
-                            <span>{group.label}</span>
-                          </div>
-                          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="pl-4 space-y-1 mt-1">
-                          {group.items.map((subItem) => {
-                            const SubIcon = subItem.icon;
-                            const subActive = location.pathname === subItem.href;
-                            return (
-                              <Link key={subItem.href} to={subItem.href} className={cn("sidebar-link text-sm", subActive && "active")} onClick={() => setSidebarOpen(false)}>
-                                <SubIcon className="w-4 h-4" />
-                                <span>{subItem.label}</span>
-                              </Link>
-                            );
-                          })}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
+            {filteredNav.map(entry => isGroup(entry) ? renderNavGroup(entry) : renderNavItem(entry))}
           </nav>
 
           <div className="p-4 border-t border-sidebar-border">
@@ -203,13 +266,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate('/settings')}>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                    <Settings className="w-4 h-4 mr-2" />Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
+                    <LogOut className="w-4 h-4 mr-2" />Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
