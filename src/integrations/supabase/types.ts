@@ -41,6 +41,54 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance: {
+        Row: {
+          attendance_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          program_id: string
+          recorded_by: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          attendance_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          program_id: string
+          recorded_by: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          attendance_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          program_id?: string
+          recorded_by?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -309,6 +357,42 @@ export type Database = {
           },
         ]
       }
+      health_records: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          medication: string | null
+          pupil_name: string
+          record_date: string
+          record_type: string
+          recorded_by: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          medication?: string | null
+          pupil_name: string
+          record_date?: string
+          record_type?: string
+          recorded_by: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          medication?: string | null
+          pupil_name?: string
+          record_date?: string
+          record_type?: string
+          recorded_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leave_requests: {
         Row: {
           approved_at: string | null
@@ -358,6 +442,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lesson_plans: {
+        Row: {
+          activities: string | null
+          course_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          objectives: string | null
+          plan_date: string
+          program_id: string
+          resources: string | null
+          subject: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          activities?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          objectives?: string | null
+          plan_date?: string
+          program_id: string
+          resources?: string | null
+          subject: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          activities?: string | null
+          course_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          objectives?: string | null
+          plan_date?: string
+          program_id?: string
+          resources?: string | null
+          subject?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_plans_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_plans_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_minutes: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_date: string
+          meeting_type: string
+          minutes: string
+          recorded_by: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          meeting_type: string
+          minutes: string
+          recorded_by: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          meeting_type?: string
+          minutes?: string
+          recorded_by?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -568,6 +742,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pta_meetings: {
+        Row: {
+          attendees_count: number | null
+          created_at: string
+          id: string
+          meeting_date: string
+          minutes: string | null
+          recorded_by: string
+          resolutions: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees_count?: number | null
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          minutes?: string | null
+          recorded_by: string
+          resolutions?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees_count?: number | null
+          created_at?: string
+          id?: string
+          meeting_date?: string
+          minutes?: string | null
+          recorded_by?: string
+          resolutions?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       results: {
         Row: {
           approved_at: string | null
@@ -624,6 +834,109 @@ export type Database = {
           },
         ]
       }
+      schemes_of_work: {
+        Row: {
+          activities: string | null
+          course_id: string
+          created_at: string
+          created_by: string
+          id: string
+          objectives: string | null
+          program_id: string
+          resources: string | null
+          semester_id: string
+          topic: string
+          updated_at: string
+          week_number: number
+        }
+        Insert: {
+          activities?: string | null
+          course_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          objectives?: string | null
+          program_id: string
+          resources?: string | null
+          semester_id: string
+          topic: string
+          updated_at?: string
+          week_number?: number
+        }
+        Update: {
+          activities?: string | null
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          objectives?: string | null
+          program_id?: string
+          resources?: string | null
+          semester_id?: string
+          topic?: string
+          updated_at?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schemes_of_work_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schemes_of_work_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schemes_of_work_semester_id_fkey"
+            columns: ["semester_id"]
+            isOneToOne: false
+            referencedRelation: "semesters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_assets: {
+        Row: {
+          asset_name: string
+          asset_value: number
+          condition: string
+          created_at: string
+          id: string
+          location: string | null
+          quantity: number
+          recorded_by: string
+          updated_at: string
+        }
+        Insert: {
+          asset_name: string
+          asset_value?: number
+          condition?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          quantity?: number
+          recorded_by: string
+          updated_at?: string
+        }
+        Update: {
+          asset_name?: string
+          asset_value?: number
+          condition?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          quantity?: number
+          recorded_by?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       semesters: {
         Row: {
           academic_year_id: string
@@ -667,6 +980,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      staff_appraisals: {
+        Row: {
+          appraisal_period: string
+          appraised_by: string
+          created_at: string
+          employee_name: string
+          id: string
+          improvements: string | null
+          rating: number
+          recommendations: string | null
+          strengths: string | null
+          updated_at: string
+        }
+        Insert: {
+          appraisal_period: string
+          appraised_by: string
+          created_at?: string
+          employee_name: string
+          id?: string
+          improvements?: string | null
+          rating?: number
+          recommendations?: string | null
+          strengths?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appraisal_period?: string
+          appraised_by?: string
+          created_at?: string
+          employee_name?: string
+          id?: string
+          improvements?: string | null
+          rating?: number
+          recommendations?: string | null
+          strengths?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      store_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          item_name: string
+          quantity: number
+          recorded_by: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_name: string
+          quantity?: number
+          recorded_by: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_name?: string
+          quantity?: number
+          recorded_by?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       student_courses: {
         Row: {
@@ -761,6 +1146,56 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_entries: {
+        Row: {
+          created_at: string
+          created_by: string
+          day_of_week: string
+          end_time: string
+          id: string
+          program_id: string
+          room: string | null
+          start_time: string
+          subject: string
+          teacher_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          day_of_week: string
+          end_time: string
+          id?: string
+          program_id: string
+          room?: string | null
+          start_time: string
+          subject: string
+          teacher_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          day_of_week?: string
+          end_time?: string
+          id?: string
+          program_id?: string
+          room?: string | null
+          start_time?: string
+          subject?: string
+          teacher_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_entries_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
