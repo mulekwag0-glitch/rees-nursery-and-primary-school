@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock, Loader2, GraduationCap, Briefcase } from 'lucide-react';
+import { Mail, Lock, Loader2, Briefcase } from 'lucide-react';
 import { z } from 'zod';
-import hfiLogo from '@/assets/hfi-logo.png';
+import reesLogo from '@/assets/rees-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -17,7 +16,7 @@ const loginSchema = z.object({
 });
 
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 2 * 60 * 1000; // 2 minutes
+const LOCKOUT_DURATION_MS = 2 * 60 * 1000;
 
 function getLoginAttempts(): { count: number; lockedUntil: number | null } {
   try {
@@ -42,12 +41,10 @@ export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('student');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
 
-  // Lockout countdown timer
   useEffect(() => {
     const { lockedUntil } = getLoginAttempts();
     if (!lockedUntil) return;
@@ -62,15 +59,12 @@ export default function Auth() {
     return () => clearInterval(interval);
   }, []);
 
-  // Role-based redirect after login
   useEffect(() => {
     if (user && !authLoading) {
-      // If role is already available, redirect to role-specific page
       if (role) {
         const redirectPath = getRedirectPath(role);
         navigate(redirectPath, { replace: true });
       } else {
-        // If no role yet, redirect to dashboard which handles role waiting
         navigate('/dashboard', { replace: true });
       }
     }
@@ -78,23 +72,15 @@ export default function Auth() {
 
   const getRedirectPath = (userRole: string): string => {
     switch (userRole) {
-      case 'admin':
-        return '/dashboard';
-      case 'tutor':
-        return '/results';
-      case 'finance':
-        return '/payments';
-      case 'student':
-        return '/dashboard';
-      default:
-        return '/dashboard';
+      case 'admin': return '/dashboard';
+      case 'tutor': return '/results';
+      case 'finance': return '/payments';
+      default: return '/dashboard';
     }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Check lockout
     const { count, lockedUntil } = getLoginAttempts();
     if (lockedUntil && Date.now() < lockedUntil) {
       toast({ title: 'Account Temporarily Locked', description: `Too many failed attempts. Try again in ${Math.ceil((lockedUntil - Date.now()) / 1000)}s.`, variant: 'destructive' });
@@ -120,21 +106,16 @@ export default function Auth() {
         const until = Date.now() + LOCKOUT_DURATION_MS;
         setLoginAttempts(newCount, until);
         setLockoutRemaining(Math.ceil(LOCKOUT_DURATION_MS / 1000));
-        // Start countdown
         const interval = setInterval(() => {
           const r = (until - Date.now()) / 1000;
           if (r <= 0) { setLoginAttempts(0, null); setLockoutRemaining(0); clearInterval(interval); }
           else setLockoutRemaining(Math.ceil(r));
         }, 1000);
-        toast({ title: 'Account Temporarily Locked', description: `Too many failed attempts. Try again in 2 minutes.`, variant: 'destructive' });
+        toast({ title: 'Account Temporarily Locked', description: 'Too many failed attempts. Try again in 2 minutes.', variant: 'destructive' });
       } else {
         setLoginAttempts(newCount, null);
         const remaining = MAX_ATTEMPTS - newCount;
-        toast({
-          title: 'Login Failed',
-          description: `Invalid email or password. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
-          variant: 'destructive',
-        });
+        toast({ title: 'Login Failed', description: `Invalid email or password. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`, variant: 'destructive' });
       }
     } else {
       clearLoginAttempts();
@@ -142,114 +123,58 @@ export default function Auth() {
     }
   };
 
-  const LoginForm = () => (
-    <form onSubmit={handleLogin} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="login-email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            id="login-email"
-            type="email"
-            placeholder="your@email.com"
-            className="pl-10"
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="login-password">Password</Label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            id="login-password"
-            type="password"
-            placeholder="••••••••"
-            className="pl-10"
-            value={loginPassword}
-            onChange={(e) => setLoginPassword(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-      {lockoutRemaining > 0 && (
-        <p className="text-sm text-center text-destructive font-medium">
-          Too many failed attempts. Try again in {lockoutRemaining}s
-        </p>
-      )}
-      <Button type="submit" className="w-full" disabled={loading || lockoutRemaining > 0}>
-        {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Signing in...
-          </>
-        ) : lockoutRemaining > 0 ? (
-          `Locked (${lockoutRemaining}s)`
-        ) : (
-          'Sign In'
-        )}
-      </Button>
-      <p className="text-sm text-center text-muted-foreground">
-        Contact your administrator if you need an account
-      </p>
-    </form>
-  );
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
       <div className="w-full max-w-md animate-fade-in">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <img src={hfiLogo} alt="HFI Logo" className="w-20 h-20 mx-auto mb-4 object-contain" />
-          <h1 className="text-2xl font-bold text-foreground">Humanity First</h1>
-          <p className="text-muted-foreground">Vocational Training Institute</p>
+          <img src={reesLogo} alt="Rees Daycare Logo" className="w-20 h-20 mx-auto mb-4 object-contain" />
+          <h1 className="text-2xl font-bold text-foreground">Rees Daycare</h1>
+          <p className="text-muted-foreground">Nursery & Primary School</p>
         </div>
 
         <Card className="shadow-elevated border-0">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl">Welcome</CardTitle>
+            <CardTitle className="text-xl flex items-center justify-center gap-2">
+              <Briefcase className="w-5 h-5" />
+              Staff Login
+            </CardTitle>
             <CardDescription>
-              Select your portal to continue
+              For Teachers, Finance Officers, and Administrators
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="student" className="flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4" />
-                  Student Portal
-                </TabsTrigger>
-                <TabsTrigger value="staff" className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4" />
-                  Staff Portal
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="student" className="space-y-4">
-                <div className="text-center mb-4 p-3 rounded-lg bg-primary/10">
-                  <p className="text-sm text-muted-foreground">
-                    Access your results, payments, and academic information
-                  </p>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input id="login-email" type="email" placeholder="your@email.com" className="pl-10" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required />
                 </div>
-                <LoginForm />
-              </TabsContent>
-
-              <TabsContent value="staff" className="space-y-4">
-                <div className="text-center mb-4 p-3 rounded-lg bg-secondary/30">
-                  <p className="text-sm text-muted-foreground">
-                    For Tutors, Finance Officers, and Administrators
-                  </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input id="login-password" type="password" placeholder="••••••••" className="pl-10" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
                 </div>
-                <LoginForm />
-              </TabsContent>
-            </Tabs>
+              </div>
+              {lockoutRemaining > 0 && (
+                <p className="text-sm text-center text-destructive font-medium">
+                  Too many failed attempts. Try again in {lockoutRemaining}s
+                </p>
+              )}
+              <Button type="submit" className="w-full" disabled={loading || lockoutRemaining > 0}>
+                {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</>) : lockoutRemaining > 0 ? (`Locked (${lockoutRemaining}s)`) : ('Sign In')}
+              </Button>
+              <p className="text-sm text-center text-muted-foreground">
+                Contact your administrator if you need an account
+              </p>
+            </form>
           </CardContent>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          © {new Date().getFullYear()} Humanity First VTI. All rights reserved.
+          © {new Date().getFullYear()} Rees Daycare Nursery & Primary School
         </p>
       </div>
     </div>

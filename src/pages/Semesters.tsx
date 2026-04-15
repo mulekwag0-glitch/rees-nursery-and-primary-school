@@ -26,8 +26,9 @@ const academicYears = [
     name: '2024/2025', 
     isCurrent: true,
     semesters: [
-      { id: 1, name: 'Semester 1', start: '2024-09-01', end: '2024-12-15', isCurrent: true, resultsOpen: true },
-      { id: 2, name: 'Semester 2', start: '2025-02-01', end: '2025-06-15', isCurrent: false, resultsOpen: false },
+      { id: 1, name: 'Term 1', start: '2025-02-01', end: '2025-04-30', isCurrent: true, resultsOpen: true },
+      { id: 2, name: 'Term 2', start: '2025-05-15', end: '2025-08-15', isCurrent: false, resultsOpen: false },
+      { id: 3, name: 'Term 3', start: '2025-09-01', end: '2025-11-30', isCurrent: false, resultsOpen: false },
     ]
   },
   { 
@@ -35,8 +36,9 @@ const academicYears = [
     name: '2023/2024', 
     isCurrent: false,
     semesters: [
-      { id: 3, name: 'Semester 1', start: '2023-09-01', end: '2023-12-15', isCurrent: false, resultsOpen: false },
-      { id: 4, name: 'Semester 2', start: '2024-02-01', end: '2024-06-15', isCurrent: false, resultsOpen: false },
+      { id: 3, name: 'Term 1', start: '2024-02-01', end: '2024-04-30', isCurrent: false, resultsOpen: false },
+      { id: 4, name: 'Term 2', start: '2024-05-15', end: '2024-08-15', isCurrent: false, resultsOpen: false },
+      { id: 5, name: 'Term 3', start: '2024-09-01', end: '2024-11-30', isCurrent: false, resultsOpen: false },
     ]
   },
 ];
@@ -49,7 +51,7 @@ export default function Semesters() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Academic Calendar</h1>
-            <p className="text-muted-foreground">Manage academic years and semesters</p>
+            <p className="text-muted-foreground">Manage academic years and terms</p>
           </div>
           <Button>
             <Plus className="w-4 h-4 mr-2" />
@@ -86,7 +88,7 @@ export default function Semesters() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>Edit Year</DropdownMenuItem>
-                      <DropdownMenuItem>Add Semester</DropdownMenuItem>
+                      <DropdownMenuItem>Add Term</DropdownMenuItem>
                       {!year.isCurrent && <DropdownMenuItem>Set as Current</DropdownMenuItem>}
                     </DropdownMenuContent>
                   </DropdownMenu>

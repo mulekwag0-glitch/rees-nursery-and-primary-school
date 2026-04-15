@@ -3,52 +3,25 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  BookOpen,
-  CreditCard,
-  FileText,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  ChevronDown,
-  ChevronRight,
-  Bell,
-  Calendar,
-  ClipboardList,
-  Building2,
-  Shield,
-  Briefcase,
-  DollarSign,
-  CalendarOff,
-  ScrollText,
+  LayoutDashboard, Users, GraduationCap, BookOpen, CreditCard, FileText, Settings, LogOut, Menu, X,
+  ChevronDown, ChevronRight, Calendar, ClipboardList, Building2, Shield, Briefcase, DollarSign, CalendarOff, ScrollText,
 } from 'lucide-react';
-import hfiLogo from '@/assets/hfi-logo.png';
+import reesLogo from '@/assets/rees-logo.png';
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
   roles: string[];
-  group?: string;
 }
 
 interface NavGroup {
@@ -59,20 +32,20 @@ interface NavGroup {
 }
 
 const standaloneNavItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'tutor', 'finance', 'admin'] },
-  { label: 'My Profile', href: '/profile', icon: Users, roles: ['student'] },
-  { label: 'Students', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['tutor', 'finance', 'admin'] },
+  { label: 'Pupils', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
   { label: 'Admissions', href: '/admissions', icon: GraduationCap, roles: ['admin'] },
   { label: 'Enrollments', href: '/enrollments', icon: BookOpen, roles: ['admin'] },
-  { label: 'Courses', href: '/courses', icon: BookOpen, roles: ['admin', 'tutor'] },
-  { label: 'Tutor Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'] },
-  { label: 'Results', href: '/results', icon: ClipboardList, roles: ['student', 'tutor', 'admin'] },
-  { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['student', 'finance', 'admin'] },
+  { label: 'Subjects', href: '/courses', icon: BookOpen, roles: ['admin', 'tutor'] },
+  { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'] },
+  { label: 'Results', href: '/results', icon: ClipboardList, roles: ['tutor', 'admin'] },
+  { label: 'Report Cards', href: '/report-cards', icon: FileText, roles: ['admin'] },
+  { label: 'Payments', href: '/payments', icon: CreditCard, roles: ['finance', 'admin'] },
   { label: 'Fee Structures', href: '/fee-structures', icon: CreditCard, roles: ['admin', 'finance'] },
   { label: 'Expenses', href: '/expenses', icon: CreditCard, roles: ['admin', 'finance'] },
   { label: 'Transcripts', href: '/transcripts', icon: FileText, roles: ['admin'] },
-  { label: 'Programs', href: '/programs', icon: Building2, roles: ['admin'] },
-  { label: 'Semesters', href: '/semesters', icon: Calendar, roles: ['admin'] },
+  { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'] },
+  { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'] },
   { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'] },
   { label: 'User Management', href: '/users', icon: Shield, roles: ['admin'] },
   { label: 'Audit Logs', href: '/audit-logs', icon: ScrollText, roles: ['admin'] },
@@ -102,42 +75,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const filteredNavItems = standaloneNavItems.filter(item => 
-    role && item.roles.includes(role)
-  );
-
+  const filteredNavItems = standaloneNavItems.filter(item => role && item.roles.includes(role));
   const filteredNavGroups = navGroups
     .filter(group => role && group.roles.includes(role))
-    .map(group => ({
-      ...group,
-      items: group.items.filter(item => role && item.roles.includes(role)),
-    }))
+    .map(group => ({ ...group, items: group.items.filter(item => role && item.roles.includes(role)) }))
     .filter(group => group.items.length > 0);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (label: string) => setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
+  const isGroupActive = (group: NavGroup) => group.items.some(item => location.pathname === item.href);
 
-  const toggleGroup = (label: string) => {
-    setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
-  };
-
-  // Check if any item in a group is active
-  const isGroupActive = (group: NavGroup) => {
-    return group.items.some(item => location.pathname === item.href);
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
-  const getInitials = (email: string) => {
-    return email.substring(0, 2).toUpperCase();
-  };
+  const handleSignOut = async () => { await signOut(); navigate('/auth'); };
+  const getInitials = (email: string) => email.substring(0, 2).toUpperCase();
 
   const getRoleLabel = (role: string | null) => {
     const labels: Record<string, string> = {
-      student: 'Student',
-      tutor: 'Tutor / Lecturer',
+      tutor: 'Teacher',
       finance: 'Finance Officer',
       admin: 'System Administrator',
     };
@@ -146,99 +99,57 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-sidebar transform transition-transform duration-300 lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 bg-sidebar transform transition-transform duration-300 lg:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-            <img src={hfiLogo} alt="HFI Logo" className="w-10 h-10 object-contain" />
+            <img src={reesLogo} alt="Rees Daycare Logo" className="w-10 h-10 object-contain" />
             <div>
-              <h1 className="text-lg font-bold text-sidebar-foreground">HFI SIMS</h1>
-              <p className="text-xs text-sidebar-foreground/60">Vocational Training</p>
+              <h1 className="text-lg font-bold text-sidebar-foreground">Rees Daycare</h1>
+              <p className="text-xs text-sidebar-foreground/60">Nursery & Primary</p>
             </div>
-            <button 
-              className="ml-auto lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground"
-              onClick={() => setSidebarOpen(false)}
-            >
+            <button className="ml-auto lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
-
-              // Insert HR group after Expenses
               const insertGroupAfter = item.href === '/expenses';
 
               return (
                 <React.Fragment key={item.href}>
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      "sidebar-link",
-                      isActive && "active"
-                    )}
-                    onClick={() => setSidebarOpen(false)}
-                  >
+                  <Link to={item.href} className={cn("sidebar-link", isActive && "active")} onClick={() => setSidebarOpen(false)}>
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
                   </Link>
-
                   {insertGroupAfter && filteredNavGroups.map((group) => {
                     const GroupIcon = group.icon;
                     const groupActive = isGroupActive(group);
                     const isOpen = openGroups[group.label] ?? groupActive;
-
                     return (
-                      <Collapsible
-                        key={group.label}
-                        open={isOpen}
-                        onOpenChange={() => toggleGroup(group.label)}
-                      >
-                        <CollapsibleTrigger className={cn(
-                          "sidebar-link w-full justify-between",
-                          groupActive && "text-sidebar-primary"
-                        )}>
+                      <Collapsible key={group.label} open={isOpen} onOpenChange={() => toggleGroup(group.label)}>
+                        <CollapsibleTrigger className={cn("sidebar-link w-full justify-between", groupActive && "text-sidebar-primary")}>
                           <div className="flex items-center gap-3">
                             <GroupIcon className="w-5 h-5" />
                             <span>{group.label}</span>
                           </div>
-                          {isOpen ? (
-                            <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4" />
-                          )}
+                          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                         </CollapsibleTrigger>
                         <CollapsibleContent className="pl-4 space-y-1 mt-1">
                           {group.items.map((subItem) => {
                             const SubIcon = subItem.icon;
                             const subActive = location.pathname === subItem.href;
                             return (
-                              <Link
-                                key={subItem.href}
-                                to={subItem.href}
-                                className={cn(
-                                  "sidebar-link text-sm",
-                                  subActive && "active"
-                                )}
-                                onClick={() => setSidebarOpen(false)}
-                              >
+                              <Link key={subItem.href} to={subItem.href} className={cn("sidebar-link text-sm", subActive && "active")} onClick={() => setSidebarOpen(false)}>
                                 <SubIcon className="w-4 h-4" />
                                 <span>{subItem.label}</span>
                               </Link>
@@ -253,7 +164,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
           </nav>
 
-          {/* User card */}
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent/50">
               <Avatar className="w-10 h-10 border-2 border-sidebar-primary">
@@ -262,35 +172,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {user?.email}
-                </p>
-                <p className="text-xs text-sidebar-foreground/60">
-                  {getRoleLabel(role)}
-                </p>
+                <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.email}</p>
+                <p className="text-xs text-sidebar-foreground/60">{getRoleLabel(role)}</p>
               </div>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="lg:pl-72">
-        {/* Header */}
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border">
           <div className="flex items-center justify-between px-4 py-3 lg:px-8">
-            <button
-              className="p-2 rounded-lg hover:bg-muted lg:hidden"
-              onClick={() => setSidebarOpen(true)}
-            >
+            <button className="p-2 rounded-lg hover:bg-muted lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="w-5 h-5" />
             </button>
-
             <div className="flex items-center gap-4 ml-auto">
-              {/* Notifications */}
               <NotificationBell />
-
-              {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted">
@@ -324,11 +221,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
         </header>
-
-        {/* Page content */}
-        <main className="p-4 lg:p-8">
-          {children}
-        </main>
+        <main className="p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );
