@@ -164,26 +164,26 @@ export default function Settings() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Institution Name</Label>
-                    <Input defaultValue="Salem Uganda" />
+                    <Input defaultValue="Rees Daycare Nursery & Primary School" />
                   </div>
                   <div className="space-y-2">
                     <Label>Short Name / Code</Label>
-                    <Input defaultValue="SALEM" />
+                    <Input defaultValue="REES" />
                   </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Email</Label>
-                    <Input type="email" defaultValue="info@salem.ug" />
+                    <Input type="email" defaultValue="admin@rees.ac.ug" />
                   </div>
                   <div className="space-y-2">
                     <Label>Phone</Label>
-                    <Input defaultValue="+256 700 000 000" />
+                    <Input defaultValue="+256780306692" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Address</Label>
-                  <Input defaultValue="Kampala, Uganda" />
+                  <Input defaultValue="Mbale City, Uganda" />
                 </div>
                 <Button>Save Changes</Button>
               </CardContent>
