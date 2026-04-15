@@ -1007,7 +1007,7 @@ export default function Transcripts() {
             </div>
             <div ref={transcriptRef} className="p-6 bg-white text-black">
               <div className="header">
-                <img src={hfiLogo} alt="HFI" className="logo-img" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
+                <img src={reesLogo} alt="HFI" className="logo-img" style={{ width: '80px', height: '80px', margin: '0 auto 10px', display: 'block' }} />
                 <div className="logo">HUMANITY FIRST INSTITUTE</div>
                 <div className="subtitle">Vocational Training Institute</div>
                 <div className="title">Official Academic Transcript</div>
@@ -1133,7 +1133,7 @@ export default function Transcripts() {
                 {/* Content */}
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <div style={{ textAlign: 'center' }}>
-                    <img src={hfiLogo} alt="HFI" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
+                    <img src={reesLogo} alt="HFI" style={{ width: '100px', height: '100px', margin: '0 auto 10px', display: 'block' }} />
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: 'bold', color: '#1a365d', letterSpacing: '3px' }}>HUMANITY FIRST INSTITUTE</div>
                     <div style={{ fontSize: '14px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase' as const }}>Vocational Training Institute</div>
                     <div style={{ textAlign: 'center', color: '#b8860b', fontSize: '24px', margin: '10px 0', letterSpacing: '8px' }}>✦ ✦ ✦</div>
