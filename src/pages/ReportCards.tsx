@@ -443,106 +443,137 @@ export default function ReportCards() {
             </div>
 
             {/* Printable Report Card */}
-            <div ref={reportCardRef} className="bg-white text-black p-8" style={{ fontFamily: 'serif' }}>
-              {/* Header */}
-              <div className="text-center border-b-2 border-red-800 pb-4 mb-4">
-                <img src={reesLogo} alt="Logo" className="w-16 h-16 mx-auto mb-2 object-contain" />
-                <h1 className="text-xl font-bold text-red-800 tracking-wide">REES DAYCARE NURSERY & PRIMARY SCHOOL</h1>
-                <p className="text-xs text-gray-600">Mbale City, Uganda | Tel: +256780306692</p>
-                <p className="text-xs italic text-gray-500 mt-1">"Building Bright Futures"</p>
-                <h2 className="text-lg font-bold mt-3 tracking-widest">REPORT CARD</h2>
+            <div ref={reportCardRef} className="bg-white text-black relative" style={{ fontFamily: 'Georgia, serif' }}>
+              {/* Outer decorative border */}
+              <div className="absolute inset-0 border-[6px] border-red-800 rounded-sm" />
+              <div className="absolute inset-[8px] border-2 border-red-300 rounded-sm" />
+              <div className="absolute inset-[12px] border border-amber-600/40 rounded-sm" />
+
+              {/* Watermark */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
+                <img src={reesLogo} alt="" className="w-[300px] h-[300px] object-contain" />
               </div>
 
-              {/* Student Info */}
-              <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-                <p><strong>Name:</strong> {studentData?.profiles.full_name}</p>
-                <p><strong>Reg No:</strong> {studentData?.student_id}</p>
-                <p><strong>Class:</strong> {studentData?.programs.name}</p>
-                <p><strong>Term:</strong> {selectedTerm || 'All Terms'}</p>
-                <p><strong>Year:</strong> {new Date().getFullYear()}</p>
+              <div className="relative z-10 p-10">
+                {/* Header */}
+                <div className="text-center mb-5">
+                  <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
+                  <h1 className="text-2xl font-bold text-red-800 tracking-wide uppercase">Rees Daycare Nursery & Primary School</h1>
+                  <p className="text-xs text-gray-500 mt-1">Mbale City, Uganda | Tel: +256780306692 | Email: admin@rees.ac.ug</p>
+                  <p className="text-xs italic text-amber-700 mt-1">"Building Bright Futures"</p>
+                  <div className="mt-3 flex items-center justify-center gap-2">
+                    <div className="h-[2px] w-16 bg-gradient-to-r from-transparent to-red-800" />
+                    <h2 className="text-lg font-bold tracking-[0.3em] text-gray-800">REPORT CARD</h2>
+                    <div className="h-[2px] w-16 bg-gradient-to-l from-transparent to-red-800" />
+                  </div>
+                </div>
+
+                {/* Student Info Box */}
+                <div className="bg-red-50/60 border border-red-200 rounded-lg p-3 mb-5">
+                  <div className="grid grid-cols-2 gap-y-1 text-sm">
+                    <p><span className="text-gray-500">Name:</span> <strong>{studentData?.profiles.full_name}</strong></p>
+                    <p><span className="text-gray-500">Reg No:</span> <strong className="font-mono">{studentData?.student_id}</strong></p>
+                    <p><span className="text-gray-500">Class:</span> <strong>{studentData?.programs.name}</strong></p>
+                    <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'All Terms'}</strong></p>
+                    <p><span className="text-gray-500">Academic Year:</span> <strong>{new Date().getFullYear()}</strong></p>
+                  </div>
+                </div>
+
+                {/* Results Table */}
+                {studentResults.length > 0 ? (
+                  <table className="w-full border-collapse text-sm mb-5">
+                    <thead>
+                      <tr>
+                        <th className="bg-red-800 text-white border border-red-900 px-3 py-2 text-left">Subject</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">CW</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Exam</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Total</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Rating</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center">Remark</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {studentResults.map((r, idx) => {
+                        const competency = getCompetencyFromScore(r.total_marks || 0);
+                        return (
+                          <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-red-50/40'}>
+                            <td className="border border-gray-300 px-3 py-1.5">{r.student_courses.courses.name}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.coursework_marks}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.exam_marks}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{r.total_marks}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{competency}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center text-xs">
+                              {COMPETENCY_RATINGS.find(c => c.code === competency)?.label}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="text-center text-gray-400 py-8 border border-dashed border-gray-300 rounded-lg mb-5">
+                    <p>No results available for this term.</p>
+                  </div>
+                )}
+
+                {/* Key */}
+                <div className="text-xs mb-5 p-2 bg-amber-50 border border-amber-200 rounded flex flex-wrap gap-3">
+                  <span className="font-bold text-amber-800">KEY:</span>
+                  <span><strong>BE</strong> = Beyond Expectation (80-100)</span>
+                  <span><strong>AE</strong> = Above Expectation (65-79)</span>
+                  <span><strong>ME</strong> = Meeting Expectation (50-64)</span>
+                  <span><strong>BW</strong> = Below Expectation (0-49)</span>
+                </div>
+
+                {/* Conduct & Attendance */}
+                <div className="grid grid-cols-2 gap-4 text-sm mb-5 border border-gray-200 rounded-lg p-3">
+                  <div>
+                    <p><strong>Conduct:</strong> <span className="text-red-800 font-semibold">{conduct}</span></p>
+                    <p className="mt-2"><strong>Attendance:</strong> {attendance.present}/{attendance.total} days present, {attendance.absent} absent</p>
+                  </div>
+                  <div>
+                    <p><strong>Co-curricular Activities:</strong></p>
+                    <p className="text-xs text-gray-500 italic">Sports, Music, Art, Drama</p>
+                  </div>
+                </div>
+
+                {/* Comments */}
+                <div className="text-sm mb-6 space-y-4">
+                  <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-red-800">
+                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Class Teacher's Comment</p>
+                    <p className="italic">{teacherComment}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-amber-600">
+                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Head Teacher's Comment</p>
+                    <p className="italic">{headComment}</p>
+                  </div>
+                </div>
+
+                {/* Signatures & QR */}
+                <div className="flex justify-between items-end mt-8 pt-4">
+                  <div className="text-center">
+                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Class Teacher's Signature</div>
+                  </div>
+                  <div className="text-center">
+                    <QRCodeSVG
+                      value={`${window.location.origin}/verify?id=${studentData?.student_id}&term=${selectedTerm || 'all'}&year=${new Date().getFullYear()}`}
+                      size={56}
+                    />
+                    <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 text-center">
+                  <div className="inline-flex items-center gap-4 text-xs text-gray-400 border-t border-gray-200 pt-3">
+                    <span>Next term begins: _________________</span>
+                    <span>•</span>
+                    <span>School stamp</span>
+                  </div>
+                </div>
               </div>
-
-              {/* Results Table */}
-              {studentResults.length > 0 ? (
-                <table className="w-full border-collapse border border-gray-400 text-sm mb-4">
-                  <thead>
-                    <tr className="bg-red-800 text-white">
-                      <th className="border border-gray-400 px-2 py-1 text-left">Subject</th>
-                      <th className="border border-gray-400 px-2 py-1 text-center">CW</th>
-                      <th className="border border-gray-400 px-2 py-1 text-center">Exam</th>
-                      <th className="border border-gray-400 px-2 py-1 text-center">Total</th>
-                      <th className="border border-gray-400 px-2 py-1 text-center">Rating</th>
-                      <th className="border border-gray-400 px-2 py-1 text-center">Remark</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentResults.map((r) => {
-                      const competency = getCompetencyFromScore(r.total_marks || 0);
-                      return (
-                        <tr key={r.id}>
-                          <td className="border border-gray-400 px-2 py-1">{r.student_courses.courses.name}</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center">{r.coursework_marks}</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center">{r.exam_marks}</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center font-bold">{r.total_marks}</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center font-bold">{competency}</td>
-                          <td className="border border-gray-400 px-2 py-1 text-center text-xs">
-                            {COMPETENCY_RATINGS.find(c => c.code === competency)?.label}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="text-center text-gray-500 py-4">No results available for this term.</p>
-              )}
-
-              {/* Key */}
-              <div className="text-xs mb-4 p-2 bg-gray-50 border rounded">
-                <strong>Key:</strong> BE = Beyond Expectation (80-100) | AE = Above Expectation (65-79) | ME = Meeting Expectation (50-64) | BW = Below Expectation (0-49)
-              </div>
-
-              {/* Conduct & Attendance */}
-              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                <div>
-                  <p><strong>Conduct:</strong> {conduct}</p>
-                  <p className="mt-2"><strong>Attendance:</strong> {attendance.present}/{attendance.total} days present, {attendance.absent} days absent</p>
-                </div>
-                <div>
-                  <p><strong>Co-curricular Activities:</strong></p>
-                  <p className="text-xs text-gray-500 italic">Sports, Music, Art, Drama</p>
-                </div>
-              </div>
-
-              {/* Comments */}
-              <div className="text-sm mb-6 space-y-3">
-                <div>
-                  <p><strong>Class Teacher's Comment:</strong></p>
-                  <p className="border-b border-dotted border-gray-400 pb-1 italic">{teacherComment}</p>
-                </div>
-                <div>
-                  <p><strong>Head Teacher's Comment:</strong></p>
-                  <p className="border-b border-dotted border-gray-400 pb-1 italic">{headComment}</p>
-                </div>
-              </div>
-
-              {/* Signatures & QR */}
-              <div className="flex justify-between items-end mt-8">
-                <div className="text-center">
-                  <div className="w-40 border-t border-black pt-1 text-xs">Class Teacher's Signature</div>
-                </div>
-                <QRCodeSVG
-                  value={`https://rees.ac.ug/verify?id=${studentData?.student_id}&term=${selectedTerm || 'all'}&year=${new Date().getFullYear()}`}
-                  size={60}
-                />
-                <div className="text-center">
-                  <div className="w-40 border-t border-black pt-1 text-xs">Head Teacher's Signature</div>
-                </div>
-              </div>
-
-              <p className="text-center text-xs text-gray-400 mt-4">
-                Next term begins: _________________ | School stamp: _________________
-              </p>
             </div>
 
             <DialogFooter>
