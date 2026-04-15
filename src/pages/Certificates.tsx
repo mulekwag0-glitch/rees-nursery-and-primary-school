@@ -133,46 +133,71 @@ export default function Certificates() {
               <DialogTitle>Completion Certificate - {selectedStudent?.profiles.full_name}</DialogTitle>
             </DialogHeader>
 
-            <div ref={certRef} className="bg-white text-black p-12 relative" style={{ fontFamily: 'serif', minHeight: '500px' }}>
-              {/* Border */}
-              <div className="absolute inset-4 border-4 border-double border-red-800 rounded-lg" />
-              <div className="absolute inset-6 border border-red-300 rounded-lg" />
+            <div ref={certRef} className="bg-white text-black relative" style={{ fontFamily: 'Georgia, serif', minHeight: '500px' }}>
+              {/* Decorative borders */}
+              <div className="absolute inset-0 border-[8px] border-red-800" />
+              <div className="absolute inset-[10px] border-2 border-amber-600" />
+              <div className="absolute inset-[14px] border border-red-300" />
+              <div className="absolute inset-[18px] border border-amber-400/50" />
 
-              <div className="relative z-10 text-center space-y-6 py-8">
-                <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto object-contain" />
+              {/* Corner ornaments */}
+              {['top-6 left-6', 'top-6 right-6', 'bottom-6 left-6', 'bottom-6 right-6'].map((pos, i) => (
+                <div key={i} className={`absolute ${pos} w-8 h-8 border-2 border-amber-600 rounded-full opacity-30`} />
+              ))}
+
+              {/* Watermark */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
+                <img src={reesLogo} alt="" className="w-[350px] h-[350px] object-contain" />
+              </div>
+
+              <div className="relative z-10 text-center py-10 px-16 space-y-5">
+                <img src={reesLogo} alt="Logo" className="w-24 h-24 mx-auto object-contain" />
                 <div>
-                  <h1 className="text-2xl font-bold text-red-800 tracking-wide">REES DAYCARE NURSERY & PRIMARY SCHOOL</h1>
-                  <p className="text-sm text-gray-500">Mbale City, Uganda | +256780306692</p>
+                  <h1 className="text-2xl font-bold text-red-800 tracking-wide uppercase">Rees Daycare Nursery & Primary School</h1>
+                  <p className="text-sm text-gray-500 mt-1">Mbale City, Uganda | +256780306692</p>
+                  <p className="text-xs italic text-amber-700 mt-1">"Building Bright Futures"</p>
                 </div>
 
-                <h2 className="text-3xl font-bold tracking-[0.3em] text-gray-800 pt-4">CERTIFICATE</h2>
-                <p className="text-lg text-gray-600">OF COMPLETION</p>
-
-                <div className="py-6 space-y-2">
-                  <p className="text-gray-600">This is to certify that</p>
-                  <p className="text-2xl font-bold text-gray-900 border-b-2 border-red-800 inline-block px-8 pb-1">
-                    {selectedStudent?.profiles.full_name}
-                  </p>
-                  <p className="text-gray-600 pt-2">Registration Number: <strong>{selectedStudent?.student_id}</strong></p>
-                  <p className="text-gray-600">
-                    has successfully completed the <strong>{selectedStudent?.programs.name}</strong> programme
-                  </p>
-                  <p className="text-gray-600">
-                    at Rees Daycare Nursery & Primary School
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-end pt-8 px-12">
-                  <div className="text-center">
-                    <div className="w-40 border-t border-black pt-1 text-xs">Date</div>
-                    <p className="text-sm mt-1">{new Date().toLocaleDateString('en-UG', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <div className="py-4">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <div className="h-[2px] w-20 bg-gradient-to-r from-transparent to-amber-600" />
+                    <h2 className="text-3xl font-bold tracking-[0.4em] text-gray-800">CERTIFICATE</h2>
+                    <div className="h-[2px] w-20 bg-gradient-to-l from-transparent to-amber-600" />
                   </div>
-                  <QRCodeSVG
-                    value={`${window.location.origin}/verify?id=${selectedStudent?.student_id}&type=certificate`}
-                    size={60}
-                  />
+                  <p className="text-lg text-amber-700 tracking-widest uppercase">of Completion</p>
+                </div>
+
+                <div className="py-4 space-y-3">
+                  <p className="text-gray-600 text-lg">This is to certify that</p>
+                  <div className="inline-block">
+                    <p className="text-3xl font-bold text-gray-900 px-10 pb-1">
+                      {selectedStudent?.profiles.full_name}
+                    </p>
+                    <div className="h-[2px] bg-gradient-to-r from-transparent via-red-800 to-transparent" />
+                  </div>
+                  <p className="text-gray-600">Registration Number: <strong className="font-mono text-red-800">{selectedStudent?.student_id}</strong></p>
+                  <p className="text-gray-600 text-lg">
+                    has successfully completed the <strong className="text-red-800">{selectedStudent?.programs.name}</strong> programme
+                  </p>
+                  <p className="text-gray-600">
+                    at <strong>Rees Daycare Nursery & Primary School</strong>
+                  </p>
+                </div>
+
+                <div className="flex justify-between items-end pt-10 px-8">
                   <div className="text-center">
-                    <div className="w-40 border-t border-black pt-1 text-xs">Head Teacher's Signature</div>
+                    <p className="text-sm mb-2">{new Date().toLocaleDateString('en-UG', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <div className="w-44 border-t-2 border-black pt-2 text-xs font-medium">Date</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <QRCodeSVG
+                      value={`${window.location.origin}/verify?id=${selectedStudent?.student_id}&type=certificate`}
+                      size={56}
+                    />
+                    <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-44 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
                   </div>
                 </div>
               </div>
