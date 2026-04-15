@@ -27,7 +27,7 @@ import {
   Users,
   ImagePlus,
 } from 'lucide-react';
-import hfiLogo from '@/assets/hfi-logo.png';
+import reesLogo from '@/assets/rees-logo.png';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Select,
