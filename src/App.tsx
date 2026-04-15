@@ -35,6 +35,7 @@ import LessonPlans from "./pages/LessonPlans";
 import Administration from "./pages/Administration";
 import StoreAssets from "./pages/StoreAssets";
 import WorkPlan from "./pages/WorkPlan";
+import Attendance from "./pages/Attendance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
