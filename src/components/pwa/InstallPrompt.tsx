@@ -52,7 +52,7 @@ export function InstallPrompt() {
             <Smartphone className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground">Install HFI SIMS</h3>
+            <h3 className="font-semibold text-foreground">Install Rees Daycare</h3>
             <p className="text-sm text-muted-foreground mt-0.5">
               Install this app on your device for quick access — works offline!
             </p>
