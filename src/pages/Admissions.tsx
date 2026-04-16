@@ -46,7 +46,7 @@ export default function Admissions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`*, profiles:user_id (full_name, email, phone, avatar_url), programs:program_id (name, code)`)
+        .select(`*, programs:program_id (name, code)`)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;

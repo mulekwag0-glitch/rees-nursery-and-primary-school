@@ -35,13 +35,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 interface Student {
   id: string;
   student_id: string;
-  user_id: string;
+  full_name: string;
   program_id: string;
   current_year: number;
-  profiles: {
-    full_name: string;
-    email: string;
-  };
   programs: {
     name: string;
     code: string;
@@ -116,10 +112,9 @@ export default function Enrollments() {
         .select(`
           id,
           student_id,
-          user_id,
+          full_name,
           program_id,
           current_year,
-          profiles!students_user_id_profiles_fkey(full_name, email),
           programs(name, code)
         `)
         .eq('status', 'active');
@@ -178,7 +173,7 @@ export default function Enrollments() {
           semester_id,
           students(
             student_id,
-            profiles:profiles!students_user_id_profiles_fkey(full_name)
+            full_name
           ),
           courses(code, name, credit_units)
         `)
