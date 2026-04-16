@@ -46,10 +46,11 @@ const getCompetencyColor = (code: string) => {
 interface Student {
   id: string;
   student_id: string;
-  user_id: string;
+  full_name: string;
+  gender: string;
   current_year: number;
   enrollment_date: string;
-  profiles: { full_name: string; email: string; avatar_url: string | null };
+  parent_contact: string | null;
   programs: { name: string; code: string; duration_years: number };
 }
 
@@ -88,8 +89,7 @@ export default function ReportCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`id, student_id, user_id, current_year, enrollment_date,
-          profiles!students_user_id_profiles_fkey(full_name, email, avatar_url),
+        .select(`id, student_id, full_name, gender, current_year, enrollment_date, parent_contact,
           programs(name, code, duration_years)`)
         .order('student_id');
       if (error) throw error;
