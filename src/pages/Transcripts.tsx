@@ -129,7 +129,7 @@ export default function Transcripts() {
           user_id,
           current_year,
           enrollment_date,
-          profiles!students_user_id_profiles_fkey(full_name, email, avatar_url),
+          full_name, gender, parent_contact,
           programs(name, code, duration_years)
         `)
         .order('student_id');
@@ -172,7 +172,7 @@ export default function Transcripts() {
         student_id: studentData.id,
         document_type: type,
         generated_by: user.id,
-        student_name: studentData.profiles.full_name,
+        student_name: studentData.full_name,
         student_number: studentData.student_id,
         program_name: studentData.programs.name,
       });
@@ -328,7 +328,7 @@ export default function Transcripts() {
         try {
           const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
           if (adminRoles?.length) {
-            await notifyDocumentGenerated(adminRoles.map(r => r.user_id), studentData.profiles.full_name, type);
+            await notifyDocumentGenerated(adminRoles.map(r => r.user_id), studentData.full_name, type);
           }
         } catch (err) { console.error('Failed to send notification:', err); }
       }
@@ -382,7 +382,7 @@ export default function Transcripts() {
       try {
         const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
         if (adminRoles?.length) {
-          await notifyDocumentGenerated(adminRoles.map(r => r.user_id), studentData.profiles.full_name, type);
+          await notifyDocumentGenerated(adminRoles.map(r => r.user_id), studentData.full_name, type);
         }
       } catch (err) { console.error('Failed to send notification:', err); }
     }
@@ -485,7 +485,7 @@ export default function Transcripts() {
 
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`Student Name: ${student.profiles.full_name}`, 20, y);
+        pdf.text(`Student Name: ${student.full_name}`, 20, y);
         pdf.text(`Student ID: ${student.student_id}`, 120, y);
         y += 6;
         pdf.text(`Program: ${student.programs.name}`, 20, y);
@@ -543,7 +543,7 @@ export default function Transcripts() {
             student_id: student.id,
             document_type: 'transcript',
             generated_by: user.id,
-            student_name: student.profiles.full_name,
+            student_name: student.full_name,
             student_number: student.student_id,
             program_name: student.programs.name,
           });
@@ -651,7 +651,7 @@ export default function Transcripts() {
   };
 
   const filteredStudents = students.filter(student =>
-    student.profiles.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -734,7 +734,7 @@ export default function Transcripts() {
                   <SelectContent>
                     {filteredStudents.map(student => (
                       <SelectItem key={student.id} value={student.id}>
-                        {student.profiles.full_name} ({student.student_id})
+                        {student.full_name} ({student.student_id})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -760,7 +760,7 @@ export default function Transcripts() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{student.profiles.full_name}</p>
+                      <p className="text-sm font-medium truncate">{student.full_name}</p>
                       <p className="text-xs text-muted-foreground">{student.student_id} • {student.programs.code}</p>
                     </div>
                   </div>
