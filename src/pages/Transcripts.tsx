@@ -573,7 +573,7 @@ export default function Transcripts() {
   const handleAssignSamplePhotos = async () => {
     setAssigningPhotos(true);
     try {
-      const studentsWithoutPhotos = students.filter(s => !s.profiles.avatar_url);
+      const studentsWithoutPhotos = students.filter(s => !s.avatar_url);
       if (studentsWithoutPhotos.length === 0) {
         toast({ title: 'All Set', description: 'All students already have photos assigned.' });
         return;
@@ -753,8 +753,8 @@ export default function Transcripts() {
                   >
                     <Checkbox checked={selectedStudents.has(student.id)} />
                     <div className="w-8 h-8 rounded-full bg-muted overflow-hidden flex items-center justify-center flex-shrink-0">
-                      {student.profiles.avatar_url ? (
-                        <img src={student.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      {student.avatar_url ? (
+                        <img src={student.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <GraduationCap className="w-4 h-4 text-muted-foreground" />
                       )}
@@ -795,7 +795,7 @@ export default function Transcripts() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>{selectedStudentData.profiles.full_name}</CardTitle>
+                    <CardTitle>{selectedStudentData.full_name}</CardTitle>
                     <CardDescription>{selectedStudentData.student_id}</CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -992,7 +992,7 @@ export default function Transcripts() {
             <DialogHeader>
               <DialogTitle>Academic Transcript</DialogTitle>
               <DialogDescription>
-                Official academic transcript for {selectedStudentData?.profiles.full_name}
+                Official academic transcript for {selectedStudentData?.full_name}
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end gap-2 mb-4">
@@ -1017,7 +1017,7 @@ export default function Transcripts() {
                 <div>
                   <div className="info-row">
                     <span className="info-label">Student Name:</span>
-                    <span>{selectedStudentData?.profiles.full_name}</span>
+                    <span>{selectedStudentData?.full_name}</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Student ID:</span>
@@ -1032,10 +1032,10 @@ export default function Transcripts() {
                     <span>{selectedStudentData && new Date(selectedStudentData.enrollment_date).toLocaleDateString()}</span>
                   </div>
                 </div>
-                {selectedStudentData?.profiles.avatar_url && (
+                {selectedStudentData?.avatar_url && (
                   <div style={{ width: '100px', height: '120px', border: '1px solid #ccc', overflow: 'hidden', flexShrink: 0, marginLeft: '20px' }}>
                     <img 
-                      src={selectedStudentData.profiles.avatar_url} 
+                      src={selectedStudentData.avatar_url} 
                       alt="Passport Photo" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       crossOrigin="anonymous"
@@ -1109,7 +1109,7 @@ export default function Transcripts() {
             <DialogHeader>
               <DialogTitle>Certificate of Completion</DialogTitle>
               <DialogDescription>
-                Certificate for {selectedStudentData?.profiles.full_name}
+                Certificate for {selectedStudentData?.full_name}
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end gap-2 mb-4">
@@ -1143,7 +1143,7 @@ export default function Transcripts() {
                   <div style={{ textAlign: 'center', padding: '30px 20px' }}>
                     <p style={{ fontSize: '16px' }}>This is to certify that</p>
                     <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '36px', fontWeight: 'bold', margin: '15px auto', color: '#1a365d', borderBottom: '2px solid #b8860b', display: 'inline-block', paddingBottom: '5px' }}>
-                      {selectedStudentData?.profiles.full_name}
+                      {selectedStudentData?.full_name}
                     </div>
                     <p style={{ fontSize: '16px' }}>Student ID: {selectedStudentData?.student_id}</p>
                     <p style={{ fontSize: '16px', marginTop: '20px' }}>has successfully completed the requirements for the</p>
