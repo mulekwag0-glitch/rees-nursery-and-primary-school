@@ -47,14 +47,10 @@ import {
 interface Student {
   id: string;
   student_id: string;
-  user_id: string;
-  current_year: number;
-  enrollment_date: string;
-  profiles: {
-    full_name: string;
-    email: string;
-    avatar_url: string | null;
-  };
+  full_name: string;
+  gender: string;
+  parent_contact: string | null;
+  avatar_url?: string | null;
   programs: {
     name: string;
     code: string;
