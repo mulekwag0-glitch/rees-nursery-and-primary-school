@@ -261,16 +261,18 @@ function UserManagementTab() {
               <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrator (Full Access)</SelectItem>
-                  <SelectItem value="tutor">Teacher (Academic Access)</SelectItem>
-                  <SelectItem value="finance">Bursar / Finance (Financial Access)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {newRole === 'admin' && 'Full system access: pupils, results, finance, HR, settings, user management.'}
-                {newRole === 'tutor' && 'Can manage results, lesson plans, attendance, schemes of work for assigned classes.'}
-                {newRole === 'finance' && 'Can manage payments, fee structures, expenses, payroll, and financial reports.'}
-              </p>
+                   <SelectItem value="admin">Administrator (Full Access)</SelectItem>
+                   <SelectItem value="headmistress">Headmistress (Academic Oversight)</SelectItem>
+                   <SelectItem value="tutor">Teacher (Academic Access)</SelectItem>
+                   <SelectItem value="finance">Bursar / Finance (Financial Access)</SelectItem>
+                 </SelectContent>
+               </Select>
+               <p className="text-xs text-muted-foreground">
+                 {newRole === 'admin' && 'Full system access: pupils, results, finance, HR, settings, user management.'}
+                 {newRole === 'headmistress' && 'Academic oversight: view all pupils, results, attendance, approve results, generate report cards & certificates. No access to settings, user management, or financial data.'}
+                 {newRole === 'tutor' && 'Can manage results, lesson plans, attendance, schemes of work for assigned classes.'}
+                 {newRole === 'finance' && 'Can manage payments, fee structures, expenses, payroll, and financial reports.'}
+               </p>
             </div>
           </div>
           <DialogFooter>

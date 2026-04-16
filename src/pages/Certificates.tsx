@@ -154,8 +154,9 @@ export default function Certificates() {
                 <img src={reesLogo} alt="Logo" className="w-24 h-24 mx-auto object-contain" />
                 <div>
                   <h1 className="text-2xl font-bold text-red-800 tracking-wide uppercase">Rees Daycare Nursery & Primary School</h1>
-                  <p className="text-sm text-gray-500 mt-1">Mbale City, Uganda | +256780306692</p>
-                  <p className="text-xs italic text-amber-700 mt-1">"Building Bright Futures"</p>
+                   <p className="text-sm text-gray-500 mt-1">Mbale City, Uganda | Tel: 0772379888/0706583860/0782063563</p>
+                   <p className="text-sm text-gray-500">Email: reesnursery@gmail.com</p>
+                   <p className="text-xs italic text-amber-700 mt-1">"With God We Can"</p>
                 </div>
 
                 <div className="py-4">
@@ -197,7 +198,7 @@ export default function Certificates() {
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-44 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
+                    <div className="w-44 border-t-2 border-black pt-2 text-xs font-medium">Headmistress's Signature</div>
                   </div>
                 </div>
               </div>
