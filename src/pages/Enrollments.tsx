@@ -35,13 +35,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 interface Student {
   id: string;
   student_id: string;
-  user_id: string;
+  full_name: string;
   program_id: string;
   current_year: number;
-  profiles: {
-    full_name: string;
-    email: string;
-  };
   programs: {
     name: string;
     code: string;
@@ -70,9 +66,7 @@ interface Enrollment {
   semester_id: string;
   students: {
     student_id: string;
-    profiles: {
-      full_name: string;
-    };
+    full_name: string;
   };
   courses: {
     code: string;
@@ -116,10 +110,9 @@ export default function Enrollments() {
         .select(`
           id,
           student_id,
-          user_id,
+          full_name,
           program_id,
           current_year,
-          profiles!students_user_id_profiles_fkey(full_name, email),
           programs(name, code)
         `)
         .eq('status', 'active');
@@ -178,7 +171,7 @@ export default function Enrollments() {
           semester_id,
           students(
             student_id,
-            profiles:profiles!students_user_id_profiles_fkey(full_name)
+            full_name
           ),
           courses(code, name, credit_units)
         `)
@@ -288,7 +281,7 @@ export default function Enrollments() {
   }, {} as Record<string, { student: any; courses: any[] }>);
 
   const filteredEnrollments = Object.entries(groupedEnrollments).filter(([_, data]) =>
-    data.student.profiles.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    data.student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     data.student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -403,7 +396,7 @@ export default function Enrollments() {
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-base">{data.student.profiles.full_name}</CardTitle>
+                          <CardTitle className="text-base">{data.student.full_name}</CardTitle>
                           <CardDescription>{data.student.student_id}</CardDescription>
                         </div>
                         <Badge variant="secondary">{data.courses.length} courses</Badge>
@@ -454,7 +447,7 @@ export default function Enrollments() {
                   <SelectContent>
                     {students.map(student => (
                       <SelectItem key={student.id} value={student.id}>
-                        {student.profiles.full_name} ({student.student_id}) - {student.programs.code} Year {student.current_year}
+                        {student.full_name} ({student.student_id}) - {student.programs.code} Year {student.current_year}
                       </SelectItem>
                     ))}
                   </SelectContent>

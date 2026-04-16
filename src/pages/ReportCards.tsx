@@ -46,10 +46,11 @@ const getCompetencyColor = (code: string) => {
 interface Student {
   id: string;
   student_id: string;
-  user_id: string;
+  full_name: string;
+  gender: string;
   current_year: number;
   enrollment_date: string;
-  profiles: { full_name: string; email: string; avatar_url: string | null };
+  parent_contact: string | null;
   programs: { name: string; code: string; duration_years: number };
 }
 
@@ -88,8 +89,7 @@ export default function ReportCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`id, student_id, user_id, current_year, enrollment_date,
-          profiles!students_user_id_profiles_fkey(full_name, email, avatar_url),
+        .select(`id, student_id, full_name, gender, current_year, enrollment_date, parent_contact,
           programs(name, code, duration_years)`)
         .order('student_id');
       if (error) throw error;
@@ -137,7 +137,7 @@ export default function ReportCards() {
   const getSelectedStudentData = () => students.find(s => s.id === selectedStudent);
 
   const filteredStudents = students.filter(s => {
-    const matchesSearch = s.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.student_id?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
@@ -199,9 +199,9 @@ export default function ReportCards() {
         y += 6;
         pdf.setFontSize(9);
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Mbale City, Uganda | +256780306692', pw / 2, y, { align: 'center' });
+        pdf.text('Mbale City, Uganda | Tel: 0772379888/0706583860/0782063563 | Email: reesnursery@gmail.com', pw / 2, y, { align: 'center' });
         y += 5;
-        pdf.text('"Building Bright Futures"', pw / 2, y, { align: 'center' });
+        pdf.text('"With God We Can"', pw / 2, y, { align: 'center' });
         y += 8;
 
         pdf.setFontSize(13);
@@ -217,7 +217,7 @@ export default function ReportCards() {
         // Student info
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`Name: ${student.profiles.full_name}`, 15, y);
+        pdf.text(`Name: ${student.full_name}`, 15, y);
         pdf.text(`Reg No: ${student.student_id}`, pw / 2, y);
         y += 6;
         pdf.text(`Class: ${student.programs.name}`, 15, y);
@@ -281,7 +281,7 @@ export default function ReportCards() {
         pdf.text(teacherComment, 15, y);
         y += 8;
         pdf.setFont('helvetica', 'bold');
-        pdf.text("Head Teacher's Comment:", 15, y);
+        pdf.text("Headmistress's Comment:", 15, y);
         y += 5;
         pdf.setFont('helvetica', 'normal');
         pdf.text(headComment, 15, y);
@@ -382,7 +382,7 @@ export default function ReportCards() {
                           setSelectedStudents(next);
                         }} /></td>}
                         <td className="font-mono text-sm">{s.student_id}</td>
-                        <td className="font-medium">{s.profiles?.full_name}</td>
+                        <td className="font-medium">{s.full_name}</td>
                         <td><Badge variant="secondary">{s.programs?.name}</Badge></td>
                         <td>
                           <Button size="sm" variant="outline" onClick={() => handleViewReportCard(s.id)}>
@@ -402,7 +402,7 @@ export default function ReportCards() {
         <Dialog open={showReportCard} onOpenChange={setShowReportCard}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Report Card - {studentData?.profiles.full_name}</DialogTitle>
+              <DialogTitle>Report Card - {studentData?.full_name}</DialogTitle>
             </DialogHeader>
 
             {/* Editable fields */}
@@ -437,7 +437,7 @@ export default function ReportCards() {
                 <Textarea value={teacherComment} onChange={(e) => setTeacherComment(e.target.value)} rows={2} />
               </div>
               <div>
-                <Label>Head Teacher's Comment</Label>
+                <Label>Headmistress's Comment</Label>
                 <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
               </div>
             </div>
@@ -459,8 +459,8 @@ export default function ReportCards() {
                 <div className="text-center mb-5">
                   <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
                   <h1 className="text-2xl font-bold text-red-800 tracking-wide uppercase">Rees Daycare Nursery & Primary School</h1>
-                  <p className="text-xs text-gray-500 mt-1">Mbale City, Uganda | Tel: +256780306692 | Email: admin@rees.ac.ug</p>
-                  <p className="text-xs italic text-amber-700 mt-1">"Building Bright Futures"</p>
+                  <p className="text-xs text-gray-500 mt-1">Mbale City, Uganda | Tel: 0772379888/0706583860/0782063563 | Email: reesnursery@gmail.com</p>
+                  <p className="text-xs italic text-amber-700 mt-1">"With God We Can"</p>
                   <div className="mt-3 flex items-center justify-center gap-2">
                     <div className="h-[2px] w-16 bg-gradient-to-r from-transparent to-red-800" />
                     <h2 className="text-lg font-bold tracking-[0.3em] text-gray-800">REPORT CARD</h2>
@@ -471,7 +471,7 @@ export default function ReportCards() {
                 {/* Student Info Box */}
                 <div className="bg-red-50/60 border border-red-200 rounded-lg p-3 mb-5">
                   <div className="grid grid-cols-2 gap-y-1 text-sm">
-                    <p><span className="text-gray-500">Name:</span> <strong>{studentData?.profiles.full_name}</strong></p>
+                    <p><span className="text-gray-500">Name:</span> <strong>{studentData?.full_name}</strong></p>
                     <p><span className="text-gray-500">Reg No:</span> <strong className="font-mono">{studentData?.student_id}</strong></p>
                     <p><span className="text-gray-500">Class:</span> <strong>{studentData?.programs.name}</strong></p>
                     <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'All Terms'}</strong></p>
@@ -544,7 +544,7 @@ export default function ReportCards() {
                     <p className="italic">{teacherComment}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-amber-600">
-                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Head Teacher's Comment</p>
+                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Headmistress's Comment</p>
                     <p className="italic">{headComment}</p>
                   </div>
                 </div>
@@ -562,7 +562,7 @@ export default function ReportCards() {
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
+                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Headmistress's Signature</div>
                   </div>
                 </div>
 

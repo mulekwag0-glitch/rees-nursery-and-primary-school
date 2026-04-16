@@ -688,6 +688,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string
+          gender: string | null
           id: string
           phone: string | null
           updated_at: string
@@ -697,6 +698,7 @@ export type Database = {
           created_at?: string
           email: string
           full_name: string
+          gender?: string | null
           id: string
           phone?: string | null
           updated_at?: string
@@ -706,6 +708,7 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string
+          gender?: string | null
           id?: string
           phone?: string | null
           updated_at?: string
@@ -1104,34 +1107,43 @@ export type Database = {
           created_at: string
           current_year: number
           enrollment_date: string
+          full_name: string | null
+          gender: string | null
           id: string
+          parent_contact: string | null
           program_id: string
           status: Database["public"]["Enums"]["student_status"]
           student_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           current_year?: number
           enrollment_date?: string
+          full_name?: string | null
+          gender?: string | null
           id?: string
+          parent_contact?: string | null
           program_id: string
           status?: Database["public"]["Enums"]["student_status"]
           student_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           current_year?: number
           enrollment_date?: string
+          full_name?: string | null
+          gender?: string | null
           id?: string
+          parent_contact?: string | null
           program_id?: string
           status?: Database["public"]["Enums"]["student_status"]
           student_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1285,7 +1297,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "student" | "tutor" | "finance" | "admin"
+      app_role: "student" | "tutor" | "finance" | "admin" | "headmistress"
       result_status: "draft" | "submitted" | "approved" | "rejected"
       student_status: "active" | "inactive" | "graduated" | "suspended"
     }
@@ -1415,7 +1427,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "tutor", "finance", "admin"],
+      app_role: ["student", "tutor", "finance", "admin", "headmistress"],
       result_status: ["draft", "submitted", "approved", "rejected"],
       student_status: ["active", "inactive", "graduated", "suspended"],
     },

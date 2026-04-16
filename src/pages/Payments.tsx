@@ -57,7 +57,7 @@ function printReceipt(payment: any) {
       <div class="row"><span class="label">Receipt No:</span><span class="value">${payment.receipt_number}</span></div>
       <div class="row"><span class="label">Date:</span><span class="value">${new Date(payment.payment_date).toLocaleDateString()}</span></div>
       <div class="row"><span class="label">Student ID:</span><span class="value">${payment.students?.student_id || '-'}</span></div>
-      <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.profiles?.full_name || '-'}</span></div>
+      <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.full_name || '-'}</span></div>
       <div class="row"><span class="label">Semester:</span><span class="value">${payment.semesters?.name || '-'}</span></div>
       <div class="row"><span class="label">Method:</span><span class="value" style="text-transform:capitalize">${(payment.payment_method || '').replace('_', ' ')}</span></div>
       ${payment.notes ? `<div class="row"><span class="label">Notes:</span><span class="value">${payment.notes}</span></div>` : ''}
@@ -155,7 +155,7 @@ function FinancePaymentsView() {
     const matchesSearch =
       !searchTerm ||
       p.students?.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.students?.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.students?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMethod = methodFilter === 'all' || p.payment_method === methodFilter;
     const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
@@ -170,7 +170,7 @@ function FinancePaymentsView() {
     if (!filteredPayments?.length) return;
     const headers = 'Date,Student ID,Name,Amount,Method,Receipt,Semester\n';
     const rows = filteredPayments.map((p: any) =>
-      `${p.payment_date},${p.students?.student_id},${p.students?.profiles?.full_name},${p.amount},${p.payment_method},${p.receipt_number},${p.semesters?.name}`
+      `${p.payment_date},${p.students?.student_id},${p.students?.full_name},${p.amount},${p.payment_method},${p.receipt_number},${p.semesters?.name}`
     ).join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -352,7 +352,7 @@ function FinancePaymentsView() {
                     <tr key={payment.id}>
                       <td className="text-sm">{new Date(payment.payment_date).toLocaleDateString()}</td>
                       <td className="font-mono text-sm">{payment.students?.student_id}</td>
-                      <td className="font-medium">{payment.students?.profiles?.full_name || '-'}</td>
+                      <td className="font-medium">{payment.students?.full_name || '-'}</td>
                       <td className="text-sm">{payment.semesters?.name}</td>
                       <td className="font-semibold text-success">
                         UGX {parseFloat(payment.amount).toLocaleString()}

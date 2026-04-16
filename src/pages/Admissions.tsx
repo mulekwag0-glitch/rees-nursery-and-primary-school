@@ -46,7 +46,7 @@ export default function Admissions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`*, profiles:user_id (full_name, email, phone, avatar_url), programs:program_id (name, code)`)
+        .select(`*, programs:program_id (name, code)`)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -221,9 +221,9 @@ export default function Admissions() {
 
   const filteredStudents = students?.filter((s: any) => {
     const matchesSearch =
-      s.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      s.email || ''?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -412,8 +412,8 @@ export default function Admissions() {
                           </div>
                         </td>
                         <td className="font-mono text-sm">{s.student_id}</td>
-                        <td className="font-medium">{s.profiles?.full_name}</td>
-                        <td className="text-sm text-muted-foreground">{s.profiles?.email}</td>
+                        <td className="font-medium">{s.full_name}</td>
+                        <td className="text-sm text-muted-foreground">{s.email || ''}</td>
                         <td><Badge variant="secondary">{s.programs?.code}</Badge></td>
                         <td className="text-center">{s.current_year}</td>
                         <td>

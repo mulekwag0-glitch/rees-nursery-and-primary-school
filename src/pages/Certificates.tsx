@@ -19,10 +19,9 @@ import {
 interface Student {
   id: string;
   student_id: string;
-  user_id: string;
+  full_name: string;
   status: string;
   enrollment_date: string;
-  profiles: { full_name: string };
   programs: { name: string; code: string };
 }
 
@@ -38,10 +37,10 @@ export default function Certificates() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`id, student_id, user_id, status, enrollment_date,
-          profiles!students_user_id_profiles_fkey(full_name),
+        .select(`id, student_id, full_name, status, enrollment_date,
           programs(name, code)`)
         .order('student_id');
+      if (error) throw error;
       if (error) throw error;
       return data as unknown as Student[];
     },
@@ -49,7 +48,7 @@ export default function Certificates() {
 
   const filteredStudents = students.filter(s => {
     const q = searchQuery.toLowerCase();
-    return s.profiles?.full_name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q);
+    return s.full_name?.toLowerCase().includes(q) || s.student_id?.toLowerCase().includes(q);
   });
 
   const handleDownloadPDF = async () => {
@@ -110,7 +109,7 @@ export default function Certificates() {
                     {filteredStudents.map(s => (
                       <tr key={s.id}>
                         <td className="font-mono text-sm">{s.student_id}</td>
-                        <td className="font-medium">{s.profiles?.full_name}</td>
+                        <td className="font-medium">{s.full_name}</td>
                         <td><Badge variant="secondary">{s.programs?.name}</Badge></td>
                         <td><Badge variant={s.status === 'graduated' ? 'default' : 'secondary'}>{s.status}</Badge></td>
                         <td>
@@ -130,7 +129,7 @@ export default function Certificates() {
         <Dialog open={showCert} onOpenChange={setShowCert}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Completion Certificate - {selectedStudent?.profiles.full_name}</DialogTitle>
+              <DialogTitle>Completion Certificate - {selectedStudent?.full_name}</DialogTitle>
             </DialogHeader>
 
             <div ref={certRef} className="bg-white text-black relative" style={{ fontFamily: 'Georgia, serif', minHeight: '500px' }}>
@@ -154,8 +153,9 @@ export default function Certificates() {
                 <img src={reesLogo} alt="Logo" className="w-24 h-24 mx-auto object-contain" />
                 <div>
                   <h1 className="text-2xl font-bold text-red-800 tracking-wide uppercase">Rees Daycare Nursery & Primary School</h1>
-                  <p className="text-sm text-gray-500 mt-1">Mbale City, Uganda | +256780306692</p>
-                  <p className="text-xs italic text-amber-700 mt-1">"Building Bright Futures"</p>
+                   <p className="text-sm text-gray-500 mt-1">Mbale City, Uganda | Tel: 0772379888/0706583860/0782063563</p>
+                   <p className="text-sm text-gray-500">Email: reesnursery@gmail.com</p>
+                   <p className="text-xs italic text-amber-700 mt-1">"With God We Can"</p>
                 </div>
 
                 <div className="py-4">
@@ -171,7 +171,7 @@ export default function Certificates() {
                   <p className="text-gray-600 text-lg">This is to certify that</p>
                   <div className="inline-block">
                     <p className="text-3xl font-bold text-gray-900 px-10 pb-1">
-                      {selectedStudent?.profiles.full_name}
+                      {selectedStudent?.full_name}
                     </p>
                     <div className="h-[2px] bg-gradient-to-r from-transparent via-red-800 to-transparent" />
                   </div>
@@ -197,7 +197,7 @@ export default function Certificates() {
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-44 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
+                    <div className="w-44 border-t-2 border-black pt-2 text-xs font-medium">Headmistress's Signature</div>
                   </div>
                 </div>
               </div>
