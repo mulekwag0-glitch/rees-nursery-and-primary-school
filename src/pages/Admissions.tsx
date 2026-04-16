@@ -221,9 +221,9 @@ export default function Admissions() {
 
   const filteredStudents = students?.filter((s: any) => {
     const matchesSearch =
-      s.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      s.email || ''?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -412,8 +412,8 @@ export default function Admissions() {
                           </div>
                         </td>
                         <td className="font-mono text-sm">{s.student_id}</td>
-                        <td className="font-medium">{s.profiles?.full_name}</td>
-                        <td className="text-sm text-muted-foreground">{s.profiles?.email}</td>
+                        <td className="font-medium">{s.full_name}</td>
+                        <td className="text-sm text-muted-foreground">{s.email || ''}</td>
                         <td><Badge variant="secondary">{s.programs?.code}</Badge></td>
                         <td className="text-center">{s.current_year}</td>
                         <td>
