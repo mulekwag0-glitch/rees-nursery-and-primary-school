@@ -127,7 +127,7 @@ export default function Certificates() {
         </Card>
 
         <Dialog open={showCert} onOpenChange={setShowCert}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[1200px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Completion Certificate - {selectedStudent?.full_name}</DialogTitle>
             </DialogHeader>

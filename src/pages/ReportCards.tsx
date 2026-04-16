@@ -400,7 +400,7 @@ export default function ReportCards() {
 
         {/* Report Card Dialog */}
         <Dialog open={showReportCard} onOpenChange={setShowReportCard}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Report Card - {studentData?.full_name}</DialogTitle>
             </DialogHeader>
