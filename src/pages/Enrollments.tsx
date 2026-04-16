@@ -449,7 +449,7 @@ export default function Enrollments() {
                   <SelectContent>
                     {students.map(student => (
                       <SelectItem key={student.id} value={student.id}>
-                        {student.profiles.full_name} ({student.student_id}) - {student.programs.code} Year {student.current_year}
+                        {student.full_name} ({student.student_id}) - {student.programs.code} Year {student.current_year}
                       </SelectItem>
                     ))}
                   </SelectContent>
