@@ -1107,37 +1107,43 @@ export type Database = {
           created_at: string
           current_year: number
           enrollment_date: string
+          full_name: string | null
+          gender: string | null
           id: string
           parent_contact: string | null
           program_id: string
           status: Database["public"]["Enums"]["student_status"]
           student_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           current_year?: number
           enrollment_date?: string
+          full_name?: string | null
+          gender?: string | null
           id?: string
           parent_contact?: string | null
           program_id: string
           status?: Database["public"]["Enums"]["student_status"]
           student_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           current_year?: number
           enrollment_date?: string
+          full_name?: string | null
+          gender?: string | null
           id?: string
           parent_contact?: string | null
           program_id?: string
           status?: Database["public"]["Enums"]["student_status"]
           student_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
