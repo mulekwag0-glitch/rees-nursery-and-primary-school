@@ -51,6 +51,9 @@ interface Student {
   gender: string;
   parent_contact: string | null;
   avatar_url?: string | null;
+  user_id?: string;
+  current_year: number;
+  enrollment_date: string;
   programs: {
     name: string;
     code: string;
