@@ -66,9 +66,7 @@ interface Enrollment {
   semester_id: string;
   students: {
     student_id: string;
-    profiles: {
-      full_name: string;
-    };
+    full_name: string;
   };
   courses: {
     code: string;
