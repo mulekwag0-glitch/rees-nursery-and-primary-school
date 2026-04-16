@@ -132,7 +132,7 @@ export default function Certificates() {
               <DialogTitle>Completion Certificate - {selectedStudent?.full_name}</DialogTitle>
             </DialogHeader>
 
-            <div ref={certRef} className="bg-white text-black relative" style={{ fontFamily: 'Georgia, serif', minHeight: '500px' }}>
+            <div ref={certRef} className="bg-white text-black relative mx-auto" style={{ fontFamily: 'Georgia, serif', width: '1123px', height: '794px' }}>
               {/* Decorative borders */}
               <div className="absolute inset-0 border-[8px] border-red-800" />
               <div className="absolute inset-[10px] border-2 border-amber-600" />

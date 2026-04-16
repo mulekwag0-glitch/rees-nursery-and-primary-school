@@ -442,8 +442,8 @@ export default function ReportCards() {
               </div>
             </div>
 
-            {/* Printable Report Card */}
-            <div ref={reportCardRef} className="bg-white text-black relative" style={{ fontFamily: 'Georgia, serif' }}>
+            {/* Printable Report Card - A4 Portrait */}
+            <div ref={reportCardRef} className="bg-white text-black relative mx-auto" style={{ fontFamily: 'Georgia, serif', width: '794px', minHeight: '1123px' }}>
               {/* Outer decorative border */}
               <div className="absolute inset-0 border-[6px] border-red-800 rounded-sm" />
               <div className="absolute inset-[8px] border-2 border-red-300 rounded-sm" />
