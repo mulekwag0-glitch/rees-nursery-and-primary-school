@@ -137,7 +137,7 @@ export default function ReportCards() {
   const getSelectedStudentData = () => students.find(s => s.id === selectedStudent);
 
   const filteredStudents = students.filter(s => {
-    const matchesSearch = s.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.student_id?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
@@ -217,7 +217,7 @@ export default function ReportCards() {
         // Student info
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`Name: ${student.profiles.full_name}`, 15, y);
+        pdf.text(`Name: ${student.full_name}`, 15, y);
         pdf.text(`Reg No: ${student.student_id}`, pw / 2, y);
         y += 6;
         pdf.text(`Class: ${student.programs.name}`, 15, y);
@@ -382,7 +382,7 @@ export default function ReportCards() {
                           setSelectedStudents(next);
                         }} /></td>}
                         <td className="font-mono text-sm">{s.student_id}</td>
-                        <td className="font-medium">{s.profiles?.full_name}</td>
+                        <td className="font-medium">{s.full_name}</td>
                         <td><Badge variant="secondary">{s.programs?.name}</Badge></td>
                         <td>
                           <Button size="sm" variant="outline" onClick={() => handleViewReportCard(s.id)}>
@@ -402,7 +402,7 @@ export default function ReportCards() {
         <Dialog open={showReportCard} onOpenChange={setShowReportCard}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Report Card - {studentData?.profiles.full_name}</DialogTitle>
+              <DialogTitle>Report Card - {studentData?.full_name}</DialogTitle>
             </DialogHeader>
 
             {/* Editable fields */}
@@ -471,7 +471,7 @@ export default function ReportCards() {
                 {/* Student Info Box */}
                 <div className="bg-red-50/60 border border-red-200 rounded-lg p-3 mb-5">
                   <div className="grid grid-cols-2 gap-y-1 text-sm">
-                    <p><span className="text-gray-500">Name:</span> <strong>{studentData?.profiles.full_name}</strong></p>
+                    <p><span className="text-gray-500">Name:</span> <strong>{studentData?.full_name}</strong></p>
                     <p><span className="text-gray-500">Reg No:</span> <strong className="font-mono">{studentData?.student_id}</strong></p>
                     <p><span className="text-gray-500">Class:</span> <strong>{studentData?.programs.name}</strong></p>
                     <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'All Terms'}</strong></p>
