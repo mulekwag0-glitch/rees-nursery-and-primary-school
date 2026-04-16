@@ -201,7 +201,7 @@ export default function ReportCards() {
         pdf.setFont('helvetica', 'normal');
         pdf.text('Mbale City, Uganda | Tel: 0772379888/0706583860/0782063563 | Email: reesnursery@gmail.com', pw / 2, y, { align: 'center' });
         y += 5;
-        pdf.text('"Building Bright Futures"', pw / 2, y, { align: 'center' });
+        pdf.text('"With God We Can"', pw / 2, y, { align: 'center' });
         y += 8;
 
         pdf.setFontSize(13);
@@ -460,7 +460,7 @@ export default function ReportCards() {
                   <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
                   <h1 className="text-2xl font-bold text-red-800 tracking-wide uppercase">Rees Daycare Nursery & Primary School</h1>
                   <p className="text-xs text-gray-500 mt-1">Mbale City, Uganda | Tel: 0772379888/0706583860/0782063563 | Email: reesnursery@gmail.com</p>
-                  <p className="text-xs italic text-amber-700 mt-1">"Building Bright Futures"</p>
+                  <p className="text-xs italic text-amber-700 mt-1">"With God We Can"</p>
                   <div className="mt-3 flex items-center justify-center gap-2">
                     <div className="h-[2px] w-16 bg-gradient-to-r from-transparent to-red-800" />
                     <h2 className="text-lg font-bold tracking-[0.3em] text-gray-800">REPORT CARD</h2>
