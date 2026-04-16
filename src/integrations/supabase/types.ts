@@ -688,6 +688,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string
+          gender: string | null
           id: string
           phone: string | null
           updated_at: string
@@ -697,6 +698,7 @@ export type Database = {
           created_at?: string
           email: string
           full_name: string
+          gender?: string | null
           id: string
           phone?: string | null
           updated_at?: string
@@ -706,6 +708,7 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string
+          gender?: string | null
           id?: string
           phone?: string | null
           updated_at?: string
@@ -1105,6 +1108,7 @@ export type Database = {
           current_year: number
           enrollment_date: string
           id: string
+          parent_contact: string | null
           program_id: string
           status: Database["public"]["Enums"]["student_status"]
           student_id: string
@@ -1116,6 +1120,7 @@ export type Database = {
           current_year?: number
           enrollment_date?: string
           id?: string
+          parent_contact?: string | null
           program_id: string
           status?: Database["public"]["Enums"]["student_status"]
           student_id: string
@@ -1127,6 +1132,7 @@ export type Database = {
           current_year?: number
           enrollment_date?: string
           id?: string
+          parent_contact?: string | null
           program_id?: string
           status?: Database["public"]["Enums"]["student_status"]
           student_id?: string
@@ -1285,7 +1291,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "student" | "tutor" | "finance" | "admin"
+      app_role: "student" | "tutor" | "finance" | "admin" | "headmistress"
       result_status: "draft" | "submitted" | "approved" | "rejected"
       student_status: "active" | "inactive" | "graduated" | "suspended"
     }
@@ -1415,7 +1421,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "tutor", "finance", "admin"],
+      app_role: ["student", "tutor", "finance", "admin", "headmistress"],
       result_status: ["draft", "submitted", "approved", "rejected"],
       student_status: ["active", "inactive", "graduated", "suspended"],
     },
