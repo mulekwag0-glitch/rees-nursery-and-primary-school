@@ -281,7 +281,7 @@ export default function Enrollments() {
   }, {} as Record<string, { student: any; courses: any[] }>);
 
   const filteredEnrollments = Object.entries(groupedEnrollments).filter(([_, data]) =>
-    data.student.profiles.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    data.student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     data.student.student_id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -396,7 +396,7 @@ export default function Enrollments() {
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-base">{data.student.profiles.full_name}</CardTitle>
+                          <CardTitle className="text-base">{data.student.full_name}</CardTitle>
                           <CardDescription>{data.student.student_id}</CardDescription>
                         </div>
                         <Badge variant="secondary">{data.courses.length} courses</Badge>
