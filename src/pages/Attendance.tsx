@@ -34,7 +34,7 @@ export default function Attendance() {
       if (!selectedClass) return [];
       const { data, error } = await supabase
         .from('students')
-        .select('id, student_id, profiles!students_user_id_profiles_fkey(full_name)')
+        .select('id, student_id, full_name')
         .eq('program_id', selectedClass)
         .eq('status', 'active')
         .order('student_id');
@@ -161,7 +161,7 @@ export default function Attendance() {
                         <div className="flex items-center gap-3">
                           <span className="text-sm text-muted-foreground w-6">{i + 1}</span>
                           <div>
-                            <p className="font-medium text-sm">{s.profiles?.full_name || 'Unknown'}</p>
+                            <p className="font-medium text-sm">{s.full_name || 'Unknown'}</p>
                             <p className="text-xs text-muted-foreground">{s.student_id}</p>
                           </div>
                         </div>

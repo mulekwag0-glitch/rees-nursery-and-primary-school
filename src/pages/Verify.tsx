@@ -39,14 +39,14 @@ export default function Verify() {
       try {
         const { data: student } = await supabase
           .from('students')
-          .select(`id, student_id, profiles!students_user_id_profiles_fkey(full_name), programs(name)`)
+          .select(`id, student_id, full_name, programs(name)`)
           .eq('student_id', studentRegNo)
           .maybeSingle();
 
         if (!student) { setLoading(false); return; }
 
         setVerified(true);
-        setStudentName((student as any).profiles?.full_name || 'Unknown');
+        setStudentName((student as any).full_name || 'Unknown');
         setClassName((student as any).programs?.name || 'Unknown');
 
         // Fetch results
