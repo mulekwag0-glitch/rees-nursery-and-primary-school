@@ -122,7 +122,7 @@ export default function FeeStructures() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Fee Structures</h1>
-            <p className="text-muted-foreground">Set tuition fees per program and semester</p>
+            <p className="text-muted-foreground">Set tuition fees per class and term</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
             <DialogTrigger asChild>
@@ -131,7 +131,7 @@ export default function FeeStructures() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Edit' : 'Add'} Fee Structure</DialogTitle>
-                <DialogDescription>Set tuition and other fees for a program and semester</DialogDescription>
+                <DialogDescription>Set tuition and other fees for a class and term</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>

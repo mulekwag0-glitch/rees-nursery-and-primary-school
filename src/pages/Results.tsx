@@ -420,9 +420,10 @@ export default function Results() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Results Management</h1>
           <p className="text-muted-foreground">
-            {role === 'student' && 'View your academic results and GPA'}
-            {role === 'tutor' && 'Enter and submit student results'}
-            {role === 'admin' && 'Review and approve submitted results'}
+            {role === 'tutor' && 'Enter and submit pupil results — Headmistress will approve'}
+            {role === 'headmistress' && 'Review and approve results submitted by teachers'}
+            {role === 'admin' && 'Full oversight: enter, approve, or override results'}
+            {role === 'finance' && 'View approved results'}
           </p>
         </div>
 

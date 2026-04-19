@@ -75,6 +75,8 @@ export default function ReportCards() {
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [showReportCard, setShowReportCard] = useState(false);
   const [studentResults, setStudentResults] = useState<ResultWithDetails[]>([]);
+  const [allTermResults, setAllTermResults] = useState<ResultWithDetails[]>([]);
+  const [classPosition, setClassPosition] = useState<{ position: number; total: number; average: number } | null>(null);
   const [batchMode, setBatchMode] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [batchGenerating, setBatchGenerating] = useState(false);
@@ -89,11 +91,11 @@ export default function ReportCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('students')
-        .select(`id, student_id, full_name, gender, current_year, enrollment_date, parent_contact,
+        .select(`id, student_id, full_name, gender, current_year, enrollment_date, parent_contact, program_id,
           programs(name, code, duration_years)`)
         .order('student_id');
       if (error) throw error;
-      return data as unknown as Student[];
+      return data as unknown as (Student & { program_id: string })[];
     },
   });
 
@@ -112,25 +114,71 @@ export default function ReportCards() {
   const fetchStudentResults = async (studentId: string) => {
     const { data: scData } = await supabase.from('student_courses').select('id').eq('student_id', studentId);
     if (!scData?.length) return [];
-    
-    let query = supabase.from('results')
+
+    const { data } = await supabase.from('results')
       .select(`id, coursework_marks, exam_marks, total_marks, grade, grade_point, status,
         student_courses(courses(code, name, credit_units), semesters(name, semester_number, academic_years(name)))`)
       .eq('status', 'approved')
       .in('student_course_id', scData.map(sc => sc.id));
 
-    const { data } = await query;
     return (data || []) as unknown as ResultWithDetails[];
+  };
+
+  const computeClassPosition = async (studentId: string, programId: string, termName: string) => {
+    if (!termName || termName === 'all') return null;
+    const { data: classmates } = await supabase
+      .from('students')
+      .select('id')
+      .eq('program_id', programId);
+    if (!classmates?.length) return null;
+
+    const { data: scs } = await supabase
+      .from('student_courses')
+      .select('id, student_id')
+      .in('student_id', classmates.map(c => c.id));
+    if (!scs?.length) return null;
+
+    const { data: rows } = await supabase
+      .from('results')
+      .select(`total_marks, student_course_id, student_courses!inner(student_id, semesters!inner(name))`)
+      .eq('status', 'approved')
+      .in('student_course_id', scs.map(s => s.id));
+
+    const sums: Record<string, { total: number; count: number }> = {};
+    (rows || []).forEach((r: any) => {
+      if (r.student_courses?.semesters?.name !== termName) return;
+      const sid = r.student_courses.student_id;
+      if (!sums[sid]) sums[sid] = { total: 0, count: 0 };
+      sums[sid].total += Number(r.total_marks || 0);
+      sums[sid].count += 1;
+    });
+
+    const ranked = Object.entries(sums)
+      .map(([sid, v]) => ({ sid, avg: v.count ? v.total / v.count : 0 }))
+      .sort((a, b) => b.avg - a.avg);
+
+    const idx = ranked.findIndex(r => r.sid === studentId);
+    if (idx === -1) return null;
+    return { position: idx + 1, total: ranked.length, average: ranked[idx].avg };
   };
 
   const handleViewReportCard = async (studentId: string) => {
     setSelectedStudent(studentId);
     const results = await fetchStudentResults(studentId);
-    // Filter by selected term if a specific term is chosen
+    setAllTermResults(results);
     const filtered = selectedTerm && selectedTerm !== 'all'
       ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
       : results;
     setStudentResults(filtered);
+
+    const student = students.find(s => s.id === studentId) as any;
+    if (student?.program_id && selectedTerm && selectedTerm !== 'all') {
+      const pos = await computeClassPosition(studentId, student.program_id, selectedTerm);
+      setClassPosition(pos);
+    } else {
+      setClassPosition(null);
+    }
+
     setShowReportCard(true);
   };
 
@@ -478,6 +526,61 @@ export default function ReportCards() {
                     <p><span className="text-gray-500">Academic Year:</span> <strong>{new Date().getFullYear()}</strong></p>
                   </div>
                 </div>
+
+                {/* Class Position */}
+                {classPosition && (
+                  <div className="grid grid-cols-3 gap-3 mb-5 text-center">
+                    <div className="bg-amber-50 border border-amber-300 rounded-lg p-3">
+                      <p className="text-xs text-amber-700 uppercase font-semibold">Class Position</p>
+                      <p className="text-2xl font-bold text-amber-900">{classPosition.position} <span className="text-sm font-normal text-amber-700">/ {classPosition.total}</span></p>
+                    </div>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-xs text-red-700 uppercase font-semibold">Term Average</p>
+                      <p className="text-2xl font-bold text-red-900">{classPosition.average.toFixed(1)}%</p>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-xs text-green-700 uppercase font-semibold">Overall Rating</p>
+                      <p className="text-2xl font-bold text-green-900">{getCompetencyFromScore(classPosition.average)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* All-term History (only when "All Terms" selected) */}
+                {(selectedTerm === 'all' || !selectedTerm) && allTermResults.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">Full Performance History</h3>
+                    {Object.entries(
+                      allTermResults.reduce((acc: Record<string, ResultWithDetails[]>, r) => {
+                        const k = r.student_courses.semesters?.name || 'Unknown';
+                        (acc[k] ||= []).push(r);
+                        return acc;
+                      }, {})
+                    )
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([term, rs]) => {
+                        const avg = rs.reduce((s, r) => s + Number(r.total_marks || 0), 0) / rs.length;
+                        return (
+                          <div key={term} className="mb-3 border border-gray-200 rounded">
+                            <div className="bg-gray-50 px-3 py-1.5 flex justify-between items-center text-xs">
+                              <strong>{term}</strong>
+                              <span>Avg: <strong className="text-red-800">{avg.toFixed(1)}%</strong> · {getCompetencyFromScore(avg)}</span>
+                            </div>
+                            <table className="w-full text-xs">
+                              <tbody>
+                                {rs.map(r => (
+                                  <tr key={r.id} className="border-t border-gray-100">
+                                    <td className="px-3 py-1">{r.student_courses.courses.name}</td>
+                                    <td className="px-2 py-1 text-center w-16">{r.total_marks}</td>
+                                    <td className="px-2 py-1 text-center w-16 font-semibold text-red-800">{getCompetencyFromScore(r.total_marks || 0)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
 
                 {/* Results Table */}
                 {studentResults.length > 0 ? (

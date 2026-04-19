@@ -521,7 +521,7 @@ export default function UserManagement() {
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="john@salem.ug"
+                  placeholder="teacher@rees.ac.ug"
                 />
               </div>
               <div className="space-y-2">

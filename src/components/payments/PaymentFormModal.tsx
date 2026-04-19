@@ -288,8 +288,9 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
             </DialogHeader>
             <div id="receipt-content" className="mt-4 p-6 border rounded-lg bg-card">
               <div className="header text-center mb-6">
-                <div className="logo text-2xl font-bold text-primary">Salem Uganda</div>
-                <div className="text-sm text-muted-foreground">Institution Management System</div>
+                <div className="logo text-2xl font-bold text-primary">Rees Daycare Nursery & Primary School</div>
+                <div className="text-xs text-muted-foreground">Mbale City, Uganda · Tel: 0772379888 / 0706583860 / 0782063563</div>
+                <div className="text-xs text-muted-foreground">Email: reesnursery@gmail.com</div>
                 <div className="receipt-title text-lg font-semibold mt-2">PAYMENT RECEIPT</div>
               </div>
 
@@ -305,15 +306,15 @@ export function PaymentFormModal({ onSuccess }: PaymentFormModalProps) {
                   <span>{new Date(receiptData?.payment_date).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Student ID:</span>
+                  <span className="text-muted-foreground">Pupil ID:</span>
                   <span>{receiptData?.students?.student_id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Student Name:</span>
+                  <span className="text-muted-foreground">Pupil Name:</span>
                   <span>{receiptData?.students?.profiles?.full_name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Semester:</span>
+                  <span className="text-muted-foreground">Term:</span>
                   <span>{receiptData?.semesters?.name}</span>
                 </div>
                 <div className="flex justify-between">

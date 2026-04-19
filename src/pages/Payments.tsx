@@ -49,16 +49,17 @@ function printReceipt(payment: any) {
       @media print { body { padding: 20px; } }
     </style></head><body>
       <div class="header">
-        <div class="logo">Salem Uganda</div>
-        <div class="sub">Institution Management System</div>
+        <div class="logo">Rees Daycare Nursery & Primary School</div>
+        <div class="sub">Mbale City, Uganda · Tel: 0772379888 / 0706583860 / 0782063563</div>
+        <div class="sub">Email: reesnursery@gmail.com</div>
         <div class="title">PAYMENT RECEIPT</div>
       </div>
       <div class="divider"></div>
       <div class="row"><span class="label">Receipt No:</span><span class="value">${payment.receipt_number}</span></div>
       <div class="row"><span class="label">Date:</span><span class="value">${new Date(payment.payment_date).toLocaleDateString()}</span></div>
-      <div class="row"><span class="label">Student ID:</span><span class="value">${payment.students?.student_id || '-'}</span></div>
+      <div class="row"><span class="label">Pupil ID:</span><span class="value">${payment.students?.student_id || '-'}</span></div>
       <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.full_name || '-'}</span></div>
-      <div class="row"><span class="label">Semester:</span><span class="value">${payment.semesters?.name || '-'}</span></div>
+      <div class="row"><span class="label">Term:</span><span class="value">${payment.semesters?.name || '-'}</span></div>
       <div class="row"><span class="label">Method:</span><span class="value" style="text-transform:capitalize">${(payment.payment_method || '').replace('_', ' ')}</span></div>
       ${payment.notes ? `<div class="row"><span class="label">Notes:</span><span class="value">${payment.notes}</span></div>` : ''}
       <div class="divider"></div>
@@ -265,10 +266,10 @@ function FinancePaymentsView() {
             </Select>
             <Select value={semesterFilter} onValueChange={setSemesterFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Semester" />
+                <SelectValue placeholder="Term" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Semesters</SelectItem>
+                <SelectItem value="all">All Terms</SelectItem>
                 {semesters?.map((s: any) => (
                   <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                 ))}
@@ -276,10 +277,10 @@ function FinancePaymentsView() {
             </Select>
             <Select value={programFilter} onValueChange={setProgramFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Program" />
+                <SelectValue placeholder="Class" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Programs</SelectItem>
+                <SelectItem value="all">All Classes</SelectItem>
                 {programs?.map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>{p.code} - {p.name}</SelectItem>
                 ))}
@@ -338,9 +339,9 @@ function FinancePaymentsView() {
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Student ID</th>
+                    <th>Pupil ID</th>
                     <th>Name</th>
-                    <th>Semester</th>
+                    <th>Term</th>
                     <th>Amount</th>
                     <th>Method</th>
                     <th>Receipt</th>
@@ -475,10 +476,10 @@ function StudentPaymentsView() {
             </div>
             <Select value={semesterFilter} onValueChange={setSemesterFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Semester" />
+                <SelectValue placeholder="Term" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Semesters</SelectItem>
+                <SelectItem value="all">All Terms</SelectItem>
                 {studentData?.semesters?.map((s: any) => (
                   <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                 ))}
