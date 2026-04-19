@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,102 +7,85 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Send, CheckCircle, Clock, Search, Loader2 } from 'lucide-react';
-
-interface StudentResult {
-  id: string;
-  studentCourseId: string;
-  studentId: string;
-  studentName: string;
-  studentNumber: string;
-  courseworkMarks: number | null;
-  examMarks: number | null;
-  totalMarks: number | null;
-  grade: string | null;
-  gradePoint: number | null;
-  status: 'draft' | 'submitted' | 'approved' | 'rejected';
-}
+import { Save, Send, CheckCircle, Clock, Search, Loader2, Trash2 } from 'lucide-react';
 
 const calculateGrade = (marks: number): { grade: string; gradePoint: number } => {
-  if (marks >= 70) return { grade: 'A', gradePoint: 5 };
-  if (marks >= 60) return { grade: 'B', gradePoint: 4 };
+  if (marks >= 80) return { grade: 'A', gradePoint: 5 };
+  if (marks >= 65) return { grade: 'B', gradePoint: 4 };
   if (marks >= 50) return { grade: 'C', gradePoint: 3 };
-  if (marks >= 45) return { grade: 'D', gradePoint: 2 };
+  if (marks >= 40) return { grade: 'D', gradePoint: 2 };
   return { grade: 'F', gradePoint: 0 };
 };
 
 export function ResultsEntryForm() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedProgram, setSelectedProgram] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [localResults, setLocalResults] = useState<Map<string, { cw: number | null; exam: number | null }>>(new Map());
-  const [saving, setSaving] = useState(false);
 
-  // Fetch tutor's assigned courses
-  const { data: tutorCourses, isLoading: coursesLoading } = useQuery({
-    queryKey: ['tutor-courses', user?.id],
+  // Programs (classes)
+  const { data: programs } = useQuery({
+    queryKey: ['programs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tutor_courses')
-        .select(`
-          id,
-          course_id,
-          courses:course_id (
-            id,
-            code,
-            name,
-            credit_units
-          ),
-          semesters:semester_id (
-            id,
-            name,
-            results_open
-          )
-        `)
-        .eq('tutor_id', user?.id || '');
+      const { data, error } = await supabase.from('programs').select('id, name, code').order('name');
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
   });
 
-  // Fetch students enrolled in selected course
-  const { data: enrolledStudents, isLoading: studentsLoading } = useQuery({
-    queryKey: ['enrolled-students', selectedCourse],
+  // Semesters (terms)
+  const { data: semesters } = useQuery({
+    queryKey: ['semesters'],
     queryFn: async () => {
-      const course = tutorCourses?.find((tc: any) => tc.course_id === selectedCourse);
-      if (!course) return [];
+      const { data, error } = await supabase
+        .from('semesters')
+        .select('id, name, semester_number, results_open, is_current')
+        .order('semester_number');
+      if (error) throw error;
+      // auto-pick current
+      const current = data?.find((s: any) => s.is_current);
+      if (current && !selectedSemester) setSelectedSemester(current.id);
+      return data;
+    },
+  });
 
+  // Courses (subjects) for selected program
+  const { data: courses } = useQuery({
+    queryKey: ['program-courses', selectedProgram],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, code, name, credit_units')
+        .eq('program_id', selectedProgram)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedProgram,
+  });
+
+  // Students enrolled in selected course+semester
+  const { data: enrolledStudents, isLoading: studentsLoading } = useQuery({
+    queryKey: ['class-results', selectedCourse, selectedSemester],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('student_courses')
         .select(`
           id,
-          students:student_id (
-            id,
-            student_id,
-            profiles:user_id (full_name)
-          ),
-          results (
-            id,
-            coursework_marks,
-            exam_marks,
-            total_marks,
-            grade,
-            grade_point,
-            status
-          )
+          students:student_id (id, student_id, full_name),
+          results (id, coursework_marks, exam_marks, total_marks, grade, grade_point, status)
         `)
         .eq('course_id', selectedCourse)
-        .eq('semester_id', course.semesters?.id || '');
-
+        .eq('semester_id', selectedSemester);
       if (error) throw error;
-      return data?.map((sc: any) => ({
-        id: sc.students?.id,
+      return (data || []).map((sc: any) => ({
         studentCourseId: sc.id,
-        studentId: sc.students?.student_id,
-        studentName: sc.students?.profiles?.full_name || 'Unknown',
+        studentId: sc.students?.id,
+        studentName: sc.students?.full_name || 'Unknown',
         studentNumber: sc.students?.student_id,
         courseworkMarks: sc.results?.[0]?.coursework_marks ?? null,
         examMarks: sc.results?.[0]?.exam_marks ?? null,
@@ -111,87 +94,69 @@ export function ResultsEntryForm() {
         gradePoint: sc.results?.[0]?.grade_point ?? null,
         status: sc.results?.[0]?.status ?? 'draft',
         resultId: sc.results?.[0]?.id,
-      })) || [];
+      })).sort((a: any, b: any) => (a.studentName || '').localeCompare(b.studentName || ''));
     },
-    enabled: !!selectedCourse && !!tutorCourses,
+    enabled: !!selectedCourse && !!selectedSemester,
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (results: any[]) => {
-      const promises = results.map(async (result) => {
-        const cw = localResults.get(result.studentCourseId)?.cw ?? result.courseworkMarks ?? 0;
-        const exam = localResults.get(result.studentCourseId)?.exam ?? result.examMarks ?? 0;
-        const total = cw + exam;
-        const { grade, gradePoint } = calculateGrade(total);
+  const upsertMutation = useMutation({
+    mutationFn: async ({ status }: { status: 'draft' | 'submitted' }) => {
+      const list = enrolledStudents || [];
+      const rows = list
+        .filter((s: any) => localResults.has(s.studentCourseId) || s.resultId)
+        .map((s: any) => {
+          const local = localResults.get(s.studentCourseId);
+          const cw = local?.cw ?? s.courseworkMarks ?? 0;
+          const exam = local?.exam ?? s.examMarks ?? 0;
+          const total = (cw || 0) + (exam || 0);
+          const { grade, gradePoint } = calculateGrade(total);
+          const row: any = {
+            student_course_id: s.studentCourseId,
+            coursework_marks: cw,
+            exam_marks: exam,
+            total_marks: total,
+            grade,
+            grade_point: gradePoint,
+            status,
+            tutor_id: user?.id,
+          };
+          if (s.resultId) row.id = s.resultId;
+          return row;
+        });
 
-        if (result.resultId) {
-          // Update existing result
-          return supabase
-            .from('results')
-            .update({
-              coursework_marks: cw,
-              exam_marks: exam,
-              total_marks: total,
-              grade,
-              grade_point: gradePoint,
-              status: 'draft',
-              tutor_id: user?.id,
-            })
-            .eq('id', result.resultId);
-        } else {
-          // Insert new result
-          return supabase
-            .from('results')
-            .insert({
-              student_course_id: result.studentCourseId,
-              coursework_marks: cw,
-              exam_marks: exam,
-              total_marks: total,
-              grade,
-              grade_point: gradePoint,
-              status: 'draft',
-              tutor_id: user?.id,
-            });
-        }
-      });
+      if (rows.length === 0) throw new Error('No marks entered');
 
-      const responses = await Promise.all(promises);
-      const errors = responses.filter((r) => r.error);
-      if (errors.length > 0) throw new Error('Some results failed to save');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['enrolled-students'] });
-      toast({ title: 'Success', description: 'Results saved as draft' });
-    },
-    onError: (error: any) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    },
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: async (results: any[]) => {
-      // First save all results
-      await saveMutation.mutateAsync(results);
-
-      // Then update status to submitted
       const { error } = await supabase
         .from('results')
-        .update({ status: 'submitted' })
-        .in('student_course_id', results.map((r) => r.studentCourseId));
+        .upsert(rows, { onConflict: 'student_course_id' });
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['class-results'] });
+      setLocalResults(new Map());
+      toast({
+        title: 'Saved',
+        description: vars.status === 'submitted' ? 'Results submitted for approval' : 'Results saved as draft',
+      });
+    },
+    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (resultId: string) => {
+      const { error } = await supabase.from('results').delete().eq('id', resultId);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['enrolled-students'] });
-      toast({ title: 'Success', description: 'Results submitted for approval' });
+      queryClient.invalidateQueries({ queryKey: ['class-results'] });
+      toast({ title: 'Deleted', description: 'Result removed' });
     },
-    onError: (error: any) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    },
+    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
   const handleMarksChange = useCallback((studentCourseId: string, field: 'cw' | 'exam', value: string) => {
-    const numValue = value === '' ? null : Math.min(field === 'cw' ? 40 : 60, Math.max(0, parseFloat(value)));
+    const max = field === 'cw' ? 40 : 60;
+    const numValue = value === '' ? null : Math.min(max, Math.max(0, parseFloat(value) || 0));
     setLocalResults((prev) => {
       const newMap = new Map(prev);
       const existing = newMap.get(studentCourseId) || { cw: null, exam: null };
@@ -200,184 +165,171 @@ export function ResultsEntryForm() {
     });
   }, []);
 
-  const getComputedValues = (student: any) => {
-    const local = localResults.get(student.studentCourseId);
-    const cw = local?.cw ?? student.courseworkMarks ?? 0;
-    const exam = local?.exam ?? student.examMarks ?? 0;
-    const total = (cw || 0) + (exam || 0);
-    const { grade, gradePoint } = total > 0 ? calculateGrade(total) : { grade: null, gradePoint: null };
-    return { cw, exam, total: total || null, grade, gradePoint };
+  const getComputed = (s: any) => {
+    const local = localResults.get(s.studentCourseId);
+    const cw = local?.cw ?? s.courseworkMarks;
+    const exam = local?.exam ?? s.examMarks;
+    const total = (cw ?? 0) + (exam ?? 0);
+    const hasMarks = cw != null || exam != null;
+    const { grade } = hasMarks ? calculateGrade(total) : { grade: null };
+    return { cw, exam, total: hasMarks ? total : null, grade };
   };
 
-  const filteredStudents = enrolledStudents?.filter(
-    (s: any) =>
-      s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.studentNumber.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = useMemo(
+    () =>
+      (enrolledStudents || []).filter(
+        (s: any) =>
+          s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (s.studentNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [enrolledStudents, searchTerm]
   );
 
-  const selectedCourseData = tutorCourses?.find((tc: any) => tc.course_id === selectedCourse);
-
-  const getGradeBadgeClass = (grade: string | null) => {
-    const classes: Record<string, string> = {
-      A: 'bg-success/20 text-success',
-      B: 'bg-primary/20 text-primary',
-      C: 'bg-warning/20 text-warning',
-      D: 'bg-orange-500/20 text-orange-600',
-      F: 'bg-destructive/20 text-destructive',
-    };
-    return grade ? classes[grade] || '' : '';
-  };
+  const selectedSemesterData = semesters?.find((s: any) => s.id === selectedSemester);
+  const canEdit = role === 'admin' || role === 'headmistress' || role === 'tutor';
+  const resultsLocked = !selectedSemesterData?.results_open && role !== 'admin';
 
   return (
     <div className="space-y-6">
-      {/* Course Selection */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Enter Results</CardTitle>
-          <CardDescription>Select a course to enter student marks</CardDescription>
+          <CardTitle className="text-lg">Results Entry</CardTitle>
+          <CardDescription>Filter by class, term, and subject to enter pupil marks</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-              <SelectTrigger className="w-full sm:w-64">
-                <SelectValue placeholder="Select course" />
-              </SelectTrigger>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <Select value={selectedProgram} onValueChange={(v) => { setSelectedProgram(v); setSelectedCourse(''); }}>
+              <SelectTrigger><SelectValue placeholder="Class" /></SelectTrigger>
               <SelectContent>
-                {tutorCourses?.map((tc: any) => (
-                  <SelectItem key={tc.course_id} value={tc.course_id}>
-                    {tc.courses?.code} - {tc.courses?.name}
+                {programs?.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+              <SelectTrigger><SelectValue placeholder="Term" /></SelectTrigger>
+              <SelectContent>
+                {semesters?.map((s: any) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}{s.is_current ? ' (Current)' : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <div className="relative flex-1">
+
+            <Select value={selectedCourse} onValueChange={setSelectedCourse} disabled={!selectedProgram}>
+              <SelectTrigger><SelectValue placeholder="Subject" /></SelectTrigger>
+              <SelectContent>
+                {courses?.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search students..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <Input placeholder="Search pupil..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Results Entry Table */}
-      {selectedCourse && (
+      {selectedCourse && selectedSemester && (
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="text-lg">
-                {selectedCourseData?.courses?.code} - {selectedCourseData?.courses?.name}
+                {courses?.find((c: any) => c.id === selectedCourse)?.name} — {programs?.find((p: any) => p.id === selectedProgram)?.name}
               </CardTitle>
               <CardDescription>
-                {filteredStudents?.length || 0} students registered • {selectedCourseData?.semesters?.name}
+                {filtered.length} pupils • {selectedSemesterData?.name}
+                {resultsLocked && <span className="text-destructive ml-2">• Results closed</span>}
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => saveMutation.mutate(filteredStudents || [])}
-                disabled={saveMutation.isPending || !filteredStudents?.length}
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                Save Draft
-              </Button>
-              <Button
-                onClick={() => submitMutation.mutate(filteredStudents || [])}
-                disabled={submitMutation.isPending || !filteredStudents?.length}
-              >
-                {submitMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
+            {canEdit && !resultsLocked && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => upsertMutation.mutate({ status: 'draft' })}
+                  disabled={upsertMutation.isPending || !filtered.length}
+                >
+                  {upsertMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Draft
+                </Button>
+                <Button
+                  onClick={() => upsertMutation.mutate({ status: 'submitted' })}
+                  disabled={upsertMutation.isPending || !filtered.length}
+                >
                   <Send className="w-4 h-4 mr-2" />
-                )}
-                Submit Results
-              </Button>
-            </div>
+                  Submit
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             {studentsLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
-            ) : filteredStudents?.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No students enrolled in this course
-              </p>
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
+            ) : !filtered.length ? (
+              <p className="text-center text-muted-foreground py-8">No pupils found</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="data-table">
+                <table className="data-table w-full">
                   <thead>
                     <tr>
-                      <th>Student ID</th>
+                      <th>Reg No</th>
                       <th>Name</th>
                       <th className="text-center w-24">CW (40)</th>
                       <th className="text-center w-24">Exam (60)</th>
                       <th className="text-center w-20">Total</th>
                       <th className="text-center w-20">Grade</th>
-                      <th className="text-center w-20">Status</th>
+                      <th className="text-center w-24">Status</th>
+                      {canEdit && <th className="text-center w-16">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents?.map((student: any) => {
-                      const computed = getComputedValues(student);
+                    {filtered.map((s: any) => {
+                      const c = getComputed(s);
+                      const locked = (s.status === 'submitted' || s.status === 'approved') && role === 'tutor';
                       return (
-                        <tr key={student.studentCourseId}>
-                          <td className="font-mono text-sm">{student.studentNumber}</td>
-                          <td className="font-medium">{student.studentName}</td>
+                        <tr key={s.studentCourseId}>
+                          <td className="font-mono text-xs">{s.studentNumber}</td>
+                          <td className="font-medium">{s.studentName}</td>
                           <td className="text-center">
-                            <Input
-                              type="number"
-                              min="0"
-                              max="40"
-                              value={computed.cw ?? ''}
-                              onChange={(e) =>
-                                handleMarksChange(student.studentCourseId, 'cw', e.target.value)
-                              }
-                              className="w-20 text-center mx-auto"
-                              disabled={student.status === 'submitted' || student.status === 'approved'}
+                            <Input type="number" min="0" max="40" value={c.cw ?? ''}
+                              onChange={(e) => handleMarksChange(s.studentCourseId, 'cw', e.target.value)}
+                              className="w-20 text-center mx-auto" disabled={locked || resultsLocked || !canEdit}
                             />
                           </td>
                           <td className="text-center">
-                            <Input
-                              type="number"
-                              min="0"
-                              max="60"
-                              value={computed.exam ?? ''}
-                              onChange={(e) =>
-                                handleMarksChange(student.studentCourseId, 'exam', e.target.value)
-                              }
-                              className="w-20 text-center mx-auto"
-                              disabled={student.status === 'submitted' || student.status === 'approved'}
+                            <Input type="number" min="0" max="60" value={c.exam ?? ''}
+                              onChange={(e) => handleMarksChange(s.studentCourseId, 'exam', e.target.value)}
+                              className="w-20 text-center mx-auto" disabled={locked || resultsLocked || !canEdit}
                             />
                           </td>
-                          <td className="text-center font-medium">{computed.total ?? '-'}</td>
+                          <td className="text-center font-semibold">{c.total ?? '-'}</td>
                           <td className="text-center">
-                            {computed.grade ? (
-                              <span
-                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm ${getGradeBadgeClass(computed.grade)}`}
-                              >
-                                {computed.grade}
+                            {c.grade ? (
+                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm bg-primary/10 text-primary">
+                                {c.grade}
                               </span>
-                            ) : (
-                              '-'
-                            )}
+                            ) : '-'}
                           </td>
                           <td className="text-center">
-                            {student.status === 'approved' ? (
-                              <CheckCircle className="w-4 h-4 text-success mx-auto" />
-                            ) : student.status === 'submitted' ? (
-                              <span className="text-xs text-warning">Submitted</span>
-                            ) : (
-                              <Clock className="w-4 h-4 text-muted-foreground mx-auto" />
-                            )}
+                            {s.status === 'approved' ? <CheckCircle className="w-4 h-4 text-success mx-auto" />
+                              : s.status === 'submitted' ? <span className="text-xs text-warning">Submitted</span>
+                              : s.resultId ? <span className="text-xs text-muted-foreground">Draft</span>
+                              : <Clock className="w-4 h-4 text-muted-foreground mx-auto" />}
                           </td>
+                          {canEdit && (
+                            <td className="text-center">
+                              {s.resultId && role === 'admin' && (
+                                <Button size="icon" variant="ghost" onClick={() => deleteMutation.mutate(s.resultId)}>
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       );
                     })}
