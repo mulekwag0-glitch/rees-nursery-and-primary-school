@@ -83,7 +83,7 @@ export default function ReportCards() {
   const [teacherComment, setTeacherComment] = useState('Good performance. Keep it up!');
   const [headComment, setHeadComment] = useState('Well done. Continue working hard.');
   const [conduct, setConduct] = useState('Good');
-  const [attendance, setAttendance] = useState({ present: 60, absent: 5, total: 65 });
+  const [attendance, setAttendance] = useState({ present: 0, absent: 0, total: 0 });
   const reportCardRef = useRef<HTMLDivElement>(null);
 
   const { data: students = [], isLoading: loadingStudents } = useQuery({
@@ -104,12 +104,20 @@ export default function ReportCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('semesters')
-        .select('id, name, semester_number, academic_year_id, academic_years:academic_year_id(name)')
+        .select('id, name, semester_number, is_current, academic_year_id, academic_years:academic_year_id(name)')
         .order('semester_number');
       if (error) throw error;
       return data;
     },
   });
+
+  // Auto-select the current term once semesters are loaded
+  useEffect(() => {
+    if (!selectedTerm && semesters.length) {
+      const current = semesters.find((s: any) => s.is_current) || semesters[0];
+      if (current) setSelectedTerm(current.name);
+    }
+  }, [semesters, selectedTerm]);
 
   const fetchStudentResults = async (studentId: string) => {
     const { data: scData } = await supabase.from('student_courses').select('id').eq('student_id', studentId);
@@ -166,13 +174,13 @@ export default function ReportCards() {
     setSelectedStudent(studentId);
     const results = await fetchStudentResults(studentId);
     setAllTermResults(results);
-    const filtered = selectedTerm && selectedTerm !== 'all'
+    const filtered = selectedTerm
       ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
       : results;
     setStudentResults(filtered);
 
     const student = students.find(s => s.id === studentId) as any;
-    if (student?.program_id && selectedTerm && selectedTerm !== 'all') {
+    if (student?.program_id && selectedTerm) {
       const pos = await computeClassPosition(studentId, student.program_id, selectedTerm);
       setClassPosition(pos);
     } else {
