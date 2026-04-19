@@ -126,8 +126,8 @@ export default function ReportCards() {
   const handleViewReportCard = async (studentId: string) => {
     setSelectedStudent(studentId);
     const results = await fetchStudentResults(studentId);
-    // Filter by selected term if set
-    const filtered = selectedTerm 
+    // Filter by selected term if a specific term is chosen
+    const filtered = selectedTerm && selectedTerm !== 'all'
       ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
       : results;
     setStudentResults(filtered);
@@ -182,7 +182,7 @@ export default function ReportCards() {
         if (!student) continue;
 
         const results = await fetchStudentResults(studentId);
-        const filtered = selectedTerm 
+        const filtered = selectedTerm && selectedTerm !== 'all'
           ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
           : results;
 
