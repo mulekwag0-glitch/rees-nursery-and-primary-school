@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 
-type AppRole = 'student' | 'tutor' | 'finance' | 'admin';
+type AppRole = 'student' | 'tutor' | 'finance' | 'admin' | 'headmistress';
 
 interface AuthContextType {
   user: User | null;

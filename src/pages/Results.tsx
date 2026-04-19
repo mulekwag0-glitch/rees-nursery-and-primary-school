@@ -427,9 +427,9 @@ export default function Results() {
         </div>
 
         {/* Role-specific view */}
-        {role === 'tutor' && <ResultsEntryForm />}
+        {(role === 'tutor' || role === 'admin' || role === 'headmistress') && <ResultsEntryForm />}
         {role === 'student' && <StudentResultsView />}
-        {role === 'admin' && <AdminResultsView />}
+        {(role === 'admin' || role === 'headmistress') && <AdminResultsView />}
       </div>
     </DashboardLayout>
   );
