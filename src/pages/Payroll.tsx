@@ -122,7 +122,8 @@ export default function Payroll() {
         @media print{body{margin:20px}}
       </style>
     </head><body>
-      <h1>Salem SIMS — Payslip</h1>
+      <h1>Rees Daycare Nursery & Primary School — Payslip</h1>
+      <p class="sub">Mbale City, Uganda · Tel: 0772379888 / 0706583860 / 0782063563 · reesnursery@gmail.com</p>
       <p class="sub">Pay Period: ${record.pay_period} | Status: ${record.status}</p>
       <table>
         <tr><th>Employee</th><td>${emp?.full_name || '—'}</td></tr>
@@ -144,7 +145,7 @@ export default function Payroll() {
       <table>
         <tr><td class="total" style="font-size:18px">Net Pay</td><td class="total" style="font-size:18px">UGX ${parseFloat(record.net_pay).toLocaleString()}</td></tr>
       </table>
-      <div class="footer">Generated on ${new Date().toLocaleDateString()} — Salem Student Information Management System</div>
+      <div class="footer">Generated on ${new Date().toLocaleDateString()} — Rees Daycare Nursery & Primary School</div>
     </body></html>`);
     w.document.close();
     w.print();

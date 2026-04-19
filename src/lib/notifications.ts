@@ -22,7 +22,7 @@ export async function sendNotification({ userId, title, message, type = 'info', 
 export async function notifyStudentAdmitted(studentUserId: string, studentId: string, programName: string) {
   await sendNotification({
     userId: studentUserId,
-    title: 'Welcome to Salem Uganda!',
+    title: 'Welcome to Rees Daycare Nursery & Primary School!',
     message: `You have been admitted as ${studentId} in ${programName}. Please change your temporary password.`,
     type: 'success',
     link: '/profile',
