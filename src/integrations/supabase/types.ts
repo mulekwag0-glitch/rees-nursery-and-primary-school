@@ -791,6 +791,7 @@ export type Database = {
           grade: string | null
           grade_point: number | null
           id: string
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["result_status"]
           student_course_id: string
           total_marks: number | null
@@ -806,6 +807,7 @@ export type Database = {
           grade?: string | null
           grade_point?: number | null
           id?: string
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["result_status"]
           student_course_id: string
           total_marks?: number | null
@@ -821,6 +823,7 @@ export type Database = {
           grade?: string | null
           grade_point?: number | null
           id?: string
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["result_status"]
           student_course_id?: string
           total_marks?: number | null
