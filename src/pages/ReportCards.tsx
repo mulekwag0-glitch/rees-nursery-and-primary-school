@@ -527,6 +527,61 @@ export default function ReportCards() {
                   </div>
                 </div>
 
+                {/* Class Position */}
+                {classPosition && (
+                  <div className="grid grid-cols-3 gap-3 mb-5 text-center">
+                    <div className="bg-amber-50 border border-amber-300 rounded-lg p-3">
+                      <p className="text-xs text-amber-700 uppercase font-semibold">Class Position</p>
+                      <p className="text-2xl font-bold text-amber-900">{classPosition.position} <span className="text-sm font-normal text-amber-700">/ {classPosition.total}</span></p>
+                    </div>
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-xs text-red-700 uppercase font-semibold">Term Average</p>
+                      <p className="text-2xl font-bold text-red-900">{classPosition.average.toFixed(1)}%</p>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-xs text-green-700 uppercase font-semibold">Overall Rating</p>
+                      <p className="text-2xl font-bold text-green-900">{getCompetencyFromScore(classPosition.average)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* All-term History (only when "All Terms" selected) */}
+                {(selectedTerm === 'all' || !selectedTerm) && allTermResults.length > 0 && (
+                  <div className="mb-5">
+                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">Full Performance History</h3>
+                    {Object.entries(
+                      allTermResults.reduce((acc: Record<string, ResultWithDetails[]>, r) => {
+                        const k = r.student_courses.semesters?.name || 'Unknown';
+                        (acc[k] ||= []).push(r);
+                        return acc;
+                      }, {})
+                    )
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([term, rs]) => {
+                        const avg = rs.reduce((s, r) => s + Number(r.total_marks || 0), 0) / rs.length;
+                        return (
+                          <div key={term} className="mb-3 border border-gray-200 rounded">
+                            <div className="bg-gray-50 px-3 py-1.5 flex justify-between items-center text-xs">
+                              <strong>{term}</strong>
+                              <span>Avg: <strong className="text-red-800">{avg.toFixed(1)}%</strong> · {getCompetencyFromScore(avg)}</span>
+                            </div>
+                            <table className="w-full text-xs">
+                              <tbody>
+                                {rs.map(r => (
+                                  <tr key={r.id} className="border-t border-gray-100">
+                                    <td className="px-3 py-1">{r.student_courses.courses.name}</td>
+                                    <td className="px-2 py-1 text-center w-16">{r.total_marks}</td>
+                                    <td className="px-2 py-1 text-center w-16 font-semibold text-red-800">{getCompetencyFromScore(r.total_marks || 0)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
                 {/* Results Table */}
                 {studentResults.length > 0 ? (
                   <table className="w-full border-collapse text-sm mb-5">
