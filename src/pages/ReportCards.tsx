@@ -219,7 +219,7 @@ export default function ReportCards() {
         }
       }
       const studentData = getSelectedStudentData();
-      pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'all'}.pdf`);
+      pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'term1'}.pdf`);
       toast({ title: 'PDF Downloaded', description: 'Report card saved.' });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate PDF', variant: 'destructive' });
@@ -395,9 +395,10 @@ export default function ReportCards() {
                   <SelectValue placeholder="Select Term" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Terms</SelectItem>
                   {semesters.map((s: any) => (
-                    <SelectItem key={s.id} value={s.name}>{s.name} - {s.academic_years?.name}</SelectItem>
+                    <SelectItem key={s.id} value={s.name}>
+                      {s.name}{s.is_current ? ' (Current)' : ''} - {s.academic_years?.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -530,7 +531,7 @@ export default function ReportCards() {
                     <p><span className="text-gray-500">Name:</span> <strong>{studentData?.full_name}</strong></p>
                     <p><span className="text-gray-500">Reg No:</span> <strong className="font-mono">{studentData?.student_id}</strong></p>
                     <p><span className="text-gray-500">Class:</span> <strong>{studentData?.programs.name}</strong></p>
-                    <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'All Terms'}</strong></p>
+                    <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'Term 1'}</strong></p>
                     <p><span className="text-gray-500">Academic Year:</span> <strong>{new Date().getFullYear()}</strong></p>
                   </div>
                 </div>
@@ -554,9 +555,9 @@ export default function ReportCards() {
                 )}
 
                 {/* All-term History (only when "All Terms" selected) */}
-                {(selectedTerm === 'all' || !selectedTerm) && allTermResults.length > 0 && (
+                {allTermResults.length > 0 && (
                   <div className="mb-5">
-                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">Full Performance History</h3>
+                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">All Terms Performance History</h3>
                     {Object.entries(
                       allTermResults.reduce((acc: Record<string, ResultWithDetails[]>, r) => {
                         const k = r.student_courses.semesters?.name || 'Unknown';
@@ -667,7 +668,7 @@ export default function ReportCards() {
                   </div>
                   <div className="text-center">
                     <QRCodeSVG
-                      value={`${window.location.origin}/verify?id=${studentData?.student_id}&term=${selectedTerm || 'all'}&year=${new Date().getFullYear()}`}
+                      value={`${window.location.origin}/verify?id=${studentData?.student_id}&term=${selectedTerm || 'term1'}&year=${new Date().getFullYear()}`}
                       size={56}
                     />
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
