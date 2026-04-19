@@ -238,7 +238,7 @@ export default function ReportCards() {
         if (!student) continue;
 
         const results = await fetchStudentResults(studentId);
-        const filtered = selectedTerm && selectedTerm !== 'all'
+        const filtered = selectedTerm
           ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
           : results;
 
@@ -277,7 +277,7 @@ export default function ReportCards() {
         pdf.text(`Reg No: ${student.student_id}`, pw / 2, y);
         y += 6;
         pdf.text(`Class: ${student.programs.name}`, 15, y);
-        pdf.text(`Term: ${selectedTerm || 'All Terms'}`, pw / 2, y);
+        pdf.text(`Term: ${selectedTerm || 'Term 1'}`, pw / 2, y);
         y += 10;
 
         // Subjects table
@@ -349,7 +349,7 @@ export default function ReportCards() {
         pdf.text('Key: BE = Beyond Expectation | AE = Above Expectation | ME = Meeting Expectation | BW = Below Expectation', 15, y);
       }
 
-      pdf.save(`batch_report_cards_${selectedTerm || 'all'}.pdf`);
+      pdf.save(`batch_report_cards_${selectedTerm || 'term1'}.pdf`);
       toast({ title: 'Batch PDF Downloaded', description: `${selectedStudents.size} report cards generated.` });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate batch PDFs', variant: 'destructive' });
