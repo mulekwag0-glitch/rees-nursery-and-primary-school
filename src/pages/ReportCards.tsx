@@ -83,7 +83,7 @@ export default function ReportCards() {
   const [teacherComment, setTeacherComment] = useState('Good performance. Keep it up!');
   const [headComment, setHeadComment] = useState('Well done. Continue working hard.');
   const [conduct, setConduct] = useState('Good');
-  const [attendance, setAttendance] = useState({ present: 60, absent: 5, total: 65 });
+  const [attendance, setAttendance] = useState({ present: 0, absent: 0, total: 0 });
   const reportCardRef = useRef<HTMLDivElement>(null);
 
   const { data: students = [], isLoading: loadingStudents } = useQuery({
@@ -104,12 +104,20 @@ export default function ReportCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('semesters')
-        .select('id, name, semester_number, academic_year_id, academic_years:academic_year_id(name)')
+        .select('id, name, semester_number, is_current, academic_year_id, academic_years:academic_year_id(name)')
         .order('semester_number');
       if (error) throw error;
       return data;
     },
   });
+
+  // Auto-select the current term once semesters are loaded
+  useEffect(() => {
+    if (!selectedTerm && semesters.length) {
+      const current = semesters.find((s: any) => s.is_current) || semesters[0];
+      if (current) setSelectedTerm(current.name);
+    }
+  }, [semesters, selectedTerm]);
 
   const fetchStudentResults = async (studentId: string) => {
     const { data: scData } = await supabase.from('student_courses').select('id').eq('student_id', studentId);
@@ -166,13 +174,13 @@ export default function ReportCards() {
     setSelectedStudent(studentId);
     const results = await fetchStudentResults(studentId);
     setAllTermResults(results);
-    const filtered = selectedTerm && selectedTerm !== 'all'
+    const filtered = selectedTerm
       ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
       : results;
     setStudentResults(filtered);
 
     const student = students.find(s => s.id === studentId) as any;
-    if (student?.program_id && selectedTerm && selectedTerm !== 'all') {
+    if (student?.program_id && selectedTerm) {
       const pos = await computeClassPosition(studentId, student.program_id, selectedTerm);
       setClassPosition(pos);
     } else {
@@ -211,7 +219,7 @@ export default function ReportCards() {
         }
       }
       const studentData = getSelectedStudentData();
-      pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'all'}.pdf`);
+      pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'term1'}.pdf`);
       toast({ title: 'PDF Downloaded', description: 'Report card saved.' });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate PDF', variant: 'destructive' });
@@ -230,7 +238,7 @@ export default function ReportCards() {
         if (!student) continue;
 
         const results = await fetchStudentResults(studentId);
-        const filtered = selectedTerm && selectedTerm !== 'all'
+        const filtered = selectedTerm
           ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
           : results;
 
@@ -269,7 +277,7 @@ export default function ReportCards() {
         pdf.text(`Reg No: ${student.student_id}`, pw / 2, y);
         y += 6;
         pdf.text(`Class: ${student.programs.name}`, 15, y);
-        pdf.text(`Term: ${selectedTerm || 'All Terms'}`, pw / 2, y);
+        pdf.text(`Term: ${selectedTerm || 'Term 1'}`, pw / 2, y);
         y += 10;
 
         // Subjects table
@@ -341,7 +349,7 @@ export default function ReportCards() {
         pdf.text('Key: BE = Beyond Expectation | AE = Above Expectation | ME = Meeting Expectation | BW = Below Expectation', 15, y);
       }
 
-      pdf.save(`batch_report_cards_${selectedTerm || 'all'}.pdf`);
+      pdf.save(`batch_report_cards_${selectedTerm || 'term1'}.pdf`);
       toast({ title: 'Batch PDF Downloaded', description: `${selectedStudents.size} report cards generated.` });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate batch PDFs', variant: 'destructive' });
@@ -387,9 +395,10 @@ export default function ReportCards() {
                   <SelectValue placeholder="Select Term" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Terms</SelectItem>
                   {semesters.map((s: any) => (
-                    <SelectItem key={s.id} value={s.name}>{s.name} - {s.academic_years?.name}</SelectItem>
+                    <SelectItem key={s.id} value={s.name}>
+                      {s.name}{s.is_current ? ' (Current)' : ''} - {s.academic_years?.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -522,7 +531,7 @@ export default function ReportCards() {
                     <p><span className="text-gray-500">Name:</span> <strong>{studentData?.full_name}</strong></p>
                     <p><span className="text-gray-500">Reg No:</span> <strong className="font-mono">{studentData?.student_id}</strong></p>
                     <p><span className="text-gray-500">Class:</span> <strong>{studentData?.programs.name}</strong></p>
-                    <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'All Terms'}</strong></p>
+                    <p><span className="text-gray-500">Term:</span> <strong>{selectedTerm || 'Term 1'}</strong></p>
                     <p><span className="text-gray-500">Academic Year:</span> <strong>{new Date().getFullYear()}</strong></p>
                   </div>
                 </div>
@@ -546,9 +555,9 @@ export default function ReportCards() {
                 )}
 
                 {/* All-term History (only when "All Terms" selected) */}
-                {(selectedTerm === 'all' || !selectedTerm) && allTermResults.length > 0 && (
+                {allTermResults.length > 0 && (
                   <div className="mb-5">
-                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">Full Performance History</h3>
+                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">All Terms Performance History</h3>
                     {Object.entries(
                       allTermResults.reduce((acc: Record<string, ResultWithDetails[]>, r) => {
                         const k = r.student_courses.semesters?.name || 'Unknown';
@@ -659,7 +668,7 @@ export default function ReportCards() {
                   </div>
                   <div className="text-center">
                     <QRCodeSVG
-                      value={`${window.location.origin}/verify?id=${studentData?.student_id}&term=${selectedTerm || 'all'}&year=${new Date().getFullYear()}`}
+                      value={`${window.location.origin}/verify?id=${studentData?.student_id}&term=${selectedTerm || 'term1'}&year=${new Date().getFullYear()}`}
                       size={56}
                     />
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>

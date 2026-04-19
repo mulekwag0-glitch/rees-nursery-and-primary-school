@@ -336,7 +336,9 @@ export default function Admissions() {
                   </p>
                   {semesters && semesters.length > 0 && (
                     <p className="text-muted-foreground mt-1">
-                      <strong>Auto-enroll:</strong> Courses for Year {currentYear} will be assigned automatically
+                      <strong>Auto-enroll:</strong> Pupil will be enrolled in subjects for{' '}
+                      <span className="font-semibold">{semesters.map(s => s.name).join(', ')}</span>{' '}
+                      (current {semesters.length === 1 ? 'term' : 'terms'})
                     </p>
                   )}
                 </div>
