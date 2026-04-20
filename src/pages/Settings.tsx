@@ -315,18 +315,21 @@ export default function Settings() {
 
           <TabsContent value="general" className="mt-6">
             <Card>
-              <CardHeader><CardTitle>Institution Information</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>Institution Information</CardTitle>
+                <CardDescription>Permanent school details — locked by system policy.</CardDescription>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2"><Label>Institution Name</Label><Input defaultValue="Rees Daycare Nursery & Primary School" /></div>
-                  <div className="space-y-2"><Label>Short Name</Label><Input defaultValue="REES" /></div>
+                  <div className="space-y-2"><Label>Institution Name</Label><Input value="Rees Daycare Nursery & Primary School" readOnly disabled /></div>
+                  <div className="space-y-2"><Label>Short Name</Label><Input value="REES" readOnly disabled /></div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2"><Label>Email</Label><Input defaultValue="admin@rees.ac.ug" /></div>
-                  <div className="space-y-2"><Label>Phone</Label><Input defaultValue="+256780306692" /></div>
+                  <div className="space-y-2"><Label>Email</Label><Input value="reesnursery@gmail.com" readOnly disabled /></div>
+                  <div className="space-y-2"><Label>Phone</Label><Input value="0772379888 / 0706583860 / 0782063563" readOnly disabled /></div>
                 </div>
-                <div className="space-y-2"><Label>Address</Label><Input defaultValue="Mbale City, Uganda" /></div>
-                <Button>Save Changes</Button>
+                <div className="space-y-2"><Label>Address</Label><Input value="Mbale City, Uganda" readOnly disabled /></div>
+                <p className="text-xs text-muted-foreground">These details are permanent and cannot be modified.</p>
               </CardContent>
             </Card>
           </TabsContent>
