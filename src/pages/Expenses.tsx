@@ -436,6 +436,57 @@ export default function Expenses() {
             )}
           </CardContent>
         </Card>
+
+        {/* Edit Expense Dialog */}
+        <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Expense</DialogTitle>
+              <DialogDescription>Update expense details</DialogDescription>
+            </DialogHeader>
+            {editTarget && (
+              <form onSubmit={(e) => { e.preventDefault(); editMutation.mutate(); }} className="space-y-4 mt-2">
+                <div className="space-y-2">
+                  <Label>Title</Label>
+                  <Input value={editTarget.title || ''} onChange={(e) => setEditTarget({ ...editTarget, title: e.target.value })} required />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Amount (UGX)</Label>
+                    <Input type="number" value={editTarget.amount || 0} onChange={(e) => setEditTarget({ ...editTarget, amount: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select value={editTarget.category || 'general'} onValueChange={(v) => setEditTarget({ ...editTarget, category: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Date</Label>
+                    <Input type="date" value={editTarget.expense_date || ''} onChange={(e) => setEditTarget({ ...editTarget, expense_date: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Receipt Ref</Label>
+                    <Input value={editTarget.receipt_reference || ''} onChange={(e) => setEditTarget({ ...editTarget, receipt_reference: e.target.value })} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea value={editTarget.description || ''} onChange={(e) => setEditTarget({ ...editTarget, description: e.target.value })} rows={2} />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+                  <Button type="submit" disabled={editMutation.isPending}>
+                    {editMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Save Changes
+                  </Button>
+                </DialogFooter>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
