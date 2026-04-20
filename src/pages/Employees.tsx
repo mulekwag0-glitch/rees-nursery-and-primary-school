@@ -14,6 +14,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Loader2, Users, Trash2, Edit, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { employeeSchema, validateForm } from '@/lib/validation';
 import { STAFF_IMPORT, StaffImportRow } from '@/lib/staffImportData';
+import { EditEmployeeDialog } from '@/components/employees/EditEmployeeDialog';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 
 const DEPARTMENTS = [
   'Administration', 'Academic', 'Finance', 'IT', 'Library', 'Maintenance', 'Security', 'General',
@@ -31,8 +33,12 @@ function DetailField({ label, value }: { label: string; value?: string | null })
 export default function Employees() {
   const { toast } = useToast();
   const { role } = useAuth();
+  const { can } = useModuleAccess();
+  const canEdit = can('hr', 'edit', role === 'admin' ? 'full' : 'view');
+  const canFull = can('hr', 'full', role === 'admin' ? 'full' : 'none');
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
