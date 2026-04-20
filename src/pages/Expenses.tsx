@@ -244,6 +244,13 @@ export default function Expenses() {
             }}>
               <Download className="w-4 h-4 mr-2" />Export CSV
             </Button>
+            {canFull && (
+              <Button variant="outline" onClick={() => importMutation.mutate()} disabled={importMutation.isPending}>
+                {importMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                Import Expenses
+              </Button>
+            )}
+            {canEdit && (
             <Dialog open={open} onOpenChange={(o) => { if (!o) resetForm(); setOpen(o); }}>
               <DialogTrigger asChild>
                 <Button><Plus className="w-4 h-4 mr-2" />Record Expense</Button>
