@@ -176,7 +176,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const GroupIcon = group.icon;
     const groupActive = group.items.some(item => location.pathname === item.href);
     const isOpen = openGroups[group.label] ?? groupActive;
-    const filteredItems = group.items.filter(item => role && item.roles.includes(role));
+    const filteredItems = group.items.filter(isVisible);
     if (filteredItems.length === 0) return null;
 
     return (
