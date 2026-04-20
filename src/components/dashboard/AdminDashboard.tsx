@@ -89,10 +89,6 @@ export function AdminDashboard() {
             <Users className="w-4 h-4 mr-2" />
             Pupils
           </Button>
-          <Button onClick={() => navigate('/settings')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Staff
-          </Button>
         </div>
       </div>
 

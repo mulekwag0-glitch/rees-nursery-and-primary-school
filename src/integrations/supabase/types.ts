@@ -1254,6 +1254,33 @@ export type Database = {
           },
         ]
       }
+      user_module_access: {
+        Row: {
+          access_level: string
+          created_at: string
+          id: string
+          module: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_level?: string
+          created_at?: string
+          id?: string
+          module: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string
+          id?: string
+          module?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1286,6 +1313,10 @@ export type Database = {
           grade: string
           grade_point: number
         }[]
+      }
+      get_module_access: {
+        Args: { _module: string; _user_id: string }
+        Returns: string
       }
       get_user_role: {
         Args: { _user_id: string }

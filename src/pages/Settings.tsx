@@ -12,9 +12,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { logAudit } from '@/lib/audit';
+import { ModuleAccessDialog } from '@/components/users/ModuleAccessDialog';
 import {
   Settings as SettingsIcon, Building2, Bell, Shield, Database, Palette, KeyRound, Loader2, Users, ScrollText, Search, Clock,
-  MoreHorizontal, User, UserCheck, UserX, Plus,
+  MoreHorizontal, User, UserCheck, UserX, Plus, Settings2,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -162,6 +163,7 @@ function UserManagementTab() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [accessUser, setAccessUser] = useState<{ id: string; full_name: string } | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
@@ -237,6 +239,9 @@ function UserManagementTab() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => setAccessUser({ id: u.id, full_name: u.full_name })}>
+                        <Settings2 className="w-4 h-4 mr-2" />Module Access
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleResetPassword(u.id, u.email)}>
                         <KeyRound className="w-4 h-4 mr-2" />Reset Password
                       </DropdownMenuItem>
@@ -281,6 +286,13 @@ function UserManagementTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ModuleAccessDialog
+        open={!!accessUser}
+        onOpenChange={(o) => { if (!o) setAccessUser(null); }}
+        userId={accessUser?.id || null}
+        userName={accessUser?.full_name}
+      />
     </div>
   );
 }
@@ -315,18 +327,21 @@ export default function Settings() {
 
           <TabsContent value="general" className="mt-6">
             <Card>
-              <CardHeader><CardTitle>Institution Information</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>Institution Information</CardTitle>
+                <CardDescription>Permanent school details — locked by system policy.</CardDescription>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2"><Label>Institution Name</Label><Input defaultValue="Rees Daycare Nursery & Primary School" /></div>
-                  <div className="space-y-2"><Label>Short Name</Label><Input defaultValue="REES" /></div>
+                  <div className="space-y-2"><Label>Institution Name</Label><Input value="Rees Daycare Nursery & Primary School" readOnly disabled /></div>
+                  <div className="space-y-2"><Label>Short Name</Label><Input value="REES" readOnly disabled /></div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2"><Label>Email</Label><Input defaultValue="admin@rees.ac.ug" /></div>
-                  <div className="space-y-2"><Label>Phone</Label><Input defaultValue="+256780306692" /></div>
+                  <div className="space-y-2"><Label>Email</Label><Input value="reesnursery@gmail.com" readOnly disabled /></div>
+                  <div className="space-y-2"><Label>Phone</Label><Input value="0772379888 / 0706583860 / 0782063563" readOnly disabled /></div>
                 </div>
-                <div className="space-y-2"><Label>Address</Label><Input defaultValue="Mbale City, Uganda" /></div>
-                <Button>Save Changes</Button>
+                <div className="space-y-2"><Label>Address</Label><Input value="Mbale City, Uganda" readOnly disabled /></div>
+                <p className="text-xs text-muted-foreground">These details are permanent and cannot be modified.</p>
               </CardContent>
             </Card>
           </TabsContent>
