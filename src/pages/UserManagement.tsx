@@ -17,7 +17,9 @@ import {
   UserX,
   Loader2,
   KeyRound,
+  Settings2,
 } from 'lucide-react';
+import { ModuleAccessDialog } from '@/components/users/ModuleAccessDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +79,7 @@ export default function UserManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [showAccessModal, setShowAccessModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   
@@ -456,6 +459,13 @@ export default function UserManagement() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => {
                                 setSelectedUser(user);
+                                setShowAccessModal(true);
+                              }}>
+                                <Settings2 className="w-4 h-4 mr-2" />
+                                Module Access
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedUser(user);
                                 setEditRole(user.role as AppRole);
                                 setShowEditModal(true);
                               }}>
@@ -640,6 +650,12 @@ export default function UserManagement() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <ModuleAccessDialog
+          open={showAccessModal}
+          onOpenChange={setShowAccessModal}
+          userId={selectedUser?.id || null}
+          userName={selectedUser?.full_name}
+        />
       </div>
     </DashboardLayout>
   );
