@@ -54,31 +54,31 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify" element={<Verify />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/students" element={<ProtectedRoute allowedRoles={['admin', 'tutor', 'finance']}><Students /></ProtectedRoute>} />
-            <Route path="/admissions" element={<ProtectedRoute allowedRoles={['admin']}><Admissions /></ProtectedRoute>} />
-            <Route path="/enrollments" element={<ProtectedRoute allowedRoles={['admin']}><Enrollments /></ProtectedRoute>} />
-            <Route path="/courses" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Courses /></ProtectedRoute>} />
-            <Route path="/schemes" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Schemes /></ProtectedRoute>} />
-            <Route path="/timetables" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Timetables /></ProtectedRoute>} />
-            <Route path="/lesson-plans" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><LessonPlans /></ProtectedRoute>} />
-            <Route path="/tutor-assignments" element={<ProtectedRoute allowedRoles={['admin']}><TutorAssignment /></ProtectedRoute>} />
-            <Route path="/results" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Results /></ProtectedRoute>} />
-            <Route path="/report-cards" element={<ProtectedRoute allowedRoles={['admin']}><ReportCards /></ProtectedRoute>} />
-            <Route path="/certificates" element={<ProtectedRoute allowedRoles={['admin']}><Certificates /></ProtectedRoute>} />
-            <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payments /></ProtectedRoute>} />
-            <Route path="/fee-structures" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><FeeStructures /></ProtectedRoute>} />
-            <Route path="/expenses" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Expenses /></ProtectedRoute>} />
-            <Route path="/work-plan" element={<ProtectedRoute allowedRoles={['admin']}><WorkPlan /></ProtectedRoute>} />
-            <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Employees /></ProtectedRoute>} />
-            <Route path="/payroll" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />
-            <Route path="/leave-management" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
-            <Route path="/administration" element={<ProtectedRoute allowedRoles={['admin']}><Administration /></ProtectedRoute>} />
-            <Route path="/store-assets" element={<ProtectedRoute allowedRoles={['admin']}><StoreAssets /></ProtectedRoute>} />
-            <Route path="/attendance" element={<ProtectedRoute allowedRoles={['admin', 'tutor']}><Attendance /></ProtectedRoute>} />
-            <Route path="/programs" element={<ProtectedRoute allowedRoles={['admin']}><Programs /></ProtectedRoute>} />
-            <Route path="/semesters" element={<ProtectedRoute allowedRoles={['admin']}><Semesters /></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'finance']}><Reports /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
+            <Route path="/students" element={<ProtectedRoute module="pupils" allowedRoles={['admin', 'tutor', 'finance']}><Students /></ProtectedRoute>} />
+            <Route path="/admissions" element={<ProtectedRoute module="admissions" allowedRoles={['admin']}><Admissions /></ProtectedRoute>} />
+            <Route path="/enrollments" element={<ProtectedRoute module="enrollments" allowedRoles={['admin']}><Enrollments /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute module="structures" allowedRoles={['admin', 'tutor']}><Courses /></ProtectedRoute>} />
+            <Route path="/schemes" element={<ProtectedRoute module="structures" allowedRoles={['admin', 'tutor']}><Schemes /></ProtectedRoute>} />
+            <Route path="/timetables" element={<ProtectedRoute module="structures" allowedRoles={['admin', 'tutor']}><Timetables /></ProtectedRoute>} />
+            <Route path="/lesson-plans" element={<ProtectedRoute module="structures" allowedRoles={['admin', 'tutor']}><LessonPlans /></ProtectedRoute>} />
+            <Route path="/tutor-assignments" element={<ProtectedRoute module="tutor_assignments" allowedRoles={['admin']}><TutorAssignment /></ProtectedRoute>} />
+            <Route path="/results" element={<ProtectedRoute module="results" allowedRoles={['admin', 'tutor']}><Results /></ProtectedRoute>} />
+            <Route path="/report-cards" element={<ProtectedRoute module="report_cards" allowedRoles={['admin']}><ReportCards /></ProtectedRoute>} />
+            <Route path="/certificates" element={<ProtectedRoute module="certificates" allowedRoles={['admin']}><Certificates /></ProtectedRoute>} />
+            <Route path="/payments" element={<ProtectedRoute module="payments" allowedRoles={['admin', 'finance']}><Payments /></ProtectedRoute>} />
+            <Route path="/fee-structures" element={<ProtectedRoute module="payments" allowedRoles={['admin', 'finance']}><FeeStructures /></ProtectedRoute>} />
+            <Route path="/expenses" element={<ProtectedRoute module="expenses" allowedRoles={['admin', 'finance']}><Expenses /></ProtectedRoute>} />
+            <Route path="/work-plan" element={<ProtectedRoute module="expenses" allowedRoles={['admin']}><WorkPlan /></ProtectedRoute>} />
+            <Route path="/employees" element={<ProtectedRoute module="hr" allowedRoles={['admin', 'finance']}><Employees /></ProtectedRoute>} />
+            <Route path="/payroll" element={<ProtectedRoute module="hr" allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />
+            <Route path="/leave-management" element={<ProtectedRoute module="hr" allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
+            <Route path="/administration" element={<ProtectedRoute module="administration" allowedRoles={['admin']}><Administration /></ProtectedRoute>} />
+            <Route path="/store-assets" element={<ProtectedRoute module="administration" allowedRoles={['admin']}><StoreAssets /></ProtectedRoute>} />
+            <Route path="/attendance" element={<ProtectedRoute module="attendance" allowedRoles={['admin', 'tutor']}><Attendance /></ProtectedRoute>} />
+            <Route path="/programs" element={<ProtectedRoute module="classes" allowedRoles={['admin']}><Programs /></ProtectedRoute>} />
+            <Route path="/semesters" element={<ProtectedRoute module="terms" allowedRoles={['admin']}><Semesters /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute module="reports" allowedRoles={['admin', 'finance']}><Reports /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute module="settings" allowedRoles={['admin']}><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
