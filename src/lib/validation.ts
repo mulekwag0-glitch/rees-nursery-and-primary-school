@@ -39,8 +39,8 @@ export const resetPasswordSchema = z.object({
 // ==================== Employees ====================
 export const employeeSchema = z.object({
   fullName: z.string().trim().min(1, 'Name is required').max(200),
-  email: z.string().trim().email('Invalid email').max(255),
-  phone: z.string().max(20).optional().or(z.literal('')),
+  email: z.string().trim().email('Invalid email').max(255).optional().or(z.literal('')),
+  phone: z.string().max(50).optional().or(z.literal('')),
   department: z.string().min(1),
   jobTitle: z.string().trim().min(1, 'Job title is required').max(200),
   hireDate: z.string().min(1, 'Hire date is required'),
