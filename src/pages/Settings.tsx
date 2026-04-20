@@ -286,6 +286,13 @@ function UserManagementTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ModuleAccessDialog
+        open={!!accessUser}
+        onOpenChange={(o) => { if (!o) setAccessUser(null); }}
+        userId={accessUser?.id || null}
+        userName={accessUser?.full_name}
+      />
     </div>
   );
 }
