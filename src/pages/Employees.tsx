@@ -310,14 +310,14 @@ export default function Employees() {
                       <th>Email</th>
                       <th>Salary</th>
                       <th>Status</th>
-                      {role === 'admin' && <th>Actions</th>}
+                      {canEdit && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.map((e: any) => {
                       const details = getDetails(e.full_name);
                       const isOpen = !!expanded[e.id];
-                      const colCount = role === 'admin' ? 8 : 7;
+                      const colCount = canEdit ? 8 : 7;
                       return (
                         <React.Fragment key={e.id}>
                           <tr>
@@ -339,12 +339,19 @@ export default function Employees() {
                                 {e.status}
                               </Badge>
                             </td>
-                            {role === 'admin' && (
+                            {canEdit && (
                               <td>
-                                <Button size="sm" variant="ghost" className="text-destructive"
-                                  onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button size="sm" variant="ghost" onClick={() => setEditTarget(e)}>
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  {canFull && (
+                                    <Button size="sm" variant="ghost" className="text-destructive"
+                                      onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               </td>
                             )}
                           </tr>
