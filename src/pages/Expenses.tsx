@@ -32,8 +32,12 @@ const CATEGORIES = [
 export default function Expenses() {
   const { toast } = useToast();
   const { user, role } = useAuth();
+  const { can } = useModuleAccess();
+  const canEdit = can('expenses', 'edit', role === 'admin' || role === 'finance' ? 'full' : 'view');
+  const canFull = can('expenses', 'full', role === 'admin' ? 'full' : 'none');
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -128,6 +132,57 @@ export default function Expenses() {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast({ title: 'Deleted', description: 'Expense removed.' });
     },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: async () => {
+      if (!editTarget) return;
+      const { error } = await supabase.from('expenses').update({
+        title: editTarget.title,
+        description: editTarget.description || null,
+        amount: parseFloat(editTarget.amount) || 0,
+        category: editTarget.category,
+        expense_date: editTarget.expense_date,
+        receipt_reference: editTarget.receipt_reference || null,
+      }).eq('id', editTarget.id);
+      if (error) throw error;
+      await logAudit('expense_updated', 'expenses', editTarget.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({ title: 'Updated', description: 'Expense updated successfully.' });
+      setEditTarget(null);
+    },
+    onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('Not authenticated');
+      const { data: existing } = await supabase.from('expenses').select('title, expense_date, amount');
+      const seen = new Set((existing || []).map((e: any) => `${e.expense_date}|${e.title}|${e.amount}`));
+      const rows = EXPENSE_IMPORT
+        .filter(e => !seen.has(`${e.date}|${e.title}|${e.amount}`))
+        .map(e => ({
+          title: e.title,
+          description: e.description || null,
+          amount: e.amount,
+          category: e.category,
+          expense_date: e.date,
+          receipt_reference: e.receipt_ref || null,
+          recorded_by: user.id,
+          status: 'approved',
+        }));
+      if (rows.length === 0) return { inserted: 0, skipped: EXPENSE_IMPORT.length };
+      const { error } = await supabase.from('expenses').insert(rows);
+      if (error) throw error;
+      return { inserted: rows.length, skipped: EXPENSE_IMPORT.length - rows.length };
+    },
+    onSuccess: (r) => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({ title: 'Import complete', description: `${r.inserted} added, ${r.skipped} already existed.` });
+    },
+    onError: (e: any) => toast({ title: 'Import failed', description: e.message, variant: 'destructive' }),
   });
 
   const resetForm = () => {
