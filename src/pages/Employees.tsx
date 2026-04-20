@@ -11,13 +11,22 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Loader2, Users, Trash2, Edit, Upload } from 'lucide-react';
+import { Plus, Search, Loader2, Users, Trash2, Edit, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { employeeSchema, validateForm } from '@/lib/validation';
-import { STAFF_IMPORT } from '@/lib/staffImportData';
+import { STAFF_IMPORT, StaffImportRow } from '@/lib/staffImportData';
 
 const DEPARTMENTS = [
   'Administration', 'Academic', 'Finance', 'IT', 'Library', 'Maintenance', 'Security', 'General',
 ];
+
+function DetailField({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-medium text-foreground">{value || '—'}</p>
+    </div>
+  );
+}
 
 export default function Employees() {
   const { toast } = useToast();
@@ -26,6 +35,15 @@ export default function Employees() {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  // Lookup table from imported staff list — gives us NIN, Next of Kin, Education, Origin, etc.
+  const STAFF_DETAILS: Record<string, StaffImportRow> = React.useMemo(() => {
+    const map: Record<string, StaffImportRow> = {};
+    STAFF_IMPORT.forEach(s => { map[s.full_name.toLowerCase().trim()] = s; });
+    return map;
+  }, []);
+  const getDetails = (name?: string) => name ? STAFF_DETAILS[name.toLowerCase().trim()] : undefined;
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -279,6 +297,7 @@ export default function Employees() {
                 <table className="data-table">
                   <thead>
                     <tr>
+                      <th className="w-8"></th>
                       <th>Name</th>
                       <th>Job Title</th>
                       <th>Department</th>
@@ -289,29 +308,67 @@ export default function Employees() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((e: any) => (
-                      <tr key={e.id}>
-                        <td className="font-medium">{e.full_name}</td>
-                        <td>{e.job_title}</td>
-                        <td><Badge variant="secondary" className="capitalize">{e.department}</Badge></td>
-                        <td className="text-sm text-muted-foreground">{e.email}</td>
-                        <td className="font-semibold">UGX {parseFloat(e.salary).toLocaleString()}</td>
-                        <td>
-                          <Badge variant={e.status === 'active' ? 'default' : 'secondary'}
-                            className={e.status === 'active' ? 'bg-success/20 text-success border-0' : ''}>
-                            {e.status}
-                          </Badge>
-                        </td>
-                        {role === 'admin' && (
-                          <td>
-                            <Button size="sm" variant="ghost" className="text-destructive"
-                              onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
+                    {filtered.map((e: any) => {
+                      const details = getDetails(e.full_name);
+                      const isOpen = !!expanded[e.id];
+                      const colCount = role === 'admin' ? 8 : 7;
+                      return (
+                        <React.Fragment key={e.id}>
+                          <tr>
+                            <td>
+                              <Button size="sm" variant="ghost" className="h-7 w-7 p-0"
+                                onClick={() => setExpanded(p => ({ ...p, [e.id]: !p[e.id] }))}
+                                aria-label={isOpen ? 'Collapse details' : 'Expand details'}>
+                                {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                              </Button>
+                            </td>
+                            <td className="font-medium">{e.full_name}</td>
+                            <td>{e.job_title}</td>
+                            <td><Badge variant="secondary" className="capitalize">{e.department}</Badge></td>
+                            <td className="text-sm text-muted-foreground">{e.email}</td>
+                            <td className="font-semibold">UGX {parseFloat(e.salary).toLocaleString()}</td>
+                            <td>
+                              <Badge variant={e.status === 'active' ? 'default' : 'secondary'}
+                                className={e.status === 'active' ? 'bg-success/20 text-success border-0' : ''}>
+                                {e.status}
+                              </Badge>
+                            </td>
+                            {role === 'admin' && (
+                              <td>
+                                <Button size="sm" variant="ghost" className="text-destructive"
+                                  onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </td>
+                            )}
+                          </tr>
+                          {isOpen && (
+                            <tr className="bg-muted/30">
+                              <td colSpan={colCount} className="p-4">
+                                {details ? (
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                                    <DetailField label="NIN" value={details.nin_number} />
+                                    <DetailField label="Date of Birth" value={details.date_of_birth} />
+                                    <DetailField label="Gender" value={details.gender} />
+                                    <DetailField label="Place of Origin" value={details.origin} />
+                                    <DetailField label="Education" value={details.education} />
+                                    <DetailField label="Next of Kin" value={details.next_of_kin} />
+                                    <DetailField label="Next of Kin Contact" value={details.next_of_kin_contact} />
+                                    <DetailField label="Phone" value={e.phone || details.phone} />
+                                    <DetailField label="Bank" value={[e.bank_name, e.bank_account].filter(Boolean).join(' • ')} />
+                                    <DetailField label="NSSF" value={e.nssf_number} />
+                                    <DetailField label="TIN" value={e.tin_number} />
+                                    <DetailField label="Hire Date" value={e.hire_date} />
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground">No extended profile available. Use Import Staff to load details.</p>
+                                )}
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModuleAccess, ModuleKey } from '@/hooks/useModuleAccess';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
@@ -22,12 +23,14 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: string[];
+  module?: ModuleKey;
 }
 
 interface NavGroup {
   label: string;
   icon: React.ElementType;
   roles: string[];
+  module?: ModuleKey;
   items: NavItem[];
 }
 
@@ -40,80 +43,78 @@ function isGroup(entry: NavEntry): entry is NavGroup {
 const navigation: NavEntry[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['tutor', 'finance', 'admin'] },
 
-  // Students / Pupils
-  { label: 'Pupils', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'] },
-  { label: 'Admissions', href: '/admissions', icon: GraduationCap, roles: ['admin'] },
-  { label: 'Enrollments', href: '/enrollments', icon: BookOpen, roles: ['admin'] },
-  { label: 'Attendance', href: '/attendance', icon: Calendar, roles: ['admin', 'tutor'] },
+  { label: 'Pupils', href: '/students', icon: Users, roles: ['admin', 'tutor', 'finance'], module: 'pupils' },
+  { label: 'Admissions', href: '/admissions', icon: GraduationCap, roles: ['admin'], module: 'admissions' },
+  { label: 'Enrollments', href: '/enrollments', icon: BookOpen, roles: ['admin'], module: 'enrollments' },
+  { label: 'Attendance', href: '/attendance', icon: Calendar, roles: ['admin', 'tutor'], module: 'attendance' },
 
-  // Structures
   {
     label: 'Structures',
     icon: BookOpen,
     roles: ['admin', 'tutor'],
+    module: 'structures',
     items: [
-      { label: 'Subjects', href: '/courses', icon: BookOpen, roles: ['admin', 'tutor'] },
-      { label: 'Schemes of Work', href: '/schemes', icon: FileEdit, roles: ['admin', 'tutor'] },
-      { label: 'Lesson Timetables', href: '/timetables', icon: Clock, roles: ['admin', 'tutor'] },
-      { label: 'Lesson Plans', href: '/lesson-plans', icon: FileText, roles: ['admin', 'tutor'] },
+      { label: 'Subjects', href: '/courses', icon: BookOpen, roles: ['admin', 'tutor'], module: 'structures' },
+      { label: 'Schemes of Work', href: '/schemes', icon: FileEdit, roles: ['admin', 'tutor'], module: 'structures' },
+      { label: 'Lesson Timetables', href: '/timetables', icon: Clock, roles: ['admin', 'tutor'], module: 'structures' },
+      { label: 'Lesson Plans', href: '/lesson-plans', icon: FileText, roles: ['admin', 'tutor'], module: 'structures' },
     ],
   },
 
-  { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'] },
+  { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'], module: 'tutor_assignments' },
 
-  // Academic
-  { label: 'Results', href: '/results', icon: ClipboardList, roles: ['tutor', 'admin'] },
-  { label: 'Report Cards', href: '/report-cards', icon: FileText, roles: ['admin'] },
-  { label: 'Certificates', href: '/certificates', icon: Award, roles: ['admin'] },
+  { label: 'Results', href: '/results', icon: ClipboardList, roles: ['tutor', 'admin'], module: 'results' },
+  { label: 'Report Cards', href: '/report-cards', icon: FileText, roles: ['admin'], module: 'report_cards' },
+  { label: 'Certificates', href: '/certificates', icon: Award, roles: ['admin'], module: 'certificates' },
 
-  // Finance
   {
     label: 'Payments',
     icon: CreditCard,
     roles: ['admin', 'finance'],
+    module: 'payments',
     items: [
-      { label: 'All Payments', href: '/payments', icon: CreditCard, roles: ['admin', 'finance'] },
-      { label: 'Fee Structures', href: '/fee-structures', icon: DollarSign, roles: ['admin', 'finance'] },
+      { label: 'All Payments', href: '/payments', icon: CreditCard, roles: ['admin', 'finance'], module: 'payments' },
+      { label: 'Fee Structures', href: '/fee-structures', icon: DollarSign, roles: ['admin', 'finance'], module: 'payments' },
     ],
   },
   {
     label: 'Expenses',
     icon: Wallet,
     roles: ['admin', 'finance'],
+    module: 'expenses',
     items: [
-      { label: 'Expenses', href: '/expenses', icon: Wallet, roles: ['admin', 'finance'] },
-      { label: 'School Budget', href: '/work-plan', icon: Target, roles: ['admin'] },
+      { label: 'Expenses', href: '/expenses', icon: Wallet, roles: ['admin', 'finance'], module: 'expenses' },
+      { label: 'School Budget', href: '/work-plan', icon: Target, roles: ['admin'], module: 'expenses' },
     ],
   },
 
-  // HR
   {
     label: 'Human Resource',
     icon: Briefcase,
     roles: ['admin', 'finance'],
+    module: 'hr',
     items: [
-      { label: 'Employees', href: '/employees', icon: Users, roles: ['admin', 'finance'] },
-      { label: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['admin', 'finance'] },
-      { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'] },
+      { label: 'Employees', href: '/employees', icon: Users, roles: ['admin', 'finance'], module: 'hr' },
+      { label: 'Payroll', href: '/payroll', icon: DollarSign, roles: ['admin', 'finance'], module: 'hr' },
+      { label: 'Leave Management', href: '/leave-management', icon: CalendarOff, roles: ['admin'], module: 'hr' },
     ],
   },
 
-  // Administration
   {
     label: 'Administration',
     icon: Building2,
     roles: ['admin'],
+    module: 'administration',
     items: [
-      { label: 'PTA & Appraisal', href: '/administration', icon: Star, roles: ['admin'] },
-      { label: 'Store & Assets', href: '/store-assets', icon: Package, roles: ['admin'] },
+      { label: 'PTA & Appraisal', href: '/administration', icon: Star, roles: ['admin'], module: 'administration' },
+      { label: 'Store & Assets', href: '/store-assets', icon: Package, roles: ['admin'], module: 'administration' },
     ],
   },
 
-  // Programs & Semesters
-  { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'] },
-  { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'] },
-  { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'] },
-  { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'] },
+  { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'], module: 'classes' },
+  { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'], module: 'terms' },
+  { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'], module: 'reports' },
+  { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'], module: 'settings' },
 ];
 
 interface DashboardLayoutProps {
@@ -122,6 +123,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, role, signOut } = useAuth();
+  const { access } = useModuleAccess();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -135,13 +137,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return r ? labels[r] || r : 'User';
   };
 
-  const filteredNav = navigation.filter(entry => {
+  // Module access overrides role: an admin-set 'none' hides; any other level shows even if role would deny.
+  // Admins always see everything; items without module key fall back to role list.
+  const isVisible = (item: { roles: string[]; module?: ModuleKey }) => {
     if (!role) return false;
-    if (!entry.roles.includes(role)) return false;
-    if (isGroup(entry)) {
-      return entry.items.some(item => item.roles.includes(role));
+    if (role === 'admin') return true;
+    if (item.module && access[item.module] !== undefined) {
+      return access[item.module] !== 'none';
     }
-    return true;
+    return item.roles.includes(role);
+  };
+
+  const filteredNav = navigation.filter(entry => {
+    if (isGroup(entry)) {
+      const visibleChildren = entry.items.filter(isVisible);
+      return visibleChildren.length > 0;
+    }
+    return isVisible(entry);
   });
 
   const renderNavItem = (item: NavItem) => {
@@ -164,7 +176,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const GroupIcon = group.icon;
     const groupActive = group.items.some(item => location.pathname === item.href);
     const isOpen = openGroups[group.label] ?? groupActive;
-    const filteredItems = group.items.filter(item => role && item.roles.includes(role));
+    const filteredItems = group.items.filter(isVisible);
     if (filteredItems.length === 0) return null;
 
     return (
