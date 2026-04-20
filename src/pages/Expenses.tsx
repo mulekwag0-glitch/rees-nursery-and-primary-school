@@ -13,8 +13,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { logAudit } from '@/lib/audit';
-import { Plus, Search, Loader2, Receipt, TrendingDown, CheckCircle, Clock, Trash2, Download } from 'lucide-react';
+import { Plus, Search, Loader2, Receipt, TrendingDown, CheckCircle, Clock, Trash2, Download, Upload, Edit } from 'lucide-react';
 import { expenseSchema, validateForm, sanitizeCsvValue } from '@/lib/validation';
+import { EXPENSE_IMPORT } from '@/lib/expensesImportData';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 
 const CATEGORIES = [
   { value: 'salaries', label: 'Salaries & Wages' },
