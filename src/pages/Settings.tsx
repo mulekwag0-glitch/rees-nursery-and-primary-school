@@ -12,9 +12,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { logAudit } from '@/lib/audit';
+import { ModuleAccessDialog } from '@/components/users/ModuleAccessDialog';
 import {
   Settings as SettingsIcon, Building2, Bell, Shield, Database, Palette, KeyRound, Loader2, Users, ScrollText, Search, Clock,
-  MoreHorizontal, User, UserCheck, UserX, Plus,
+  MoreHorizontal, User, UserCheck, UserX, Plus, Settings2,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -162,6 +163,7 @@ function UserManagementTab() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [accessUser, setAccessUser] = useState<{ id: string; full_name: string } | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
@@ -237,6 +239,9 @@ function UserManagementTab() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => setAccessUser({ id: u.id, full_name: u.full_name })}>
+                        <Settings2 className="w-4 h-4 mr-2" />Module Access
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleResetPassword(u.id, u.email)}>
                         <KeyRound className="w-4 h-4 mr-2" />Reset Password
                       </DropdownMenuItem>
