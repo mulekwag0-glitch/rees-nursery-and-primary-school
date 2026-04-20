@@ -219,7 +219,7 @@ export default function Employees() {
                   </div>
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-                    <Button type="submit" disabled={createMutation.isPending || !fullName || !email || !jobTitle}>
+                    <Button type="submit" disabled={createMutation.isPending || !fullName || !jobTitle}>
                       {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                       Save Employee
                     </Button>
@@ -227,6 +227,7 @@ export default function Employees() {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           )}
         </div>
 
