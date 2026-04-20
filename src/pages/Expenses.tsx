@@ -297,6 +297,7 @@ export default function Expenses() {
               </form>
             </DialogContent>
             </Dialog>
+            )}
           </div>
         </div>
 
@@ -375,7 +376,7 @@ export default function Expenses() {
                       <th>Amount</th>
                       <th>Recorded By</th>
                       <th>Status</th>
-                      <th>Actions</th>
+                      {canEdit && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -399,22 +400,27 @@ export default function Expenses() {
                             {e.status}
                           </Badge>
                         </td>
-                        <td>
-                          <div className="flex gap-1">
-                            {e.status === 'pending' && role === 'admin' && (
-                              <Button size="sm" variant="outline" onClick={() => approveMutation.mutate(e.id)}
-                                disabled={approveMutation.isPending}>
-                                <CheckCircle className="w-3 h-3 mr-1" />Approve
+                        {canEdit && (
+                          <td>
+                            <div className="flex gap-1">
+                              {e.status === 'pending' && canFull && (
+                                <Button size="sm" variant="outline" onClick={() => approveMutation.mutate(e.id)}
+                                  disabled={approveMutation.isPending}>
+                                  <CheckCircle className="w-3 h-3 mr-1" />Approve
+                                </Button>
+                              )}
+                              <Button size="sm" variant="ghost" onClick={() => setEditTarget({ ...e })}>
+                                <Edit className="w-3 h-3" />
                               </Button>
-                            )}
-                            {role === 'admin' && (
-                              <Button size="sm" variant="ghost" className="text-destructive"
-                                onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
+                              {canFull && (
+                                <Button size="sm" variant="ghost" className="text-destructive"
+                                  onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
