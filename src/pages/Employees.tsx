@@ -11,9 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Loader2, Users, Trash2, Edit, Upload } from 'lucide-react';
+import { Plus, Search, Loader2, Users, Trash2, Edit, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { employeeSchema, validateForm } from '@/lib/validation';
-import { STAFF_IMPORT } from '@/lib/staffImportData';
+import { STAFF_IMPORT, StaffImportRow } from '@/lib/staffImportData';
 
 const DEPARTMENTS = [
   'Administration', 'Academic', 'Finance', 'IT', 'Library', 'Maintenance', 'Security', 'General',
@@ -26,6 +26,15 @@ export default function Employees() {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  // Lookup table from imported staff list — gives us NIN, Next of Kin, Education, Origin, etc.
+  const STAFF_DETAILS: Record<string, StaffImportRow> = React.useMemo(() => {
+    const map: Record<string, StaffImportRow> = {};
+    STAFF_IMPORT.forEach(s => { map[s.full_name.toLowerCase().trim()] = s; });
+    return map;
+  }, []);
+  const getDetails = (name?: string) => name ? STAFF_DETAILS[name.toLowerCase().trim()] : undefined;
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
