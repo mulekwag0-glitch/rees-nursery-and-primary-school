@@ -123,6 +123,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, role, signOut } = useAuth();
+  const { access } = useModuleAccess();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -136,13 +137,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return r ? labels[r] || r : 'User';
   };
 
-  const filteredNav = navigation.filter(entry => {
+  // Module access overrides role: an admin-set 'none' hides; any other level shows even if role would deny.
+  // Admins always see everything; items without module key fall back to role list.
+  const isVisible = (item: { roles: string[]; module?: ModuleKey }) => {
     if (!role) return false;
-    if (!entry.roles.includes(role)) return false;
-    if (isGroup(entry)) {
-      return entry.items.some(item => item.roles.includes(role));
+    if (role === 'admin') return true;
+    if (item.module && access[item.module] !== undefined) {
+      return access[item.module] !== 'none';
     }
-    return true;
+    return item.roles.includes(role);
+  };
+
+  const filteredNav = navigation.filter(entry => {
+    if (isGroup(entry)) {
+      const visibleChildren = entry.items.filter(isVisible);
+      return visibleChildren.length > 0;
+    }
+    return isVisible(entry);
   });
 
   const renderNavItem = (item: NavItem) => {
