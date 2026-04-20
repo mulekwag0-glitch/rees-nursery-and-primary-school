@@ -174,7 +174,7 @@ export default function Employees() {
             <h1 className="text-2xl font-bold text-foreground">Employees</h1>
             <p className="text-muted-foreground">Manage staff and employee records</p>
           </div>
-          {role === 'admin' && (
+          {canEdit && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => importMutation.mutate()} disabled={importMutation.isPending}>
                 {importMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
