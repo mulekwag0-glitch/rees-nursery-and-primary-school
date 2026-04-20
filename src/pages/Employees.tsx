@@ -14,6 +14,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Loader2, Users, Trash2, Edit, Upload, ChevronDown, ChevronRight } from 'lucide-react';
 import { employeeSchema, validateForm } from '@/lib/validation';
 import { STAFF_IMPORT, StaffImportRow } from '@/lib/staffImportData';
+import { EditEmployeeDialog } from '@/components/employees/EditEmployeeDialog';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 
 const DEPARTMENTS = [
   'Administration', 'Academic', 'Finance', 'IT', 'Library', 'Maintenance', 'Security', 'General',
@@ -31,8 +33,12 @@ function DetailField({ label, value }: { label: string; value?: string | null })
 export default function Employees() {
   const { toast } = useToast();
   const { role } = useAuth();
+  const { can } = useModuleAccess();
+  const canEdit = can('hr', 'edit', role === 'admin' ? 'full' : 'view');
+  const canFull = can('hr', 'full', role === 'admin' ? 'full' : 'none');
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -168,7 +174,7 @@ export default function Employees() {
             <h1 className="text-2xl font-bold text-foreground">Employees</h1>
             <p className="text-muted-foreground">Manage staff and employee records</p>
           </div>
-          {role === 'admin' && (
+          {canEdit && (
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => importMutation.mutate()} disabled={importMutation.isPending}>
                 {importMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
@@ -304,14 +310,14 @@ export default function Employees() {
                       <th>Email</th>
                       <th>Salary</th>
                       <th>Status</th>
-                      {role === 'admin' && <th>Actions</th>}
+                      {canEdit && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.map((e: any) => {
                       const details = getDetails(e.full_name);
                       const isOpen = !!expanded[e.id];
-                      const colCount = role === 'admin' ? 8 : 7;
+                      const colCount = canEdit ? 8 : 7;
                       return (
                         <React.Fragment key={e.id}>
                           <tr>
@@ -333,12 +339,19 @@ export default function Employees() {
                                 {e.status}
                               </Badge>
                             </td>
-                            {role === 'admin' && (
+                            {canEdit && (
                               <td>
-                                <Button size="sm" variant="ghost" className="text-destructive"
-                                  onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button size="sm" variant="ghost" onClick={() => setEditTarget(e)}>
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  {canFull && (
+                                    <Button size="sm" variant="ghost" className="text-destructive"
+                                      onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               </td>
                             )}
                           </tr>
@@ -375,6 +388,7 @@ export default function Employees() {
             )}
           </CardContent>
         </Card>
+        <EditEmployeeDialog employee={editTarget} open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)} />
       </div>
     </DashboardLayout>
   );

@@ -4,16 +4,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Download, Loader2, Phone } from 'lucide-react';
+import { Users, Search, Download, Loader2, Phone, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
+import { EditPupilDialog } from '@/components/students/EditPupilDialog';
 
 export default function Students() {
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const { can } = useModuleAccess();
+  const canEdit = can('pupils', 'edit', role === 'admin' ? 'full' : 'view');
+  const [editTarget, setEditTarget] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [classFilter, setClassFilter] = useState('all');
@@ -58,9 +65,11 @@ export default function Students() {
             <p className="text-muted-foreground">{students.length} total • {activeCount} active</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate('/admissions')}>
-              <Users className="w-4 h-4 mr-2" /> Admit New Pupil
-            </Button>
+            {canEdit && (
+              <Button variant="outline" onClick={() => navigate('/admissions')}>
+                <Users className="w-4 h-4 mr-2" /> Admit New Pupil
+              </Button>
+            )}
           </div>
         </div>
 
