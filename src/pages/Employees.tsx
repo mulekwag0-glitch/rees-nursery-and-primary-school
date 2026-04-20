@@ -19,6 +19,15 @@ const DEPARTMENTS = [
   'Administration', 'Academic', 'Finance', 'IT', 'Library', 'Maintenance', 'Security', 'General',
 ];
 
+function DetailField({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="font-medium text-foreground">{value || '—'}</p>
+    </div>
+  );
+}
+
 export default function Employees() {
   const { toast } = useToast();
   const { role } = useAuth();
