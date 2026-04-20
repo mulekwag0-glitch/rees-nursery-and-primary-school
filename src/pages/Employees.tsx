@@ -388,6 +388,7 @@ export default function Employees() {
             )}
           </CardContent>
         </Card>
+        <EditEmployeeDialog employee={editTarget} open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)} />
       </div>
     </DashboardLayout>
   );
