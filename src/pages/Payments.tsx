@@ -84,7 +84,8 @@ function printReceipt(payment: any) {
 
 function FinancePaymentsView() {
   const { can } = useModuleAccess();
-  const canEdit = can('finance', 'edit');
+  const { role } = useAuth();
+  const canEdit = role === 'admin' || role === 'finance' || can('payments', 'edit');
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
