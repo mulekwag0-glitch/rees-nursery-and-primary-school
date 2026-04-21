@@ -293,7 +293,7 @@ function FinancePaymentsView() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <PaymentFormModal onSuccess={refetch} />
+            {canEdit && <PaymentFormModal onSuccess={refetch} />}
           </div>
           <div className="flex flex-wrap gap-3">
             <Select value={methodFilter} onValueChange={setMethodFilter}>
@@ -385,22 +385,31 @@ function FinancePaymentsView() {
                     <th>Date</th>
                     <th>Pupil ID</th>
                     <th>Name</th>
+                    <th>Class</th>
                     <th>Term</th>
                     <th>Amount</th>
+                    <th>Balance</th>
                     <th>Method</th>
                     <th>Receipt</th>
-                    <th className="text-right">Actions</th>
+                    {canEdit && <th className="text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayments.map((payment: any) => (
+                  {filteredPayments.map((payment: any) => {
+                    const bal = getBalance(payment);
+                    const name = payment.students?.full_name || payment.students?.profiles?.full_name || '-';
+                    return (
                     <tr key={payment.id}>
                       <td className="text-sm">{new Date(payment.payment_date).toLocaleDateString()}</td>
                       <td className="font-mono text-sm">{payment.students?.student_id}</td>
-                      <td className="font-medium">{payment.students?.full_name || '-'}</td>
+                      <td className="font-medium">{name}</td>
+                      <td className="text-sm">{payment.students?.programs?.name || '-'}</td>
                       <td className="text-sm">{payment.semesters?.name}</td>
                       <td className="font-semibold text-success">
                         UGX {parseFloat(payment.amount).toLocaleString()}
+                      </td>
+                      <td className={`text-sm font-medium ${bal && bal.balance > 0 ? 'text-destructive' : 'text-success'}`}>
+                        {bal ? `UGX ${bal.balance.toLocaleString()}` : '—'}
                       </td>
                       <td>
                         <Badge variant="secondary" className="capitalize text-xs">
@@ -408,14 +417,17 @@ function FinancePaymentsView() {
                         </Badge>
                       </td>
                       <td className="font-mono text-xs">{payment.receipt_number}</td>
-                      <td className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => printReceipt(payment)}>
-                          <Printer className="w-4 h-4 mr-1" />
-                          Print
-                        </Button>
-                      </td>
+                      {canEdit && (
+                        <td className="text-right">
+                          <Button variant="ghost" size="sm" onClick={() => printReceipt({ ...payment, balance_info: bal })}>
+                            <Printer className="w-4 h-4 mr-1" />
+                            Print
+                          </Button>
+                        </td>
+                      )}
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
