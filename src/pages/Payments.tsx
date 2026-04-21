@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +59,8 @@ function printReceipt(payment: any) {
       <div class="row"><span class="label">Receipt No:</span><span class="value">${payment.receipt_number}</span></div>
       <div class="row"><span class="label">Date:</span><span class="value">${new Date(payment.payment_date).toLocaleDateString()}</span></div>
       <div class="row"><span class="label">Pupil ID:</span><span class="value">${payment.students?.student_id || '-'}</span></div>
-      <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.full_name || '-'}</span></div>
+      <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.full_name || payment.students?.profiles?.full_name || '-'}</span></div>
+      <div class="row"><span class="label">Class:</span><span class="value">${payment.students?.programs?.name || '-'}</span></div>
       <div class="row"><span class="label">Term:</span><span class="value">${payment.semesters?.name || '-'}</span></div>
       <div class="row"><span class="label">Method:</span><span class="value" style="text-transform:capitalize">${(payment.payment_method || '').replace('_', ' ')}</span></div>
       ${payment.notes ? `<div class="row"><span class="label">Notes:</span><span class="value">${payment.notes}</span></div>` : ''}
@@ -67,6 +69,11 @@ function printReceipt(payment: any) {
         <div style="font-size:12px;color:#666">Amount Paid</div>
         <div class="val">UGX ${parseFloat(payment.amount).toLocaleString()}</div>
       </div>
+      ${payment.balance_info ? `
+      <div class="row"><span class="label">Term Fee:</span><span class="value">UGX ${payment.balance_info.fee.toLocaleString()}</span></div>
+      <div class="row"><span class="label">Total Paid:</span><span class="value">UGX ${payment.balance_info.paid.toLocaleString()}</span></div>
+      <div class="row"><span class="label" style="color:#b91c1c;font-weight:600">Balance Due:</span><span class="value" style="color:#b91c1c;font-weight:600">UGX ${payment.balance_info.balance.toLocaleString()}</span></div>
+      ` : ''}
       <div class="divider"></div>
       <div class="footer"><p>Thank you for your payment</p><p>This is a computer-generated receipt</p></div>
     </body></html>
@@ -76,6 +83,9 @@ function printReceipt(payment: any) {
 }
 
 function FinancePaymentsView() {
+  const { can } = useModuleAccess();
+  const { role } = useAuth();
+  const canEdit = role === 'admin' || role === 'finance' || can('payments', 'edit');
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
@@ -110,7 +120,9 @@ function FinancePaymentsView() {
           *,
           students:student_id (
             student_id,
+            full_name,
             program_id,
+            programs:program_id (name, code),
             profiles:user_id (full_name)
           ),
           semesters:semester_id (name)
@@ -121,6 +133,38 @@ function FinancePaymentsView() {
       return data;
     },
   });
+
+  // Fee structures + per-student totals to compute balance
+  const { data: feeStructures } = useQuery({
+    queryKey: ['all-fee-structures'],
+    queryFn: async () => {
+      const { data } = await supabase.from('fee_structures').select('program_id, semester_id, total_fee');
+      return data || [];
+    },
+  });
+
+  const { data: paymentTotals } = useQuery({
+    queryKey: ['payment-totals-by-student-term'],
+    queryFn: async () => {
+      const { data } = await supabase.from('payments').select('student_id, semester_id, amount');
+      const map: Record<string, number> = {};
+      (data || []).forEach((p: any) => {
+        const key = `${p.student_id}|${p.semester_id}`;
+        map[key] = (map[key] || 0) + Number(p.amount || 0);
+      });
+      return map;
+    },
+  });
+
+  const getBalance = (payment: any) => {
+    const fee = feeStructures?.find(
+      (f: any) => f.program_id === payment.students?.program_id && f.semester_id === payment.semester_id
+    );
+    if (!fee) return null;
+    const paid = paymentTotals?.[`${payment.student_id}|${payment.semester_id}`] || 0;
+    const total = Number(fee.total_fee || 0);
+    return { fee: total, paid, balance: total - paid };
+  };
 
   const { data: stats } = useQuery({
     queryKey: ['payment-stats'],
@@ -156,7 +200,7 @@ function FinancePaymentsView() {
     const matchesSearch =
       !searchTerm ||
       p.students?.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.students?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.students?.full_name || p.students?.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMethod = methodFilter === 'all' || p.payment_method === methodFilter;
     const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
@@ -249,7 +293,7 @@ function FinancePaymentsView() {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <PaymentFormModal onSuccess={refetch} />
+            {canEdit && <PaymentFormModal onSuccess={refetch} />}
           </div>
           <div className="flex flex-wrap gap-3">
             <Select value={methodFilter} onValueChange={setMethodFilter}>
@@ -341,22 +385,31 @@ function FinancePaymentsView() {
                     <th>Date</th>
                     <th>Pupil ID</th>
                     <th>Name</th>
+                    <th>Class</th>
                     <th>Term</th>
                     <th>Amount</th>
+                    <th>Balance</th>
                     <th>Method</th>
                     <th>Receipt</th>
-                    <th className="text-right">Actions</th>
+                    {canEdit && <th className="text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayments.map((payment: any) => (
+                  {filteredPayments.map((payment: any) => {
+                    const bal = getBalance(payment);
+                    const name = payment.students?.full_name || payment.students?.profiles?.full_name || '-';
+                    return (
                     <tr key={payment.id}>
                       <td className="text-sm">{new Date(payment.payment_date).toLocaleDateString()}</td>
                       <td className="font-mono text-sm">{payment.students?.student_id}</td>
-                      <td className="font-medium">{payment.students?.full_name || '-'}</td>
+                      <td className="font-medium">{name}</td>
+                      <td className="text-sm">{payment.students?.programs?.name || '-'}</td>
                       <td className="text-sm">{payment.semesters?.name}</td>
                       <td className="font-semibold text-success">
                         UGX {parseFloat(payment.amount).toLocaleString()}
+                      </td>
+                      <td className={`text-sm font-medium ${bal && bal.balance > 0 ? 'text-destructive' : 'text-success'}`}>
+                        {bal ? `UGX ${bal.balance.toLocaleString()}` : '—'}
                       </td>
                       <td>
                         <Badge variant="secondary" className="capitalize text-xs">
@@ -364,14 +417,17 @@ function FinancePaymentsView() {
                         </Badge>
                       </td>
                       <td className="font-mono text-xs">{payment.receipt_number}</td>
-                      <td className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => printReceipt(payment)}>
-                          <Printer className="w-4 h-4 mr-1" />
-                          Print
-                        </Button>
-                      </td>
+                      {canEdit && (
+                        <td className="text-right">
+                          <Button variant="ghost" size="sm" onClick={() => printReceipt({ ...payment, balance_info: bal })}>
+                            <Printer className="w-4 h-4 mr-1" />
+                            Print
+                          </Button>
+                        </td>
+                      )}
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

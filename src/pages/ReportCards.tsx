@@ -501,10 +501,18 @@ export default function ReportCards() {
 
             {/* Printable Report Card - A4 Portrait */}
             <div ref={reportCardRef} className="bg-white text-black relative mx-auto" style={{ fontFamily: 'Georgia, serif', width: '794px', minHeight: '1123px' }}>
-              {/* Outer decorative border */}
-              <div className="absolute inset-0 border-[6px] border-red-800 rounded-sm" />
-              <div className="absolute inset-[8px] border-2 border-red-300 rounded-sm" />
-              <div className="absolute inset-[12px] border border-amber-600/40 rounded-sm" />
+              {/* Outer decorative border (multi-band: red / gold / red) */}
+              <div className="absolute inset-0 border-[8px] border-red-800 rounded-md" />
+              <div className="absolute inset-[10px] border-[3px] border-amber-500 rounded-md" />
+              <div className="absolute inset-[15px] border border-red-300 rounded-md" />
+              <div className="absolute inset-[19px] border border-amber-400/60 rounded-md" />
+              {/* Corner ornaments */}
+              {['top-4 left-4', 'top-4 right-4', 'bottom-4 left-4', 'bottom-4 right-4'].map((pos, i) => (
+                <div key={i} className={`absolute ${pos} w-10 h-10 border-[3px] border-amber-500 rounded-full opacity-40`} />
+              ))}
+              {['top-4 left-4', 'top-4 right-4', 'bottom-4 left-4', 'bottom-4 right-4'].map((pos, i) => (
+                <div key={`d-${i}`} className={`absolute ${pos} w-3 h-3 m-3 bg-red-800 rounded-full`} />
+              ))}
 
               {/* Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
