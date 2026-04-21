@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Download, Loader2, Phone, Edit } from 'lucide-react';
+import { Users, Search, Loader2, Phone, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -121,6 +121,7 @@ export default function Students() {
                       <th>Class</th>
                       <th>Parent Contact</th>
                       <th>Status</th>
+                      {canEdit && <th className="text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -140,6 +141,13 @@ export default function Students() {
                         <td>
                           <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>{s.status}</Badge>
                         </td>
+                        {canEdit && (
+                          <td className="text-right">
+                            <Button size="sm" variant="ghost" onClick={() => setEditTarget(s)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -148,6 +156,12 @@ export default function Students() {
             )}
           </CardContent>
         </Card>
+
+        <EditPupilDialog
+          pupil={editTarget}
+          open={!!editTarget}
+          onOpenChange={(o) => !o && setEditTarget(null)}
+        />
       </div>
     </DashboardLayout>
   );
