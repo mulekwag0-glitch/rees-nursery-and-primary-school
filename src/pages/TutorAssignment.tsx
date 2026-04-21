@@ -17,16 +17,25 @@ export default function TutorAssignment() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({ tutor_id: '', course_id: '', semester_id: '' });
 
-  // Fetch tutors (users with tutor role)
+  // Fetch tutors. tutor_id on tutor_courses references auth.users (not profiles), so the
+  // PostgREST embed `profiles:tutor_id (...)` doesn't resolve. Fetch user_roles + profiles
+  // separately and merge in JS.
   const { data: tutors } = useQuery({
     queryKey: ['tutors'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: roles, error: rErr } = await supabase
         .from('user_roles')
-        .select('user_id, profiles:user_id (id, full_name, email)')
+        .select('user_id')
         .eq('role', 'tutor');
-      if (error) throw error;
-      return data?.map((r: any) => ({ id: r.user_id, name: r.profiles?.full_name, email: r.profiles?.email })) || [];
+      if (rErr) throw rErr;
+      const ids = (roles || []).map((r: any) => r.user_id);
+      if (!ids.length) return [];
+      const { data: profs, error: pErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', ids);
+      if (pErr) throw pErr;
+      return (profs || []).map((p: any) => ({ id: p.id, name: p.full_name, email: p.email }));
     },
   });
 
@@ -55,13 +64,18 @@ export default function TutorAssignment() {
         .from('tutor_courses')
         .select(`
           id, tutor_id, course_id, semester_id,
-          profiles:tutor_id (full_name, email),
           courses:course_id (code, name, programs:program_id (code)),
           semesters:semester_id (name)
         `)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data;
+      const tutorIds = Array.from(new Set((data || []).map((a: any) => a.tutor_id)));
+      const profMap: Record<string, any> = {};
+      if (tutorIds.length) {
+        const { data: profs } = await supabase.from('profiles').select('id, full_name, email').in('id', tutorIds);
+        (profs || []).forEach((p: any) => { profMap[p.id] = p; });
+      }
+      return (data || []).map((a: any) => ({ ...a, tutor_profile: profMap[a.tutor_id] }));
     },
   });
 
@@ -127,7 +141,11 @@ export default function TutorAssignment() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {!tutors?.length && <p className="text-xs text-muted-foreground mt-1">No tutors found. Create a user with the tutor role first.</p>}
+                  {!tutors?.length && (
+                    <p className="text-xs text-warning mt-1">
+                      No teachers found. Go to <strong>Settings → User Management</strong>, create a user, and assign the <strong>Teacher</strong> role.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label>Course</Label>
@@ -182,7 +200,7 @@ export default function TutorAssignment() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold">{(a.profiles as any)?.full_name}</span>
+                        <span className="font-semibold">{a.tutor_profile?.full_name || 'Unknown teacher'}</span>
                         <span className="text-muted-foreground">→</span>
                         <Badge variant="secondary">{(a.courses as any)?.code}</Badge>
                         <span className="text-sm text-muted-foreground">{(a.courses as any)?.name}</span>

@@ -57,14 +57,14 @@
     --gradient-accent: linear-gradient(135deg, hsl(43 96% 50%) 0%, hsl(43 96% 60%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(0 72% 38%) 0%, hsl(145 63% 30%) 100%);
 
-    /* Sidebar - Deep green */
-    --sidebar-background: 145 55% 18%;
+    /* Sidebar - Deep red to match Rees logo */
+    --sidebar-background: 0 65% 22%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 43 96% 50%;
     --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 145 50% 25%;
+    --sidebar-accent: 0 60% 30%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 145 45% 25%;
+    --sidebar-border: 0 55% 30%;
     --sidebar-ring: 43 96% 50%;
 
     /* Shadows */
@@ -110,13 +110,13 @@
     --info: 210 80% 50%;
     --info-foreground: 0 0% 100%;
 
-    --sidebar-background: 145 50% 8%;
+    --sidebar-background: 0 60% 12%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 43 96% 50%;
     --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 145 45% 15%;
+    --sidebar-accent: 0 55% 20%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 145 40% 15%;
+    --sidebar-border: 0 50% 20%;
     --sidebar-ring: 43 96% 50%;
   }
 }
