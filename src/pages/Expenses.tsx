@@ -41,6 +41,8 @@ export default function Expenses() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Form state
   const [title, setTitle] = useState('');
@@ -200,7 +202,10 @@ export default function Expenses() {
       e.receipt_reference?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = categoryFilter === 'all' || e.category === categoryFilter;
     const matchesStatus = statusFilter === 'all' || e.status === statusFilter;
-    return matchesSearch && matchesCat && matchesStatus;
+    const d = e.expense_date;
+    const matchesFrom = !dateFrom || d >= dateFrom;
+    const matchesTo = !dateTo || d <= dateTo;
+    return matchesSearch && matchesCat && matchesStatus && matchesFrom && matchesTo;
   });
 
   const totalExpenses = expenses?.reduce((sum: number, e: any) => sum + parseFloat(e.amount || 0), 0) || 0;
@@ -365,6 +370,11 @@ export default function Expenses() {
                   <SelectItem value="approved">Approved</SelectItem>
                 </SelectContent>
               </Select>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[150px]" placeholder="From" title="From date" />
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[150px]" placeholder="To" title="To date" />
+              {(dateFrom || dateTo) && (
+                <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>Clear</Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -416,10 +426,14 @@ export default function Expenses() {
                                   <CheckCircle className="w-3 h-3 mr-1" />Approve
                                 </Button>
                               )}
-                              <Button size="sm" variant="ghost" onClick={() => setEditTarget({ ...e })}>
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              {canFull && (
+                              {/* Locked once approved (only admin can override) */}
+                              {(e.status !== 'approved' || role === 'admin') && (
+                                <Button size="sm" variant="ghost" onClick={() => setEditTarget({ ...e })}
+                                  title={e.status === 'approved' ? 'Approved (admin override)' : 'Edit'}>
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                              )}
+                              {canFull && e.status !== 'approved' && (
                                 <Button size="sm" variant="ghost" className="text-destructive"
                                   onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
                                   <Trash2 className="w-3 h-3" />

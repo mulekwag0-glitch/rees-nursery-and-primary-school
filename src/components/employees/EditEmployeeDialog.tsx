@@ -29,6 +29,8 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: Props) {
   const mutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('employees').update({
+        full_name: form.full_name,
+        email: form.email,
         phone: form.phone || null,
         bank_name: form.bank_name || null,
         bank_account: form.bank_account || null,
@@ -59,6 +61,18 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: Props) {
           <DialogDescription>{employee.full_name}</DialogDescription>
         </DialogHeader>
         <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }} className="grid grid-cols-2 gap-3 mt-2">
+          <div className="space-y-1 col-span-2">
+            <Label>Full Name</Label>
+            <Input value={form.full_name || ''} onChange={(e) => set('full_name', e.target.value)} required />
+          </div>
+          <div className="space-y-1">
+            <Label>Email</Label>
+            <Input type="email" value={form.email || ''} onChange={(e) => set('email', e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label>Department</Label>
+            <Input value={form.department || ''} onChange={(e) => set('department', e.target.value)} />
+          </div>
           <div className="space-y-1 col-span-2">
             <Label>Job Title</Label>
             <Input value={form.job_title || ''} onChange={(e) => set('job_title', e.target.value)} />
