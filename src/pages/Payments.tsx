@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +59,8 @@ function printReceipt(payment: any) {
       <div class="row"><span class="label">Receipt No:</span><span class="value">${payment.receipt_number}</span></div>
       <div class="row"><span class="label">Date:</span><span class="value">${new Date(payment.payment_date).toLocaleDateString()}</span></div>
       <div class="row"><span class="label">Pupil ID:</span><span class="value">${payment.students?.student_id || '-'}</span></div>
-      <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.full_name || '-'}</span></div>
+      <div class="row"><span class="label">Name:</span><span class="value">${payment.students?.full_name || payment.students?.profiles?.full_name || '-'}</span></div>
+      <div class="row"><span class="label">Class:</span><span class="value">${payment.students?.programs?.name || '-'}</span></div>
       <div class="row"><span class="label">Term:</span><span class="value">${payment.semesters?.name || '-'}</span></div>
       <div class="row"><span class="label">Method:</span><span class="value" style="text-transform:capitalize">${(payment.payment_method || '').replace('_', ' ')}</span></div>
       ${payment.notes ? `<div class="row"><span class="label">Notes:</span><span class="value">${payment.notes}</span></div>` : ''}
@@ -67,6 +69,11 @@ function printReceipt(payment: any) {
         <div style="font-size:12px;color:#666">Amount Paid</div>
         <div class="val">UGX ${parseFloat(payment.amount).toLocaleString()}</div>
       </div>
+      ${payment.balance_info ? `
+      <div class="row"><span class="label">Term Fee:</span><span class="value">UGX ${payment.balance_info.fee.toLocaleString()}</span></div>
+      <div class="row"><span class="label">Total Paid:</span><span class="value">UGX ${payment.balance_info.paid.toLocaleString()}</span></div>
+      <div class="row"><span class="label" style="color:#b91c1c;font-weight:600">Balance Due:</span><span class="value" style="color:#b91c1c;font-weight:600">UGX ${payment.balance_info.balance.toLocaleString()}</span></div>
+      ` : ''}
       <div class="divider"></div>
       <div class="footer"><p>Thank you for your payment</p><p>This is a computer-generated receipt</p></div>
     </body></html>
