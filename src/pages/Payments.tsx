@@ -83,6 +83,8 @@ function printReceipt(payment: any) {
 }
 
 function FinancePaymentsView() {
+  const { can } = useModuleAccess();
+  const canEdit = can('finance', 'edit');
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
@@ -117,7 +119,9 @@ function FinancePaymentsView() {
           *,
           students:student_id (
             student_id,
+            full_name,
             program_id,
+            programs:program_id (name, code),
             profiles:user_id (full_name)
           ),
           semesters:semester_id (name)
@@ -128,6 +132,38 @@ function FinancePaymentsView() {
       return data;
     },
   });
+
+  // Fee structures + per-student totals to compute balance
+  const { data: feeStructures } = useQuery({
+    queryKey: ['all-fee-structures'],
+    queryFn: async () => {
+      const { data } = await supabase.from('fee_structures').select('program_id, semester_id, total_fee');
+      return data || [];
+    },
+  });
+
+  const { data: paymentTotals } = useQuery({
+    queryKey: ['payment-totals-by-student-term'],
+    queryFn: async () => {
+      const { data } = await supabase.from('payments').select('student_id, semester_id, amount');
+      const map: Record<string, number> = {};
+      (data || []).forEach((p: any) => {
+        const key = `${p.student_id}|${p.semester_id}`;
+        map[key] = (map[key] || 0) + Number(p.amount || 0);
+      });
+      return map;
+    },
+  });
+
+  const getBalance = (payment: any) => {
+    const fee = feeStructures?.find(
+      (f: any) => f.program_id === payment.students?.program_id && f.semester_id === payment.semester_id
+    );
+    if (!fee) return null;
+    const paid = paymentTotals?.[`${payment.student_id}|${payment.semester_id}`] || 0;
+    const total = Number(fee.total_fee || 0);
+    return { fee: total, paid, balance: total - paid };
+  };
 
   const { data: stats } = useQuery({
     queryKey: ['payment-stats'],
@@ -163,7 +199,7 @@ function FinancePaymentsView() {
     const matchesSearch =
       !searchTerm ||
       p.students?.student_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.students?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.students?.full_name || p.students?.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMethod = methodFilter === 'all' || p.payment_method === methodFilter;
     const matchesSemester = semesterFilter === 'all' || p.semester_id === semesterFilter;
