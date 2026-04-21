@@ -58,10 +58,9 @@ const navigation: NavEntry[] = [
       { label: 'Schemes of Work', href: '/schemes', icon: FileEdit, roles: ['admin', 'tutor'], module: 'structures' },
       { label: 'Lesson Timetables', href: '/timetables', icon: Clock, roles: ['admin', 'tutor'], module: 'structures' },
       { label: 'Lesson Plans', href: '/lesson-plans', icon: FileText, roles: ['admin', 'tutor'], module: 'structures' },
+      { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'], module: 'tutor_assignments' },
     ],
   },
-
-  { label: 'Teacher Assignments', href: '/tutor-assignments', icon: Users, roles: ['admin'], module: 'tutor_assignments' },
 
   { label: 'Results', href: '/results', icon: ClipboardList, roles: ['tutor', 'admin'], module: 'results' },
   { label: 'Report Cards', href: '/report-cards', icon: FileText, roles: ['admin'], module: 'report_cards' },
@@ -111,8 +110,16 @@ const navigation: NavEntry[] = [
     ],
   },
 
-  { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'], module: 'classes' },
-  { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'], module: 'terms' },
+  {
+    label: 'Academic Setup',
+    icon: Calendar,
+    roles: ['admin'],
+    module: 'classes',
+    items: [
+      { label: 'Classes', href: '/programs', icon: Building2, roles: ['admin'], module: 'classes' },
+      { label: 'Terms', href: '/semesters', icon: Calendar, roles: ['admin'], module: 'terms' },
+    ],
+  },
   { label: 'Reports', href: '/reports', icon: FileText, roles: ['admin', 'finance'], module: 'reports' },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['admin'], module: 'settings' },
 ];
