@@ -133,16 +133,21 @@ export default function Certificates() {
             </DialogHeader>
 
             <div ref={certRef} className="bg-white text-black relative mx-auto" style={{ fontFamily: 'Georgia, serif', width: '1123px', height: '794px' }}>
-              {/* Decorative borders */}
-              <div className="absolute inset-0 border-[8px] border-red-800" />
-              <div className="absolute inset-[10px] border-2 border-amber-600" />
-              <div className="absolute inset-[14px] border border-red-300" />
-              <div className="absolute inset-[18px] border border-amber-400/50" />
+              {/* Decorative multi-band borders */}
+              <div className="absolute inset-0 border-[10px] border-red-800 rounded-md" />
+              <div className="absolute inset-[12px] border-[4px] border-amber-500 rounded-md" />
+              <div className="absolute inset-[18px] border-2 border-red-300 rounded-md" />
+              <div className="absolute inset-[22px] border border-amber-400/60 rounded-md" />
 
-              {/* Corner ornaments */}
-              {['top-6 left-6', 'top-6 right-6', 'bottom-6 left-6', 'bottom-6 right-6'].map((pos, i) => (
-                <div key={i} className={`absolute ${pos} w-8 h-8 border-2 border-amber-600 rounded-full opacity-30`} />
+              {/* Corner medallions */}
+              {['top-7 left-7', 'top-7 right-7', 'bottom-7 left-7', 'bottom-7 right-7'].map((pos, i) => (
+                <div key={i} className={`absolute ${pos} w-12 h-12 border-[3px] border-amber-500 rounded-full opacity-50 flex items-center justify-center`}>
+                  <div className="w-4 h-4 bg-red-800 rounded-full" />
+                </div>
               ))}
+              {/* Top & bottom ribbon flourishes */}
+              <div className="absolute top-[34px] left-1/2 -translate-x-1/2 w-32 h-1.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded" />
+              <div className="absolute bottom-[34px] left-1/2 -translate-x-1/2 w-32 h-1.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent rounded" />
 
               {/* Watermark */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0">
