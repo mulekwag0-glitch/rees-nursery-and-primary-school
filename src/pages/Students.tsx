@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Loader2, Phone, Edit } from 'lucide-react';
+import { Users, Search, Loader2, Phone, Edit, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -121,7 +121,7 @@ export default function Students() {
                       <th>Class</th>
                       <th>Parent Contact</th>
                       <th>Status</th>
-                      {canEdit && <th className="text-right">Actions</th>}
+                      <th className="text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -141,13 +141,18 @@ export default function Students() {
                         <td>
                           <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>{s.status}</Badge>
                         </td>
-                        {canEdit && (
-                          <td className="text-right">
-                            <Button size="sm" variant="ghost" onClick={() => setEditTarget(s)}>
-                              <Edit className="w-4 h-4" />
+                        <td className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button size="sm" variant="ghost" onClick={() => navigate(`/students/${s.id}`)} title="View profile">
+                              <Eye className="w-4 h-4" />
                             </Button>
-                          </td>
-                        )}
+                            {canEdit && (
+                              <Button size="sm" variant="ghost" onClick={() => setEditTarget(s)} title="Edit">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
