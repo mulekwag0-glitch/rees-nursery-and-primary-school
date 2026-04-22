@@ -221,7 +221,7 @@ function FinancePaymentsView() {
     },
   });
 
-  const hasActiveFilters = methodFilter !== 'all' || semesterFilter !== 'all' || programFilter !== 'all' || !!dateFrom || !!dateTo;
+  const hasActiveFilters = methodFilter !== 'all' || semesterFilter !== 'all' || programFilter !== 'all' || !!dateFrom || !!dateTo || discountFilter !== 'all';
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -230,6 +230,7 @@ function FinancePaymentsView() {
     setProgramFilter('all');
     setDateFrom(undefined);
     setDateTo(undefined);
+    setDiscountFilter('all');
   };
 
   const filteredPayments = payments?.filter((p: any) => {
@@ -244,7 +245,8 @@ function FinancePaymentsView() {
     const paymentDate = new Date(p.payment_date);
     const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
     const matchesDateTo = !dateTo || paymentDate <= dateTo;
-    return matchesSearch && matchesMethod && matchesSemester && matchesProgram && matchesDateFrom && matchesDateTo;
+    const matchesDiscount = discountFilter === 'all' || discountedStudentIds.has(p.student_id);
+    return matchesSearch && matchesMethod && matchesSemester && matchesProgram && matchesDateFrom && matchesDateTo && matchesDiscount;
   });
 
   const exportCSV = () => {
