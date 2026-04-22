@@ -481,6 +481,73 @@ function FinancePaymentsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Discounts Management */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2"><Tag className="w-4 h-4" /> Pupil Discounts</CardTitle>
+              <CardDescription>Approve or reject discount requests</CardDescription>
+            </div>
+            <Badge variant="secondary">{discounts?.length || 0} requests</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!discounts?.length ? (
+            <p className="text-center text-muted-foreground py-6 text-sm">No discount requests yet</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Pupil</th>
+                    <th>Class</th>
+                    <th>Term</th>
+                    <th>Amount</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th className="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {discounts.map((d: any) => (
+                    <tr key={d.id}>
+                      <td className="text-sm">{new Date(d.created_at).toLocaleDateString()}</td>
+                      <td className="font-medium">{d.students?.full_name || d.students?.student_id}</td>
+                      <td className="text-sm">{d.students?.programs?.name || '-'}</td>
+                      <td className="text-sm">{d.semesters?.name}</td>
+                      <td className="font-semibold">UGX {Number(d.amount).toLocaleString()}</td>
+                      <td className="text-sm text-muted-foreground">{d.reason || '-'}</td>
+                      <td>
+                        <Badge
+                          variant={d.status === 'approved' ? 'default' : d.status === 'rejected' ? 'destructive' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {d.status}
+                        </Badge>
+                      </td>
+                      <td className="text-right">
+                        {d.status === 'pending' && (role === 'admin') && (
+                          <div className="flex gap-1 justify-end">
+                            <Button size="sm" variant="ghost" onClick={() => updateDiscountStatus(d.id, 'approved')} title="Approve">
+                              <Check className="w-4 h-4 text-success" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => updateDiscountStatus(d.id, 'rejected')} title="Reject">
+                              <X className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
