@@ -96,6 +96,9 @@ function FinancePaymentsView() {
   const [programFilter, setProgramFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [discountFilter, setDiscountFilter] = useState<'all' | 'discounted'>('all');
+  const { toast } = useToast();
+  const qc = useQueryClient();
 
   const { data: programs } = useQuery({
     queryKey: ['programs'],
@@ -159,6 +162,35 @@ function FinancePaymentsView() {
       return map;
     },
   });
+
+  const { data: discounts, refetch: refetchDiscounts } = useQuery({
+    queryKey: ['pupil-discounts'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('pupil_discounts')
+        .select(`*, students:student_id (student_id, full_name, programs:program_id (name)), semesters:semester_id (name)`)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const discountedStudentIds = useMemo(() => {
+    const set = new Set<string>();
+    (discounts || []).forEach((d: any) => { if (d.status === 'approved') set.add(d.student_id); });
+    return set;
+  }, [discounts]);
+
+  const updateDiscountStatus = async (id: string, status: 'approved' | 'rejected') => {
+    const { error } = await supabase.from('pupil_discounts').update({
+      status, approved_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else {
+      toast({ title: `Discount ${status}` });
+      refetchDiscounts();
+      qc.invalidateQueries({ queryKey: ['all-payments'] });
+    }
+  };
 
   const getBalance = (payment: any) => {
     const fee = feeStructures?.find(
