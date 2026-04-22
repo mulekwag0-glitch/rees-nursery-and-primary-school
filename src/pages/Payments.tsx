@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
@@ -10,11 +10,13 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PaymentFormModal } from '@/components/payments/PaymentFormModal';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 import {
   CalendarIcon,
   CreditCard,
@@ -27,6 +29,8 @@ import {
   Printer,
   Filter,
   X,
+  Check,
+  Tag,
 } from 'lucide-react';
 
 function printReceipt(payment: any) {
@@ -92,6 +96,9 @@ function FinancePaymentsView() {
   const [programFilter, setProgramFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [discountFilter, setDiscountFilter] = useState<'all' | 'discounted'>('all');
+  const { toast } = useToast();
+  const qc = useQueryClient();
 
   const { data: programs } = useQuery({
     queryKey: ['programs'],
@@ -156,6 +163,35 @@ function FinancePaymentsView() {
     },
   });
 
+  const { data: discounts, refetch: refetchDiscounts } = useQuery({
+    queryKey: ['pupil-discounts'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('pupil_discounts')
+        .select(`*, students:student_id (student_id, full_name, programs:program_id (name)), semesters:semester_id (name)`)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const discountedStudentIds = useMemo(() => {
+    const set = new Set<string>();
+    (discounts || []).forEach((d: any) => { if (d.status === 'approved') set.add(d.student_id); });
+    return set;
+  }, [discounts]);
+
+  const updateDiscountStatus = async (id: string, status: 'approved' | 'rejected') => {
+    const { error } = await supabase.from('pupil_discounts').update({
+      status, approved_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    else {
+      toast({ title: `Discount ${status}` });
+      refetchDiscounts();
+      qc.invalidateQueries({ queryKey: ['all-payments'] });
+    }
+  };
+
   const getBalance = (payment: any) => {
     const fee = feeStructures?.find(
       (f: any) => f.program_id === payment.students?.program_id && f.semester_id === payment.semester_id
@@ -185,7 +221,7 @@ function FinancePaymentsView() {
     },
   });
 
-  const hasActiveFilters = methodFilter !== 'all' || semesterFilter !== 'all' || programFilter !== 'all' || !!dateFrom || !!dateTo;
+  const hasActiveFilters = methodFilter !== 'all' || semesterFilter !== 'all' || programFilter !== 'all' || !!dateFrom || !!dateTo || discountFilter !== 'all';
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -194,6 +230,7 @@ function FinancePaymentsView() {
     setProgramFilter('all');
     setDateFrom(undefined);
     setDateTo(undefined);
+    setDiscountFilter('all');
   };
 
   const filteredPayments = payments?.filter((p: any) => {
@@ -208,7 +245,8 @@ function FinancePaymentsView() {
     const paymentDate = new Date(p.payment_date);
     const matchesDateFrom = !dateFrom || paymentDate >= dateFrom;
     const matchesDateTo = !dateTo || paymentDate <= dateTo;
-    return matchesSearch && matchesMethod && matchesSemester && matchesProgram && matchesDateFrom && matchesDateTo;
+    const matchesDiscount = discountFilter === 'all' || discountedStudentIds.has(p.student_id);
+    return matchesSearch && matchesMethod && matchesSemester && matchesProgram && matchesDateFrom && matchesDateTo && matchesDiscount;
   });
 
   const exportCSV = () => {
@@ -330,6 +368,15 @@ function FinancePaymentsView() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={discountFilter} onValueChange={(v: any) => setDiscountFilter(v)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Discount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Pupils</SelectItem>
+                <SelectItem value="discounted">Discounted Pupils Only</SelectItem>
+              </SelectContent>
+            </Select>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
@@ -428,6 +475,73 @@ function FinancePaymentsView() {
                     </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Discounts Management */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2"><Tag className="w-4 h-4" /> Pupil Discounts</CardTitle>
+              <CardDescription>Approve or reject discount requests</CardDescription>
+            </div>
+            <Badge variant="secondary">{discounts?.length || 0} requests</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!discounts?.length ? (
+            <p className="text-center text-muted-foreground py-6 text-sm">No discount requests yet</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Pupil</th>
+                    <th>Class</th>
+                    <th>Term</th>
+                    <th>Amount</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th className="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {discounts.map((d: any) => (
+                    <tr key={d.id}>
+                      <td className="text-sm">{new Date(d.created_at).toLocaleDateString()}</td>
+                      <td className="font-medium">{d.students?.full_name || d.students?.student_id}</td>
+                      <td className="text-sm">{d.students?.programs?.name || '-'}</td>
+                      <td className="text-sm">{d.semesters?.name}</td>
+                      <td className="font-semibold">UGX {Number(d.amount).toLocaleString()}</td>
+                      <td className="text-sm text-muted-foreground">{d.reason || '-'}</td>
+                      <td>
+                        <Badge
+                          variant={d.status === 'approved' ? 'default' : d.status === 'rejected' ? 'destructive' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {d.status}
+                        </Badge>
+                      </td>
+                      <td className="text-right">
+                        {d.status === 'pending' && (role === 'admin') && (
+                          <div className="flex gap-1 justify-end">
+                            <Button size="sm" variant="ghost" onClick={() => updateDiscountStatus(d.id, 'approved')} title="Approve">
+                              <Check className="w-4 h-4 text-success" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => updateDiscountStatus(d.id, 'rejected')} title="Reject">
+                              <X className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

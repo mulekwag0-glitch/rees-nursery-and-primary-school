@@ -27,6 +27,8 @@ export default function Admissions() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [parentContact, setParentContact] = useState('');
+  const [gender, setGender] = useState('');
   const [programId, setProgramId] = useState('');
   const [currentYear, setCurrentYear] = useState('1');
   const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
@@ -180,6 +182,9 @@ export default function Admissions() {
         program_id: programId,
         current_year: parseInt(currentYear),
         status: 'active',
+        full_name: fullName,
+        gender: gender || null,
+        parent_contact: parentContact || null,
       }).select('id').single();
       if (studentError) throw studentError;
 
@@ -212,6 +217,8 @@ export default function Admissions() {
     setFullName('');
     setEmail('');
     setPhone('');
+    setParentContact('');
+    setGender('');
     setProgramId('');
     setCurrentYear('1');
     setPassportPhoto(null);
@@ -302,6 +309,20 @@ export default function Admissions() {
                   <div className="space-y-2">
                     <Label>Phone</Label>
                     <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+256..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Parent Contact</Label>
+                    <Input type="tel" value={parentContact} onChange={(e) => setParentContact(e.target.value)} placeholder="+256..." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gender</Label>
+                    <Select value={gender} onValueChange={setGender}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Program *</Label>

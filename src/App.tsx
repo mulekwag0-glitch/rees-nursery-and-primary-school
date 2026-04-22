@@ -37,6 +37,7 @@ import StoreAssets from "./pages/StoreAssets";
 import WorkPlan from "./pages/WorkPlan";
 import Attendance from "./pages/Attendance";
 import NotFound from "./pages/NotFound";
+import PupilProfileView from "./pages/PupilProfileView";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/verify" element={<Verify />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/students" element={<ProtectedRoute module="pupils" allowedRoles={['admin', 'tutor', 'finance']}><Students /></ProtectedRoute>} />
+            <Route path="/students/:id" element={<ProtectedRoute module="pupils" allowedRoles={['admin', 'tutor', 'finance']}><PupilProfileView /></ProtectedRoute>} />
             <Route path="/admissions" element={<ProtectedRoute module="admissions" allowedRoles={['admin']}><Admissions /></ProtectedRoute>} />
             <Route path="/enrollments" element={<ProtectedRoute module="enrollments" allowedRoles={['admin']}><Enrollments /></ProtectedRoute>} />
             <Route path="/courses" element={<ProtectedRoute module="structures" allowedRoles={['admin', 'tutor']}><Courses /></ProtectedRoute>} />

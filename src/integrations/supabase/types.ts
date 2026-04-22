@@ -781,6 +781,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pupil_discounts: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          requested_by: string
+          semester_id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requested_by: string
+          semester_id: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          requested_by?: string
+          semester_id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       results: {
         Row: {
           approved_at: string | null
