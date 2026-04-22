@@ -368,6 +368,15 @@ function FinancePaymentsView() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={discountFilter} onValueChange={(v: any) => setDiscountFilter(v)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Discount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Pupils</SelectItem>
+                <SelectItem value="discounted">Discounted Pupils Only</SelectItem>
+              </SelectContent>
+            </Select>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-40 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
