@@ -370,6 +370,12 @@ export default function Employees() {
                                   <Button size="sm" variant="ghost" onClick={() => setEditTarget(e)}>
                                     <Edit className="w-3 h-3" />
                                   </Button>
+                                  {role === 'admin' && (
+                                    <Button size="sm" variant="ghost" title="Create login account"
+                                      onClick={() => { setAccountTarget(e); setAccountPassword('Welcome@123'); setAccountRole('tutor'); }}>
+                                      <KeyRound className="w-3 h-3" />
+                                    </Button>
+                                  )}
                                   {canFull && (
                                     <Button size="sm" variant="ghost" className="text-destructive"
                                       onClick={() => deleteMutation.mutate(e.id)} disabled={deleteMutation.isPending}>
@@ -414,6 +420,46 @@ export default function Employees() {
           </CardContent>
         </Card>
         <EditEmployeeDialog employee={editTarget} open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)} />
+
+        <Dialog open={!!accountTarget} onOpenChange={(o) => !o && setAccountTarget(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Login Account</DialogTitle>
+              <DialogDescription>
+                Give {accountTarget?.full_name} access to the system. They will sign in with their email and the temporary password below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input value={accountTarget?.email || ''} disabled />
+              </div>
+              <div className="space-y-2">
+                <Label>Temporary Password</Label>
+                <Input value={accountPassword} onChange={(e) => setAccountPassword(e.target.value)} />
+                <p className="text-xs text-muted-foreground">Share this with the employee. They should change it after first login.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={accountRole} onValueChange={(v) => setAccountRole(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tutor">Teacher</SelectItem>
+                    <SelectItem value="finance">Finance / Bursar</SelectItem>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAccountTarget(null)}>Cancel</Button>
+              <Button onClick={handleCreateAccount} disabled={creatingAccount || !accountPassword || accountPassword.length < 6}>
+                {creatingAccount && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create Account
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
