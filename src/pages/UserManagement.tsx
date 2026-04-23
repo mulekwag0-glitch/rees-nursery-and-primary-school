@@ -554,9 +554,9 @@ export default function UserManagement() {
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="tutor">Tutor</SelectItem>
                     <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">Pupils are admitted via the Admissions module — not created here.</p>
               </div>
             </div>
             <DialogFooter>
@@ -591,7 +591,6 @@ export default function UserManagement() {
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="tutor">Tutor</SelectItem>
                     <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
