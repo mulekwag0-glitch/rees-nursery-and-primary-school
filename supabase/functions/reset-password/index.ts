@@ -36,13 +36,13 @@ serve(async (req) => {
     }
 
     // Check if requesting user is admin
-    const { data: roleData } = await supabaseAdmin
+    const { data: roleRows } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', requestingUser.id)
-      .single();
+      .eq('user_id', requestingUser.id);
 
-    if (roleData?.role !== 'admin') {
+    const isAdmin = (roleRows || []).some((r: { role: string }) => r.role === 'admin');
+    if (!isAdmin) {
       throw new Error('Only admins can reset passwords');
     }
 
