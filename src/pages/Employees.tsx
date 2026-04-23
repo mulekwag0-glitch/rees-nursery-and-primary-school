@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Loader2, Users, Trash2, Edit, Upload, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Search, Loader2, Users, Trash2, Edit, Upload, ChevronDown, ChevronRight, KeyRound } from 'lucide-react';
 import { employeeSchema, validateForm } from '@/lib/validation';
 import { STAFF_IMPORT, StaffImportRow } from '@/lib/staffImportData';
 import { EditEmployeeDialog } from '@/components/employees/EditEmployeeDialog';
@@ -42,6 +42,31 @@ export default function Employees() {
   const [searchTerm, setSearchTerm] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [accountTarget, setAccountTarget] = useState<any | null>(null);
+  const [accountPassword, setAccountPassword] = useState('Welcome@123');
+  const [accountRole, setAccountRole] = useState<'tutor' | 'admin' | 'finance'>('tutor');
+  const [creatingAccount, setCreatingAccount] = useState(false);
+
+  const handleCreateAccount = async () => {
+    if (!accountTarget) return;
+    if (!accountTarget.email || !accountTarget.email.includes('@') || accountTarget.email.endsWith('@rees.local')) {
+      toast({ title: 'Real email required', description: 'Set a real email on this employee first (edit the record).', variant: 'destructive' });
+      return;
+    }
+    setCreatingAccount(true);
+    try {
+      const { error } = await supabase.functions.invoke('create-user', {
+        body: { email: accountTarget.email, password: accountPassword, full_name: accountTarget.full_name, role: accountRole },
+      });
+      if (error) throw error;
+      toast({ title: 'Login account created', description: `${accountTarget.email} can now sign in with the temporary password.` });
+      setAccountTarget(null);
+    } catch (e: any) {
+      toast({ title: 'Failed to create account', description: e.message, variant: 'destructive' });
+    } finally {
+      setCreatingAccount(false);
+    }
+  };
 
   // Lookup table from imported staff list — gives us NIN, Next of Kin, Education, Origin, etc.
   const STAFF_DETAILS: Record<string, StaffImportRow> = React.useMemo(() => {
