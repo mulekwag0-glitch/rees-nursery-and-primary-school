@@ -315,7 +315,6 @@ export default function Settings() {
             {role === 'admin' && (
               <>
                 <TabsTrigger value="general" className="flex gap-2"><Building2 className="w-4 h-4" /><span className="hidden sm:inline">General</span></TabsTrigger>
-                <TabsTrigger value="academic" className="flex gap-2"><Database className="w-4 h-4" /><span className="hidden sm:inline">Academic</span></TabsTrigger>
                 <TabsTrigger value="users" className="flex gap-2"><Users className="w-4 h-4" /><span className="hidden sm:inline">Users</span></TabsTrigger>
                 <TabsTrigger value="audit" className="flex gap-2"><ScrollText className="w-4 h-4" /><span className="hidden sm:inline">Audit Logs</span></TabsTrigger>
                 <TabsTrigger value="security" className="flex gap-2"><Shield className="w-4 h-4" /><span className="hidden sm:inline">Security</span></TabsTrigger>
@@ -342,35 +341,6 @@ export default function Settings() {
                 </div>
                 <div className="space-y-2"><Label>Address</Label><Input value="Mbale City, Uganda" readOnly disabled /></div>
                 <p className="text-xs text-muted-foreground">These details are permanent and cannot be modified.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="academic" className="mt-6">
-            <Card>
-              <CardHeader><CardTitle>Grading Scale</CardTitle><CardDescription>Uganda New Curriculum competency ratings</CardDescription></CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="data-table">
-                    <thead><tr><th>Rating</th><th>Label</th><th>Min Score</th><th>Max Score</th></tr></thead>
-                    <tbody>
-                      {[
-                        { code: 'BE', label: 'Beyond Expectation', min: 80, max: 100 },
-                        { code: 'AE', label: 'Above Expectation', min: 65, max: 79 },
-                        { code: 'ME', label: 'Meeting Expectation', min: 50, max: 64 },
-                        { code: 'BW', label: 'Below Expectation', min: 0, max: 49 },
-                      ].map(r => (
-                        <tr key={r.code}>
-                          <td className="font-semibold">{r.code}</td>
-                          <td>{r.label}</td>
-                          <td><Input type="number" defaultValue={r.min} className="w-20" /></td>
-                          <td><Input type="number" defaultValue={r.max} className="w-20" /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <Button className="mt-4">Update Grading Scale</Button>
               </CardContent>
             </Card>
           </TabsContent>
