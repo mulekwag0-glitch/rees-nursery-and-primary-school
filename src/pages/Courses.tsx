@@ -214,35 +214,63 @@ export default function Courses() {
           </TabsContent>
 
           <TabsContent value="grading" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Grading Scale</CardTitle>
-                <CardDescription>Uganda New Curriculum competency ratings used for report cards</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="data-table">
-                    <thead><tr><th>Rating</th><th>Label</th><th>Min Score</th><th>Max Score</th></tr></thead>
-                    <tbody>
-                      {[
-                        { code: 'BE', label: 'Beyond Expectation', min: 80, max: 100 },
-                        { code: 'AE', label: 'Above Expectation', min: 65, max: 79 },
-                        { code: 'ME', label: 'Meeting Expectation', min: 50, max: 64 },
-                        { code: 'BW', label: 'Below Expectation', min: 0, max: 49 },
-                      ].map(r => (
-                        <tr key={r.code}>
-                          <td className="font-semibold">{r.code}</td>
-                          <td>{r.label}</td>
-                          <td>{r.min}</td>
-                          <td>{r.max}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="text-xs text-muted-foreground mt-4">This grading scale is locked by curriculum policy.</p>
-              </CardContent>
-            </Card>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Primary One – Primary Three</CardTitle>
+                  <CardDescription>Lower primary grading scale</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="data-table">
+                      <thead><tr><th>Marks</th><th>Grade</th></tr></thead>
+                      <tbody>
+                        {[
+                          { range: '90 – 100', grade: 'D1' },
+                          { range: '80 – 89', grade: 'D2' },
+                          { range: '60 – 79', grade: 'C3' },
+                          { range: '55 – 59', grade: 'C4' },
+                          { range: '50 – 54', grade: 'C6' },
+                          { range: '45 – 49', grade: 'P7' },
+                          { range: '40 – 44', grade: 'P8' },
+                          { range: '0 – 39', grade: 'F9' },
+                        ].map(r => (
+                          <tr key={r.grade}><td>{r.range}</td><td className="font-semibold">{r.grade}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Primary Four – Primary Seven</CardTitle>
+                  <CardDescription>Upper primary grading scale (adjusted D1/D2)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="data-table">
+                      <thead><tr><th>Marks</th><th>Grade</th></tr></thead>
+                      <tbody>
+                        {[
+                          { range: '95 – 100', grade: 'D1' },
+                          { range: '80 – 94', grade: 'D2' },
+                          { range: '60 – 79', grade: 'C3' },
+                          { range: '55 – 59', grade: 'C4' },
+                          { range: '50 – 54', grade: 'C6' },
+                          { range: '45 – 49', grade: 'P7' },
+                          { range: '40 – 44', grade: 'P8' },
+                          { range: '0 – 39', grade: 'F9' },
+                        ].map(r => (
+                          <tr key={r.grade}><td>{r.range}</td><td className="font-semibold">{r.grade}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">Grading scales follow Uganda PLE policy. Upper primary uses an adjusted D1/D2 split for finer distinction.</p>
           </TabsContent>
         </Tabs>
 
