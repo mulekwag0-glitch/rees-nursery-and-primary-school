@@ -1349,13 +1349,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      calculate_grade: {
-        Args: { marks: number }
-        Returns: {
-          grade: string
-          grade_point: number
-        }[]
-      }
+      calculate_grade:
+        | {
+            Args: { marks: number }
+            Returns: {
+              grade: string
+              grade_point: number
+            }[]
+          }
+        | {
+            Args: { level?: string; marks: number }
+            Returns: {
+              grade: string
+              grade_point: number
+            }[]
+          }
       get_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: string
