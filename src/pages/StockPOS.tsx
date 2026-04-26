@@ -22,12 +22,6 @@ const CATEGORIES = ['uniform','stockings','books','stationery','other'];
 
 type CartLine = { item_id: string; name: string; unit_price: number; qty: number; available: number };
 
-function generateReceipt() {
-  const y = new Date().getFullYear();
-  const r = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `POS${y}${r}`;
-}
-
 function printReceipt(sale: any) {
   const w = window.open('', '_blank');
   if (!w) return;
