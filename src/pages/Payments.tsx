@@ -31,7 +31,13 @@ import {
   X,
   Check,
   Tag,
+  Edit,
+  CheckCircle,
+  Lock,
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 function printReceipt(payment: any) {
   const w = window.open('', '_blank');
@@ -90,6 +96,7 @@ function FinancePaymentsView() {
   const { can } = useModuleAccess();
   const { role } = useAuth();
   const canEdit = role === 'admin' || role === 'finance' || can('payments', 'edit');
+  const isAdmin = role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
@@ -97,6 +104,7 @@ function FinancePaymentsView() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [discountFilter, setDiscountFilter] = useState<'all' | 'discounted'>('all');
+  const [editTarget, setEditTarget] = useState<any | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -190,6 +198,31 @@ function FinancePaymentsView() {
       refetchDiscounts();
       qc.invalidateQueries({ queryKey: ['all-payments'] });
     }
+  };
+
+  const approvePayment = async (id: string) => {
+    const { error } = await supabase.from('payments').update({
+      status: 'approved',
+      approved_by: (await supabase.auth.getUser()).data.user?.id,
+      approved_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) return toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    toast({ title: 'Payment approved & locked' });
+    refetch();
+  };
+
+  const saveEdit = async () => {
+    if (!editTarget) return;
+    const { error } = await supabase.from('payments').update({
+      amount: parseFloat(editTarget.amount) || 0,
+      payment_method: editTarget.payment_method,
+      notes: editTarget.notes || null,
+      payment_date: editTarget.payment_date,
+    }).eq('id', editTarget.id);
+    if (error) return toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    toast({ title: 'Payment updated' });
+    setEditTarget(null);
+    refetch();
   };
 
   const getBalance = (payment: any) => {
