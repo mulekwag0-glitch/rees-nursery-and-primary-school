@@ -569,6 +569,8 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          approved_at: string | null
+          approved_by: string | null
           created_at: string
           id: string
           notes: string | null
@@ -577,10 +579,14 @@ export type Database = {
           receipt_number: string
           recorded_by: string
           semester_id: string
+          status: string
           student_id: string
+          updated_at: string
         }
         Insert: {
           amount: number
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -589,10 +595,14 @@ export type Database = {
           receipt_number: string
           recorded_by: string
           semester_id: string
+          status?: string
           student_id: string
+          updated_at?: string
         }
         Update: {
           amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -601,7 +611,9 @@ export type Database = {
           receipt_number?: string
           recorded_by?: string
           semester_id?: string
+          status?: string
           student_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -1065,6 +1077,90 @@ export type Database = {
           recommendations?: string | null
           strengths?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      stock_items: {
+        Row: {
+          category: string
+          cost_price: number
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          notes: string | null
+          quantity: number
+          reorder_level: number
+          selling_price: number
+          sku: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          cost_price?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          notes?: string | null
+          quantity?: number
+          reorder_level?: number
+          selling_price?: number
+          sku?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cost_price?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          quantity?: number
+          reorder_level?: number
+          selling_price?: number
+          sku?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stock_sales: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          notes: string | null
+          payment_method: string
+          receipt_number: string
+          sale_date: string
+          sold_by: string
+          student_id: string
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items?: Json
+          notes?: string | null
+          payment_method?: string
+          receipt_number: string
+          sale_date?: string
+          sold_by: string
+          student_id: string
+          total_amount?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          notes?: string | null
+          payment_method?: string
+          receipt_number?: string
+          sale_date?: string
+          sold_by?: string
+          student_id?: string
+          total_amount?: number
         }
         Relationships: []
       }

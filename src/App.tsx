@@ -38,6 +38,7 @@ import WorkPlan from "./pages/WorkPlan";
 import Attendance from "./pages/Attendance";
 import NotFound from "./pages/NotFound";
 import PupilProfileView from "./pages/PupilProfileView";
+import StockPOS from "./pages/StockPOS";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/payments" element={<ProtectedRoute module="payments" allowedRoles={['admin', 'finance']}><Payments /></ProtectedRoute>} />
             <Route path="/fee-structures" element={<ProtectedRoute module="payments" allowedRoles={['admin', 'finance']}><FeeStructures /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute module="expenses" allowedRoles={['admin', 'finance']}><Expenses /></ProtectedRoute>} />
+            <Route path="/stock-pos" element={<ProtectedRoute module="expenses" allowedRoles={['admin', 'finance']}><StockPOS /></ProtectedRoute>} />
             <Route path="/work-plan" element={<ProtectedRoute module="expenses" allowedRoles={['admin']}><WorkPlan /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute module="hr" allowedRoles={['admin', 'finance']}><Employees /></ProtectedRoute>} />
             <Route path="/payroll" element={<ProtectedRoute module="hr" allowedRoles={['admin', 'finance']}><Payroll /></ProtectedRoute>} />

@@ -31,7 +31,13 @@ import {
   X,
   Check,
   Tag,
+  Edit,
+  CheckCircle,
+  Lock,
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 function printReceipt(payment: any) {
   const w = window.open('', '_blank');
@@ -90,6 +96,7 @@ function FinancePaymentsView() {
   const { can } = useModuleAccess();
   const { role } = useAuth();
   const canEdit = role === 'admin' || role === 'finance' || can('payments', 'edit');
+  const isAdmin = role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [semesterFilter, setSemesterFilter] = useState('all');
@@ -97,6 +104,7 @@ function FinancePaymentsView() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [discountFilter, setDiscountFilter] = useState<'all' | 'discounted'>('all');
+  const [editTarget, setEditTarget] = useState<any | null>(null);
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -190,6 +198,31 @@ function FinancePaymentsView() {
       refetchDiscounts();
       qc.invalidateQueries({ queryKey: ['all-payments'] });
     }
+  };
+
+  const approvePayment = async (id: string) => {
+    const { error } = await supabase.from('payments').update({
+      status: 'approved',
+      approved_by: (await supabase.auth.getUser()).data.user?.id,
+      approved_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) return toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    toast({ title: 'Payment approved & locked' });
+    refetch();
+  };
+
+  const saveEdit = async () => {
+    if (!editTarget) return;
+    const { error } = await supabase.from('payments').update({
+      amount: parseFloat(editTarget.amount) || 0,
+      payment_method: editTarget.payment_method,
+      notes: editTarget.notes || null,
+      payment_date: editTarget.payment_date,
+    }).eq('id', editTarget.id);
+    if (error) return toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    toast({ title: 'Payment updated' });
+    setEditTarget(null);
+    refetch();
   };
 
   const getBalance = (payment: any) => {
@@ -438,6 +471,7 @@ function FinancePaymentsView() {
                     <th>Balance</th>
                     <th>Method</th>
                     <th>Receipt</th>
+                    <th>Status</th>
                     {canEdit && <th className="text-right">Actions</th>}
                   </tr>
                 </thead>
@@ -445,6 +479,7 @@ function FinancePaymentsView() {
                   {filteredPayments.map((payment: any) => {
                     const bal = getBalance(payment);
                     const name = payment.students?.full_name || payment.students?.profiles?.full_name || '-';
+                    const isApproved = payment.status === 'approved';
                     return (
                     <tr key={payment.id}>
                       <td className="text-sm">{new Date(payment.payment_date).toLocaleDateString()}</td>
@@ -464,12 +499,30 @@ function FinancePaymentsView() {
                         </Badge>
                       </td>
                       <td className="font-mono text-xs">{payment.receipt_number}</td>
+                      <td>
+                        {isApproved ? (
+                          <Badge className="bg-success/20 text-success border-0 gap-1"><Lock className="w-3 h-3" />Approved</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-warning/20 text-warning border-0">Pending</Badge>
+                        )}
+                      </td>
                       {canEdit && (
                         <td className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => printReceipt({ ...payment, balance_info: bal })}>
-                            <Printer className="w-4 h-4 mr-1" />
-                            Print
-                          </Button>
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => printReceipt({ ...payment, balance_info: bal })} title="Print">
+                              <Printer className="w-4 h-4" />
+                            </Button>
+                            {!isApproved && (
+                              <Button variant="ghost" size="sm" onClick={() => setEditTarget({ ...payment })} title="Edit">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {!isApproved && isAdmin && (
+                              <Button variant="ghost" size="sm" onClick={() => approvePayment(payment.id)} title="Approve & lock">
+                                <CheckCircle className="w-4 h-4 text-success" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -548,6 +601,51 @@ function FinancePaymentsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit payment (only while pending) */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Payment</DialogTitle>
+            <DialogDescription>Changes are allowed while the payment is pending. Once approved, it locks.</DialogDescription>
+          </DialogHeader>
+          {editTarget && (
+            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Amount (UGX)</Label>
+                <Input type="number" min={0} value={editTarget.amount}
+                  onChange={(e) => setEditTarget({ ...editTarget, amount: e.target.value })} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Payment Date</Label>
+                <Input type="date" value={editTarget.payment_date}
+                  onChange={(e) => setEditTarget({ ...editTarget, payment_date: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Method</Label>
+                <Select value={editTarget.payment_method} onValueChange={(v) => setEditTarget({ ...editTarget, payment_method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Notes</Label>
+                <Textarea rows={2} value={editTarget.notes || ''}
+                  onChange={(e) => setEditTarget({ ...editTarget, notes: e.target.value })} />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
