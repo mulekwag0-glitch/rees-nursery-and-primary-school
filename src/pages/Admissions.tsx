@@ -107,39 +107,6 @@ export default function Admissions() {
     return urlData.publicUrl;
   };
 
-  const autoEnrollInCourses = async (studentId: string, programId: string, year: number) => {
-    try {
-      // Get courses for this program and year
-      const { data: courses } = await supabase
-        .from('courses')
-        .select('id, semester_number')
-        .eq('program_id', programId)
-        .eq('year_of_study', year);
-
-      if (!courses?.length || !semesters?.length) return;
-
-      // Enroll in courses that match current semesters
-      const enrollments = [];
-      for (const course of courses) {
-        const matchingSemester = semesters.find(s => s.semester_number === course.semester_number);
-        if (matchingSemester) {
-          enrollments.push({
-            student_id: studentId,
-            course_id: course.id,
-            semester_id: matchingSemester.id,
-          });
-        }
-      }
-
-      if (enrollments.length > 0) {
-        const { error } = await supabase.from('student_courses').insert(enrollments);
-        if (error) console.error('Auto-enrollment error:', error);
-      }
-    } catch (err) {
-      console.error('Auto-enrollment failed:', err);
-    }
-  };
-
   const admitMutation = useMutation({
     mutationFn: async () => {
       const v = validateForm(admissionSchema, {
@@ -188,10 +155,7 @@ export default function Admissions() {
       }).select('id').single();
       if (studentError) throw studentError;
 
-      // Auto-enroll in courses for their year
-      if (studentData) {
-        await autoEnrollInCourses(studentData.id, programId, parseInt(currentYear));
-      }
+      // Auto-enrollment is handled by the database trigger on insert
 
       // Send notification
       const selectedProgram = programs?.find(p => p.id === programId);
