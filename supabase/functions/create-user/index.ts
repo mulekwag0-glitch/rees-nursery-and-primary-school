@@ -58,7 +58,8 @@ serve(async (req) => {
       throw new Error('Student accounts cannot be created here. Use the Admissions module to admit pupils.');
     }
 
-    // Create the user
+    // Try to create the user; if one already exists, look it up and just (re)assign role
+    let userId: string | null = null;
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -66,37 +67,45 @@ serve(async (req) => {
       user_metadata: { full_name },
     });
 
-    if (createError) throw createError;
+    if (createError) {
+      const msg = (createError.message || '').toLowerCase();
+      const alreadyExists = msg.includes('already') || msg.includes('registered') || msg.includes('exists');
+      if (!alreadyExists) throw createError;
 
-    // Create profile
+      // Find the existing user by email so we can just sync role + reset password
+      const { data: list, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      if (listError) throw listError;
+      const existing = list.users.find((u) => (u.email || '').toLowerCase() === email.toLowerCase());
+      if (!existing) throw createError;
+      userId = existing.id;
+
+      // Reset password & confirm email so they can sign in with the temp password
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password,
+        email_confirm: true,
+        user_metadata: { full_name },
+      });
+    } else {
+      userId = newUser.user.id;
+    }
+
+    // Upsert profile (id is PK)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert({
-        id: newUser.user.id,
-        email,
-        full_name,
-      });
+      .upsert({ id: userId!, email, full_name }, { onConflict: 'id' });
+    if (profileError) console.error('Profile upsert error:', profileError);
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
-    }
-
-    // Assign role
+    // Replace role assignment so the requested role is the active one
+    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId!);
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
-      .insert({
-        user_id: newUser.user.id,
-        role,
-      });
+      .insert({ user_id: userId!, role });
+    if (roleError) console.error('Role assignment error:', roleError);
 
-    if (roleError) {
-      console.error('Role assignment error:', roleError);
-    }
-
-    console.log('User created successfully:', newUser.user.id);
+    console.log('Account ready:', userId);
 
     return new Response(
-      JSON.stringify({ success: true, user_id: newUser.user.id }),
+      JSON.stringify({ success: true, user_id: userId }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
