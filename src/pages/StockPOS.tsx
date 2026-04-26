@@ -22,12 +22,6 @@ const CATEGORIES = ['uniform','stockings','books','stationery','other'];
 
 type CartLine = { item_id: string; name: string; unit_price: number; qty: number; available: number };
 
-function generateReceipt() {
-  const y = new Date().getFullYear();
-  const r = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `POS${y}${r}`;
-}
-
 function printReceipt(sale: any) {
   const w = window.open('', '_blank');
   if (!w) return;
@@ -195,31 +189,20 @@ export default function StockPOS() {
       if (!user) throw new Error('Not signed in');
       if (!studentId) throw new Error('Select a pupil');
       if (cart.length === 0) throw new Error('Cart is empty');
-      const receipt = generateReceipt();
       const itemsPayload = cart.map(l => ({ item_id: l.item_id, name: l.name, unit_price: l.unit_price, qty: l.qty }));
 
-      const { data, error } = await supabase.from('stock_sales' as any).insert({
-        receipt_number: receipt,
-        student_id: studentId,
-        items: itemsPayload,
-        total_amount: cartTotal,
-        payment_method: paymentMethod,
-        notes: posNotes || null,
-        sold_by: user.id,
-      }).select().single();
+      // Atomic: validates stock, decrements, generates receipt server-side
+      const { data, error } = await supabase.rpc('create_stock_sale' as any, {
+        _student_id: studentId,
+        _items: itemsPayload,
+        _payment_method: paymentMethod,
+        _notes: posNotes || null,
+      });
       if (error) throw error;
 
-      // Decrement stock for each line
-      for (const l of cart) {
-        const item = (items as any[]).find(i => i.id === l.item_id);
-        if (item) {
-          await supabase.from('stock_items' as any).update({ quantity: item.quantity - l.qty }).eq('id', l.item_id);
-        }
-      }
-
-      await logAudit('stock_sale', 'stock_sales', (data as any).id, null, { total: cartTotal, items: itemsPayload.length });
-
       const sale: any = data;
+      await logAudit('stock_sale', 'stock_sales', sale.id, null, { total: sale.total_amount, items: itemsPayload.length });
+
       printReceipt({
         ...sale,
         pupil_name: selectedPupil?.full_name || selectedPupil?.student_id,
