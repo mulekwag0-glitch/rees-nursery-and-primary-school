@@ -601,6 +601,51 @@ function FinancePaymentsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit payment (only while pending) */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Payment</DialogTitle>
+            <DialogDescription>Changes are allowed while the payment is pending. Once approved, it locks.</DialogDescription>
+          </DialogHeader>
+          {editTarget && (
+            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Amount (UGX)</Label>
+                <Input type="number" min={0} value={editTarget.amount}
+                  onChange={(e) => setEditTarget({ ...editTarget, amount: e.target.value })} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Payment Date</Label>
+                <Input type="date" value={editTarget.payment_date}
+                  onChange={(e) => setEditTarget({ ...editTarget, payment_date: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Method</Label>
+                <Select value={editTarget.payment_method} onValueChange={(v) => setEditTarget({ ...editTarget, payment_method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Notes</Label>
+                <Textarea rows={2} value={editTarget.notes || ''}
+                  onChange={(e) => setEditTarget({ ...editTarget, notes: e.target.value })} />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
