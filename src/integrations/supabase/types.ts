@@ -1460,6 +1460,32 @@ export type Database = {
               grade_point: number
             }[]
           }
+      create_stock_sale: {
+        Args: {
+          _items: Json
+          _notes?: string
+          _payment_method: string
+          _student_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          items: Json
+          notes: string | null
+          payment_method: string
+          receipt_number: string
+          sale_date: string
+          sold_by: string
+          student_id: string
+          total_amount: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "stock_sales"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: string
