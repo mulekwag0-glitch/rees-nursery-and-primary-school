@@ -459,6 +459,19 @@ function FinancePaymentsView() {
         </CardContent>
       </Card>
 
+      <Tabs defaultValue="transactions" className="w-full">
+        <TabsList>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="approvals" className="gap-2">
+            Approvals
+            {pendingPayments.length > 0 && (
+              <Badge variant="destructive" className="h-5 px-1.5 text-xs">{pendingPayments.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="discounts">Discounts</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="transactions" className="mt-4 space-y-6">
       {/* Payments Table */}
       <Card>
         <CardHeader>
@@ -551,7 +564,90 @@ function FinancePaymentsView() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
 
+        <TabsContent value="approvals" className="mt-4 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2"><CheckCircle className="w-4 h-4" />Pending Payment Approvals</CardTitle>
+              <CardDescription>{pendingPayments.length} awaiting approval — admin only</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {pendingPayments.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8 text-sm">Nothing pending — all payments are approved</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="data-table">
+                    <thead><tr><th>Date</th><th>Pupil</th><th>Class</th><th>Term</th><th>Amount</th><th>Method</th><th>Receipt</th><th>Recorded by</th>{isAdmin && <th className="text-right">Actions</th>}</tr></thead>
+                    <tbody>
+                      {pendingPayments.map((p: any) => (
+                        <tr key={p.id}>
+                          <td className="text-sm">{new Date(p.payment_date).toLocaleDateString()}</td>
+                          <td className="font-medium">{p.students?.full_name || p.students?.student_id || '-'}</td>
+                          <td className="text-sm">{p.students?.programs?.name || '-'}</td>
+                          <td className="text-sm">{p.semesters?.name}</td>
+                          <td className="font-semibold text-success">UGX {parseFloat(p.amount).toLocaleString()}</td>
+                          <td><Badge variant="secondary" className="capitalize text-xs">{p.payment_method?.replace('_',' ')}</Badge></td>
+                          <td className="font-mono text-xs">{p.receipt_number}</td>
+                          <td className="text-xs text-muted-foreground">{p.recorded_by?.slice(0,8) || '-'}</td>
+                          {isAdmin && (
+                            <td className="text-right">
+                              <div className="flex gap-1 justify-end">
+                                <Button size="sm" variant="ghost" onClick={() => approvePayment(p.id)} title="Approve & lock">
+                                  <Check className="w-4 h-4 text-success" />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => rejectPayment(p.id)} title="Reject">
+                                  <X className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Approval History</CardTitle>
+              <CardDescription>Last {approvalHistory.length} reviewed payments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {approvalHistory.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8 text-sm">No approvals yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="data-table">
+                    <thead><tr><th>Approved/Rejected at</th><th>Pupil</th><th>Amount</th><th>Receipt</th><th>Status</th></tr></thead>
+                    <tbody>
+                      {approvalHistory.map((p: any) => (
+                        <tr key={p.id}>
+                          <td className="text-sm">{p.approved_at ? new Date(p.approved_at).toLocaleString() : '-'}</td>
+                          <td className="font-medium">{p.students?.full_name || p.students?.student_id}</td>
+                          <td className="font-semibold">UGX {parseFloat(p.amount).toLocaleString()}</td>
+                          <td className="font-mono text-xs">{p.receipt_number}</td>
+                          <td>
+                            {p.status === 'approved' ? (
+                              <Badge className="bg-success/20 text-success border-0 gap-1"><Lock className="w-3 h-3" />Approved</Badge>
+                            ) : (
+                              <Badge variant="destructive">Rejected</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="discounts" className="mt-4 space-y-6">
       {/* Discounts Management */}
       <Card>
         <CardHeader>
@@ -618,6 +714,8 @@ function FinancePaymentsView() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Edit payment (only while pending) */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
