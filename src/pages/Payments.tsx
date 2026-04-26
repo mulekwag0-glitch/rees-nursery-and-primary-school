@@ -471,6 +471,7 @@ function FinancePaymentsView() {
                     <th>Balance</th>
                     <th>Method</th>
                     <th>Receipt</th>
+                    <th>Status</th>
                     {canEdit && <th className="text-right">Actions</th>}
                   </tr>
                 </thead>
@@ -478,6 +479,7 @@ function FinancePaymentsView() {
                   {filteredPayments.map((payment: any) => {
                     const bal = getBalance(payment);
                     const name = payment.students?.full_name || payment.students?.profiles?.full_name || '-';
+                    const isApproved = payment.status === 'approved';
                     return (
                     <tr key={payment.id}>
                       <td className="text-sm">{new Date(payment.payment_date).toLocaleDateString()}</td>
@@ -497,12 +499,30 @@ function FinancePaymentsView() {
                         </Badge>
                       </td>
                       <td className="font-mono text-xs">{payment.receipt_number}</td>
+                      <td>
+                        {isApproved ? (
+                          <Badge className="bg-success/20 text-success border-0 gap-1"><Lock className="w-3 h-3" />Approved</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-warning/20 text-warning border-0">Pending</Badge>
+                        )}
+                      </td>
                       {canEdit && (
                         <td className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => printReceipt({ ...payment, balance_info: bal })}>
-                            <Printer className="w-4 h-4 mr-1" />
-                            Print
-                          </Button>
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="sm" onClick={() => printReceipt({ ...payment, balance_info: bal })} title="Print">
+                              <Printer className="w-4 h-4" />
+                            </Button>
+                            {!isApproved && (
+                              <Button variant="ghost" size="sm" onClick={() => setEditTarget({ ...payment })} title="Edit">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {!isApproved && isAdmin && (
+                              <Button variant="ghost" size="sm" onClick={() => approvePayment(payment.id)} title="Approve & lock">
+                                <CheckCircle className="w-4 h-4 text-success" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
