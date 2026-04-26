@@ -211,6 +211,23 @@ function FinancePaymentsView() {
     refetch();
   };
 
+  const rejectPayment = async (id: string) => {
+    const reason = window.prompt('Reason for rejecting this payment?');
+    if (!reason) return;
+    const { error } = await supabase.from('payments').update({
+      status: 'rejected',
+      approved_by: (await supabase.auth.getUser()).data.user?.id,
+      approved_at: new Date().toISOString(),
+      notes: reason,
+    }).eq('id', id);
+    if (error) return toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    toast({ title: 'Payment rejected' });
+    refetch();
+  };
+
+  const pendingPayments = (payments || []).filter((p: any) => p.status !== 'approved' && p.status !== 'rejected');
+  const approvalHistory = (payments || []).filter((p: any) => p.status === 'approved' || p.status === 'rejected');
+
   const saveEdit = async () => {
     if (!editTarget) return;
     const { error } = await supabase.from('payments').update({
