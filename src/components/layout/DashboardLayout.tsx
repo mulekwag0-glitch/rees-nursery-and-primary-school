@@ -83,6 +83,7 @@ const navigation: NavEntry[] = [
     module: 'expenses',
     items: [
       { label: 'Expenses', href: '/expenses', icon: Wallet, roles: ['admin', 'finance'], module: 'expenses' },
+      { label: 'Stock & POS', href: '/stock-pos', icon: Package, roles: ['admin', 'finance'], module: 'expenses' },
       { label: 'School Budget', href: '/work-plan', icon: Target, roles: ['admin'], module: 'expenses' },
     ],
   },
