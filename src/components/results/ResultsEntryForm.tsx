@@ -25,7 +25,7 @@ export function ResultsEntryForm() {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [localResults, setLocalResults] = useState<Map<string, { cw: number | null; exam: number | null }>>(new Map());
+  const [localResults, setLocalResults] = useState<Map<string, { total: number | null }>>(new Map());
 
   // Programs (classes)
   const { data: programs } = useQuery({
@@ -106,14 +106,12 @@ export function ResultsEntryForm() {
         .filter((s: any) => localResults.has(s.studentCourseId) || s.resultId)
         .map((s: any) => {
           const local = localResults.get(s.studentCourseId);
-          const cw = local?.cw ?? s.courseworkMarks ?? 0;
-          const exam = local?.exam ?? s.examMarks ?? 0;
-          const total = (cw || 0) + (exam || 0);
+          const total = local?.total ?? s.totalMarks ?? 0;
           const { grade, gradePoint } = calculateGrade(total);
           const row: any = {
             student_course_id: s.studentCourseId,
-            coursework_marks: cw,
-            exam_marks: exam,
+            coursework_marks: 0,
+            exam_marks: 0,
             total_marks: total,
             grade,
             grade_point: gradePoint,
@@ -154,25 +152,21 @@ export function ResultsEntryForm() {
     onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
-  const handleMarksChange = useCallback((studentCourseId: string, field: 'cw' | 'exam', value: string) => {
-    const max = field === 'cw' ? 40 : 60;
-    const numValue = value === '' ? null : Math.min(max, Math.max(0, parseFloat(value) || 0));
+  const handleTotalChange = useCallback((studentCourseId: string, value: string) => {
+    const numValue = value === '' ? null : Math.min(100, Math.max(0, parseFloat(value) || 0));
     setLocalResults((prev) => {
       const newMap = new Map(prev);
-      const existing = newMap.get(studentCourseId) || { cw: null, exam: null };
-      newMap.set(studentCourseId, { ...existing, [field]: numValue });
+      newMap.set(studentCourseId, { total: numValue });
       return newMap;
     });
   }, []);
 
   const getComputed = (s: any) => {
     const local = localResults.get(s.studentCourseId);
-    const cw = local?.cw ?? s.courseworkMarks;
-    const exam = local?.exam ?? s.examMarks;
-    const total = (cw ?? 0) + (exam ?? 0);
-    const hasMarks = cw != null || exam != null;
-    const { grade } = hasMarks ? calculateGrade(total) : { grade: null };
-    return { cw, exam, total: hasMarks ? total : null, grade };
+    const total = local?.total ?? s.totalMarks;
+    const hasMarks = total != null;
+    const { grade } = hasMarks ? calculateGrade(total as number) : { grade: null };
+    return { total: hasMarks ? total : null, grade };
   };
 
   const filtered = useMemo(
@@ -279,9 +273,7 @@ export function ResultsEntryForm() {
                     <tr>
                       <th>Reg No</th>
                       <th>Name</th>
-                      <th className="text-center w-24">CW (40)</th>
-                      <th className="text-center w-24">Exam (60)</th>
-                      <th className="text-center w-20">Total</th>
+                      <th className="text-center w-28">Total Marks (/100)</th>
                       <th className="text-center w-20">Grade</th>
                       <th className="text-center w-24">Status</th>
                       {canEdit && <th className="text-center w-16">Actions</th>}
@@ -296,18 +288,11 @@ export function ResultsEntryForm() {
                           <td className="font-mono text-xs">{s.studentNumber}</td>
                           <td className="font-medium">{s.studentName}</td>
                           <td className="text-center">
-                            <Input type="number" min="0" max="40" value={c.cw ?? ''}
-                              onChange={(e) => handleMarksChange(s.studentCourseId, 'cw', e.target.value)}
-                              className="w-20 text-center mx-auto" disabled={locked || resultsLocked || !canEdit}
+                            <Input type="number" min="0" max="100" value={c.total ?? ''}
+                              onChange={(e) => handleTotalChange(s.studentCourseId, e.target.value)}
+                              className="w-24 text-center mx-auto" disabled={locked || resultsLocked || !canEdit}
                             />
                           </td>
-                          <td className="text-center">
-                            <Input type="number" min="0" max="60" value={c.exam ?? ''}
-                              onChange={(e) => handleMarksChange(s.studentCourseId, 'exam', e.target.value)}
-                              className="w-20 text-center mx-auto" disabled={locked || resultsLocked || !canEdit}
-                            />
-                          </td>
-                          <td className="text-center font-semibold">{c.total ?? '-'}</td>
                           <td className="text-center">
                             {c.grade ? (
                               <span className="inline-flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm bg-primary/10 text-primary">
