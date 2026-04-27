@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,6 +85,16 @@ export default function ReportCards() {
   const [conduct, setConduct] = useState('Good');
   const [attendance, setAttendance] = useState({ present: 0, absent: 0, total: 0 });
   const reportCardRef = useRef<HTMLDivElement>(null);
+
+  // Subjects in the currently-viewed term that have no total marks recorded yet.
+  const missingSubjects = useMemo(
+    () =>
+      studentResults
+        .filter(r => r.total_marks === null || r.total_marks === undefined)
+        .map(r => r.student_courses.courses?.name || 'Unknown'),
+    [studentResults]
+  );
+  const reportIncomplete = missingSubjects.length > 0;
 
   const { data: students = [], isLoading: loadingStudents } = useQuery({
     queryKey: ['all-students-report'],
@@ -228,6 +238,14 @@ export default function ReportCards() {
 
   const handleExportPDF = async () => {
     if (!reportCardRef.current) return;
+    if (reportIncomplete) {
+      toast({
+        title: 'Cannot generate report card',
+        description: `Missing marks for: ${missingSubjects.join(', ')}. Enter and approve all marks first.`,
+        variant: 'destructive',
+      });
+      return;
+    }
     try {
       toast({ title: 'Generating PDF...', description: 'Please wait.' });
       const canvas = await html2canvas(reportCardRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
@@ -257,6 +275,7 @@ export default function ReportCards() {
   const handleBatchGenerate = async () => {
     if (selectedStudents.size === 0) return;
     setBatchGenerating(true);
+    const skipped: string[] = [];
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
       let isFirst = true;
@@ -269,6 +288,13 @@ export default function ReportCards() {
         const filtered = selectedTerm
           ? results.filter(r => r.student_courses.semesters.name === selectedTerm)
           : results;
+
+        // Skip pupils whose subjects are not fully marked yet.
+        const missing = filtered.filter(r => r.total_marks === null || r.total_marks === undefined);
+        if (filtered.length === 0 || missing.length > 0) {
+          skipped.push(`${student.full_name} (${missing.length || 'no'} subject${missing.length === 1 ? '' : 's'} pending)`);
+          continue;
+        }
 
         if (!isFirst) pdf.addPage();
         isFirst = false;
@@ -378,7 +404,14 @@ export default function ReportCards() {
       }
 
       pdf.save(`batch_report_cards_${selectedTerm || 'term1'}.pdf`);
-      toast({ title: 'Batch PDF Downloaded', description: `${selectedStudents.size} report cards generated.` });
+      const generated = selectedStudents.size - skipped.length;
+      toast({
+        title: skipped.length ? 'Batch generated with skips' : 'Batch PDF Downloaded',
+        description: skipped.length
+          ? `${generated} generated. Skipped (awaiting marks): ${skipped.join('; ')}`
+          : `${generated} report cards generated.`,
+        variant: skipped.length ? 'destructive' : 'default',
+      });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate batch PDFs', variant: 'destructive' });
     } finally {
@@ -593,13 +626,18 @@ export default function ReportCards() {
                   </div>
                 )}
 
-                {/* Awaiting marks banner */}
-                {studentResults.length > 0 && studentResults.some(r => r.total_marks === null || r.total_marks === undefined) && (
-                  <div className="mb-5 p-3 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 text-sm flex items-center gap-2">
-                    <span className="font-bold">⚠ Awaiting marks:</span>
-                    <span>
-                      Some subjects have not yet been marked. Position and grand total will update once all marks are entered and approved.
-                    </span>
+                {/* Awaiting marks banner — listed by subject */}
+                {reportIncomplete && (
+                  <div className="mb-5 p-3 rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-900 text-sm">
+                    <div className="font-bold mb-1">⚠ Report card incomplete — awaiting marks for:</div>
+                    <ul className="list-disc pl-6">
+                      {missingSubjects.map((s, i) => (
+                        <li key={i}>{s}</li>
+                      ))}
+                    </ul>
+                    <div className="mt-2 text-xs">
+                      Printing and PDF download are disabled until all subjects are marked and approved.
+                    </div>
                   </div>
                 )}
 
