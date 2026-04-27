@@ -76,7 +76,7 @@ export default function ReportCards() {
   const [showReportCard, setShowReportCard] = useState(false);
   const [studentResults, setStudentResults] = useState<ResultWithDetails[]>([]);
   const [allTermResults, setAllTermResults] = useState<ResultWithDetails[]>([]);
-  const [classPosition, setClassPosition] = useState<{ position: number; total: number; average: number } | null>(null);
+  const [classPosition, setClassPosition] = useState<{ position: number; total: number; average: number; grandTotal: number } | null>(null);
   const [batchMode, setBatchMode] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [batchGenerating, setBatchGenerating] = useState(false);
