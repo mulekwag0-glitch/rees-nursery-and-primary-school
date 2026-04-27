@@ -580,13 +580,26 @@ export default function ReportCards() {
                       <p className="text-2xl font-bold text-amber-900">{classPosition.position} <span className="text-sm font-normal text-amber-700">/ {classPosition.total}</span></p>
                     </div>
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                      <p className="text-xs text-red-700 uppercase font-semibold">Term Average</p>
-                      <p className="text-2xl font-bold text-red-900">{classPosition.average.toFixed(1)}%</p>
+                      <p className="text-xs text-red-700 uppercase font-semibold">Grand Total</p>
+                      <p className="text-2xl font-bold text-red-900">
+                        {classPosition.grandTotal} <span className="text-sm font-normal text-red-700">/ {studentResults.length * 100}</span>
+                      </p>
+                      <p className="text-[10px] text-red-700 mt-0.5">Average: {classPosition.average.toFixed(1)}%</p>
                     </div>
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                       <p className="text-xs text-green-700 uppercase font-semibold">Overall Rating</p>
                       <p className="text-2xl font-bold text-green-900">{getCompetencyFromScore(classPosition.average)}</p>
                     </div>
+                  </div>
+                )}
+
+                {/* Awaiting marks banner */}
+                {studentResults.length > 0 && studentResults.some(r => r.total_marks === null || r.total_marks === undefined) && (
+                  <div className="mb-5 p-3 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 text-sm flex items-center gap-2">
+                    <span className="font-bold">⚠ Awaiting marks:</span>
+                    <span>
+                      Some subjects have not yet been marked. Position and grand total will update once all marks are entered and approved.
+                    </span>
                   </div>
                 )}
 
@@ -633,9 +646,7 @@ export default function ReportCards() {
                     <thead>
                       <tr>
                         <th className="bg-red-800 text-white border border-red-900 px-3 py-2 text-left">Subject</th>
-                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">CW</th>
-                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Exam</th>
-                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Total</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-20">Total / 100</th>
                         <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Rating</th>
                         <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center">Remark</th>
                       </tr>
@@ -647,9 +658,7 @@ export default function ReportCards() {
                         return (
                           <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-red-50/40'}>
                             <td className="border border-gray-300 px-3 py-1.5">{r.student_courses.courses.name}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.coursework_marks ?? '—'}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.exam_marks ?? '—'}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{r.total_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{hasMarks ? `${r.total_marks}/100` : '—'}</td>
                             <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{hasMarks ? competency : '—'}</td>
                             <td className="border border-gray-300 px-2 py-1.5 text-center text-xs italic text-gray-500">
                               {hasMarks ? COMPETENCY_RATINGS.find(c => c.code === competency)?.label : 'Awaiting marks'}
@@ -657,6 +666,22 @@ export default function ReportCards() {
                           </tr>
                         );
                       })}
+                      {studentResults.every(r => r.total_marks !== null && r.total_marks !== undefined) && (
+                        <tr className="bg-amber-50 font-bold">
+                          <td className="border border-gray-300 px-3 py-2 text-right">GRAND TOTAL</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center text-red-800">
+                            {studentResults.reduce((s, r) => s + Number(r.total_marks || 0), 0)} / {studentResults.length * 100}
+                          </td>
+                          <td className="border border-gray-300 px-2 py-2 text-center" colSpan={2}>
+                            Average:{' '}
+                            {(
+                              studentResults.reduce((s, r) => s + Number(r.total_marks || 0), 0) /
+                              studentResults.length
+                            ).toFixed(1)}
+                            %
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 ) : (
