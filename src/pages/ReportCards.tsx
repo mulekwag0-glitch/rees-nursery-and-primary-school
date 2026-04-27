@@ -56,11 +56,11 @@ interface Student {
 
 interface ResultWithDetails {
   id: string;
-  coursework_marks: number;
-  exam_marks: number;
-  total_marks: number;
-  grade: string;
-  grade_point: number;
+  coursework_marks: number | null;
+  exam_marks: number | null;
+  total_marks: number | null;
+  grade: string | null;
+  grade_point: number | null;
   status: string;
   student_courses: {
     courses: { code: string; name: string; credit_units: number };
@@ -120,16 +120,37 @@ export default function ReportCards() {
   }, [semesters, selectedTerm]);
 
   const fetchStudentResults = async (studentId: string) => {
-    const { data: scData } = await supabase.from('student_courses').select('id').eq('student_id', studentId);
+    // Fetch every enrollment + its subject + its semester, then left-join results
+    const { data: scData } = await supabase
+      .from('student_courses')
+      .select(`id,
+        courses(code, name, credit_units),
+        semesters(name, semester_number, academic_years(name))`)
+      .eq('student_id', studentId);
     if (!scData?.length) return [];
 
-    const { data } = await supabase.from('results')
-      .select(`id, coursework_marks, exam_marks, total_marks, grade, grade_point, status,
-        student_courses(courses(code, name, credit_units), semesters(name, semester_number, academic_years(name)))`)
-      .eq('status', 'approved')
-      .in('student_course_id', scData.map(sc => sc.id));
+    const { data: resData } = await supabase
+      .from('results')
+      .select('id, coursework_marks, exam_marks, total_marks, grade, grade_point, status, student_course_id')
+      .in('student_course_id', scData.map((sc: any) => sc.id));
 
-    return (data || []) as unknown as ResultWithDetails[];
+    const byScId = new Map<string, any>();
+    (resData || []).forEach((r: any) => byScId.set(r.student_course_id, r));
+
+    // Build a result-shaped row for every enrolled subject, even if no marks yet
+    return scData.map((sc: any) => {
+      const r = byScId.get(sc.id);
+      return {
+        id: r?.id || `pending-${sc.id}`,
+        coursework_marks: r?.coursework_marks ?? null,
+        exam_marks: r?.exam_marks ?? null,
+        total_marks: r?.total_marks ?? null,
+        grade: r?.grade ?? null,
+        grade_point: r?.grade_point ?? null,
+        status: r?.status ?? 'pending',
+        student_courses: { courses: sc.courses, semesters: sc.semesters },
+      };
+    }) as unknown as ResultWithDetails[];
   };
 
   const computeClassPosition = async (studentId: string, programId: string, termName: string) => {
@@ -614,16 +635,17 @@ export default function ReportCards() {
                     </thead>
                     <tbody>
                       {studentResults.map((r, idx) => {
-                        const competency = getCompetencyFromScore(r.total_marks || 0);
+                        const hasMarks = r.total_marks !== null && r.total_marks !== undefined;
+                        const competency = hasMarks ? getCompetencyFromScore(r.total_marks as number) : '';
                         return (
                           <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-red-50/40'}>
                             <td className="border border-gray-300 px-3 py-1.5">{r.student_courses.courses.name}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.coursework_marks}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.exam_marks}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{r.total_marks}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{competency}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center text-xs">
-                              {COMPETENCY_RATINGS.find(c => c.code === competency)?.label}
+                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.coursework_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.exam_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{r.total_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{hasMarks ? competency : '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center text-xs italic text-gray-500">
+                              {hasMarks ? COMPETENCY_RATINGS.find(c => c.code === competency)?.label : 'Awaiting marks'}
                             </td>
                           </tr>
                         );
