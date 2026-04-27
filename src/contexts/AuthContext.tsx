@@ -23,34 +23,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!active) return;
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Defer role fetching
+
+        // When auth state changes (login / token refresh / logout) re-resolve role.
+        // Hold `loading` true until role is fetched so ProtectedRoute won't redirect mid-switch.
         if (session?.user) {
+          setLoading(true);
+          // Defer to avoid deadlocks inside the auth callback.
           setTimeout(() => {
-            fetchUserRole(session.user.id);
+            fetchUserRole(session.user.id).finally(() => {
+              if (active) setLoading(false);
+            });
           }, 0);
         } else {
           setRole(null);
+          setLoading(false);
         }
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        fetchUserRole(session.user.id).finally(() => {
+          if (active) setLoading(false);
+        });
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserRole = async (userId: string) => {
@@ -63,9 +78,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (data && !error) {
         setRole(data.role as AppRole);
+      } else {
+        setRole(null);
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
+      setRole(null);
     }
   };
 
