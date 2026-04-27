@@ -790,7 +790,8 @@ export default function ReportCards() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowReportCard(false)}>Close</Button>
-              <Button variant="outline" onClick={() => {
+              <Button variant="outline" disabled={reportIncomplete} onClick={() => {
+                if (reportIncomplete) return;
                 if (!reportCardRef.current) return;
                 const pw = window.open('', '_blank');
                 if (!pw) return;
@@ -836,7 +837,7 @@ export default function ReportCards() {
               }}>
                 <Printer className="w-4 h-4 mr-2" /> Print
               </Button>
-              <Button onClick={handleExportPDF}>
+              <Button onClick={handleExportPDF} disabled={reportIncomplete}>
                 <Download className="w-4 h-4 mr-2" /> Download PDF
               </Button>
             </DialogFooter>
