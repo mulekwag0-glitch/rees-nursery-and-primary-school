@@ -100,14 +100,12 @@ function StudentResultsView() {
           <CardContent>
             <div className="overflow-x-auto">
               <table className="data-table">
-                <thead><tr><th>Code</th><th>Subject</th><th className="text-center">CW</th><th className="text-center">Exam</th><th className="text-center">Total</th><th className="text-center">Grade</th></tr></thead>
+                <thead><tr><th>Code</th><th>Subject</th><th className="text-center">Total / 100</th><th className="text-center">Grade</th></tr></thead>
                 <tbody>
                   {semester.courses.map((course: any, idx: number) => (
                     <tr key={idx}>
                       <td className="font-medium">{course.code}</td>
                       <td>{course.name}</td>
-                      <td className="text-center">{course.cw}</td>
-                      <td className="text-center">{course.exam}</td>
                       <td className="text-center font-medium">{course.total}</td>
                       <td className="text-center">{getGradeBadge(course.grade)}</td>
                     </tr>
