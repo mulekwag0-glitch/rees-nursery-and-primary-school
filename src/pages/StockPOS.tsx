@@ -80,6 +80,7 @@ export default function StockPOS() {
   const [pupilOpen, setPupilOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [posNotes, setPosNotes] = useState('');
+  const [receiptSearch, setReceiptSearch] = useState('');
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['stock_items'],
@@ -104,13 +105,22 @@ export default function StockPOS() {
   });
 
   const { data: sales = [] } = useQuery({
-    queryKey: ['stock_sales'],
+    queryKey: ['stock_sales', receiptSearch],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('stock_sales' as any)
         .select('*, students:student_id (student_id, full_name, programs:program_id (name))')
         .order('created_at', { ascending: false })
         .limit(100);
+      if (receiptSearch.trim()) {
+        q = supabase
+          .from('stock_sales' as any)
+          .select('*, students:student_id (student_id, full_name, programs:program_id (name))')
+          .ilike('receipt_number', `%${receiptSearch.trim()}%`)
+          .order('created_at', { ascending: false })
+          .limit(100);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data || [];
     },
@@ -476,12 +486,23 @@ export default function StockPOS() {
           <TabsContent value="sales" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Recent Sales</CardTitle>
-                <CardDescription>{sales.length} transactions</CardDescription>
+                <CardTitle className="text-base">Sales History & Receipt Reprint</CardTitle>
+                <CardDescription>{sales.length} transaction{sales.length === 1 ? '' : 's'} — search by receipt number to reprint</CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="relative mb-4 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search receipt number (e.g. POS-20260427-0001)"
+                    value={receiptSearch}
+                    onChange={e => setReceiptSearch(e.target.value)}
+                    className="pl-10 font-mono"
+                  />
+                </div>
                 {sales.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">No sales yet</p>
+                  <p className="text-center text-muted-foreground py-8">
+                    {receiptSearch ? `No receipts match "${receiptSearch}"` : 'No sales yet'}
+                  </p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="data-table">
