@@ -173,6 +173,7 @@ export default function ReportCards() {
       .eq('status', 'approved')
       .in('student_course_id', scs.map(s => s.id));
 
+    // Sum of all subject totals (each out of 100) per pupil, plus subject count for averaging.
     const sums: Record<string, { total: number; count: number }> = {};
     (rows || []).forEach((r: any) => {
       if (r.student_courses?.semesters?.name !== termName) return;
@@ -182,13 +183,19 @@ export default function ReportCards() {
       sums[sid].count += 1;
     });
 
+    // Rank by SUM of totals across all subjects (the user requested grand-total ranking).
     const ranked = Object.entries(sums)
-      .map(([sid, v]) => ({ sid, avg: v.count ? v.total / v.count : 0 }))
-      .sort((a, b) => b.avg - a.avg);
+      .map(([sid, v]) => ({ sid, total: v.total, avg: v.count ? v.total / v.count : 0 }))
+      .sort((a, b) => b.total - a.total);
 
     const idx = ranked.findIndex(r => r.sid === studentId);
     if (idx === -1) return null;
-    return { position: idx + 1, total: ranked.length, average: ranked[idx].avg };
+    return {
+      position: idx + 1,
+      total: ranked.length,
+      average: ranked[idx].avg,
+      grandTotal: ranked[idx].total,
+    };
   };
 
   const handleViewReportCard = async (studentId: string) => {
