@@ -9,12 +9,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Send, CheckCircle, Clock, Search, Loader2, Trash2 } from 'lucide-react';
 
-const calculateGrade = (marks: number): { grade: string; gradePoint: number } => {
-  if (marks >= 80) return { grade: 'A', gradePoint: 5 };
-  if (marks >= 65) return { grade: 'B', gradePoint: 4 };
-  if (marks >= 50) return { grade: 'C', gradePoint: 3 };
-  if (marks >= 40) return { grade: 'D', gradePoint: 2 };
-  return { grade: 'F', gradePoint: 0 };
+// Grade is computed server-side by the results_set_grade trigger using
+// the Uganda grading bands (lower vs upper primary). This helper is just
+// for live preview while the tutor types.
+const previewGrade = (marks: number, level: 'lower' | 'upper'): string => {
+  if (level === 'upper') {
+    if (marks >= 95) return 'D1';
+    if (marks >= 80) return 'D2';
+  } else {
+    if (marks >= 90) return 'D1';
+    if (marks >= 80) return 'D2';
+  }
+  if (marks >= 60) return 'C3';
+  if (marks >= 55) return 'C4';
+  if (marks >= 50) return 'C6';
+  if (marks >= 45) return 'P7';
+  if (marks >= 40) return 'P8';
+  return 'F9';
 };
 
 export function ResultsEntryForm() {
@@ -107,14 +118,12 @@ export function ResultsEntryForm() {
         .map((s: any) => {
           const local = localResults.get(s.studentCourseId);
           const total = local?.total ?? s.totalMarks ?? 0;
-          const { grade, gradePoint } = calculateGrade(total);
+          // total_marks is now a plain numeric column (no longer generated).
+          // grade/grade_point are computed by the results_set_grade DB trigger
+          // using the Uganda grading bands, so we don't send them here.
           const row: any = {
             student_course_id: s.studentCourseId,
-            coursework_marks: 0,
-            exam_marks: 0,
             total_marks: total,
-            grade,
-            grade_point: gradePoint,
             status,
             tutor_id: user?.id,
           };
@@ -165,7 +174,9 @@ export function ResultsEntryForm() {
     const local = localResults.get(s.studentCourseId);
     const total = local?.total ?? s.totalMarks;
     const hasMarks = total != null;
-    const { grade } = hasMarks ? calculateGrade(total as number) : { grade: null };
+    const programCode = (programs?.find((p: any) => p.id === selectedProgram) as any)?.code || '';
+    const level: 'lower' | 'upper' = ['P4', 'P5', 'P6', 'P7'].includes(programCode) ? 'upper' : 'lower';
+    const grade = hasMarks ? previewGrade(total as number, level) : null;
     return { total: hasMarks ? total : null, grade };
   };
 
