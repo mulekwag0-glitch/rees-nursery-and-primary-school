@@ -756,9 +756,45 @@ export default function ReportCards() {
                 if (!reportCardRef.current) return;
                 const pw = window.open('', '_blank');
                 if (!pw) return;
-                pw.document.write(`<html><head><title>Report Card</title><style>body{font-family:serif;padding:20px;max-width:800px;margin:0 auto}table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:6px;text-align:left}th{background:#b91c1c;color:white}@media print{body{padding:0}}</style></head><body>${reportCardRef.current.innerHTML}</body></html>`);
+                pw.document.write(`
+                  <html>
+                    <head>
+                      <title>Report Card</title>
+                      <style>
+                        @page { size: A4 portrait; margin: 0; }
+                        html, body { margin: 0; padding: 0; background: #fff; }
+                        body { font-family: Georgia, serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+                        .report-wrap {
+                          width: 210mm;
+                          min-height: 297mm;
+                          margin: 0 auto;
+                          padding: 0;
+                          box-sizing: border-box;
+                          position: relative;
+                          overflow: hidden;
+                        }
+                        .report-wrap > div { width: 100% !important; max-width: 100% !important; min-height: 297mm !important; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #999; padding: 6px; text-align: left; }
+                        th { background: #b91c1c; color: white; }
+                        img { max-width: 100%; }
+                        @media print {
+                          body { margin: 0; }
+                          .report-wrap { width: 210mm; min-height: 297mm; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="report-wrap">${reportCardRef.current.innerHTML}</div>
+                      <script>
+                        window.onload = function() {
+                          setTimeout(function(){ window.print(); }, 350);
+                        };
+                      </script>
+                    </body>
+                  </html>
+                `);
                 pw.document.close();
-                pw.print();
               }}>
                 <Printer className="w-4 h-4 mr-2" /> Print
               </Button>
