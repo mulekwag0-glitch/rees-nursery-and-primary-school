@@ -56,11 +56,11 @@ interface Student {
 
 interface ResultWithDetails {
   id: string;
-  coursework_marks: number;
-  exam_marks: number;
-  total_marks: number;
-  grade: string;
-  grade_point: number;
+  coursework_marks: number | null;
+  exam_marks: number | null;
+  total_marks: number | null;
+  grade: string | null;
+  grade_point: number | null;
   status: string;
   student_courses: {
     courses: { code: string; name: string; credit_units: number };
@@ -635,16 +635,17 @@ export default function ReportCards() {
                     </thead>
                     <tbody>
                       {studentResults.map((r, idx) => {
-                        const competency = getCompetencyFromScore(r.total_marks || 0);
+                        const hasMarks = r.total_marks !== null && r.total_marks !== undefined;
+                        const competency = hasMarks ? getCompetencyFromScore(r.total_marks as number) : '';
                         return (
                           <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-red-50/40'}>
                             <td className="border border-gray-300 px-3 py-1.5">{r.student_courses.courses.name}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.coursework_marks}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.exam_marks}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{r.total_marks}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{competency}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center text-xs">
-                              {COMPETENCY_RATINGS.find(c => c.code === competency)?.label}
+                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.coursework_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center">{r.exam_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{r.total_marks ?? '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{hasMarks ? competency : '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center text-xs italic text-gray-500">
+                              {hasMarks ? COMPETENCY_RATINGS.find(c => c.code === competency)?.label : 'Awaiting marks'}
                             </td>
                           </tr>
                         );
