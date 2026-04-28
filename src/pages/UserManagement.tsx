@@ -50,19 +50,31 @@ interface UserWithRole {
   created_at: string;
 }
 
-type AppRole = 'student' | 'tutor' | 'finance' | 'admin';
+type AppRole = 'student' | 'tutor' | 'finance' | 'admin' | 'headmistress';
+
+// Display labels for user categories. Multiple HFI categories map to the
+// underlying permission roles in the database (admin / headmistress / tutor /
+// finance / student) — we only rename what the UI shows.
+const ROLE_OPTIONS: { value: AppRole; label: string; description: string }[] = [
+  { value: 'admin',        label: 'Administrator',          description: 'Full system access (also covers CEO / Managing Director)' },
+  { value: 'headmistress', label: 'Head Teacher / Director of Studies', description: 'Academic oversight' },
+  { value: 'tutor',        label: 'Teacher',                description: 'Class teacher / subject tutor' },
+  { value: 'finance',      label: 'Finance / Bursar',       description: 'Fees, payments, expenses' },
+];
 
 const getRoleBadge = (role: string) => {
   const styles: Record<string, string> = {
     admin: 'bg-destructive/20 text-destructive',
+    headmistress: 'bg-amber-500/20 text-amber-700',
     tutor: 'bg-primary/20 text-primary',
     finance: 'bg-success/20 text-success',
     student: 'bg-secondary/20 text-secondary-foreground',
   };
   const labels: Record<string, string> = {
-    admin: 'Admin',
-    tutor: 'Tutor',
-    finance: 'Finance',
+    admin: 'Administrator',
+    headmistress: 'Head Teacher',
+    tutor: 'Teacher',
+    finance: 'Finance / Bursar',
     student: 'Student',
   };
   return <Badge className={`${styles[role]} border-0`}>{labels[role] || role}</Badge>;
