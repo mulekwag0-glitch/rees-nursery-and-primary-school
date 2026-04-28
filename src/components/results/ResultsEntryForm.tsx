@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Send, CheckCircle, Clock, Search, Loader2, Trash2 } from 'lucide-react';
+import { notifyResultsSubmitted } from '@/lib/notifications';
 
 // Grade is computed server-side by the results_set_grade trigger using
 // the Uganda grading bands (lower vs upper primary). This helper is just
@@ -164,13 +165,43 @@ export function ResultsEntryForm() {
         .from('results')
         .upsert(rows, { onConflict: 'student_course_id' });
       if (error) throw error;
+
+      // On submission, notify all admins + headmistress so the bell badge updates
+      if (status === 'submitted') {
+        try {
+          const courseName =
+            (courses as any)?.find((c: any) => c.id === selectedCourse)?.name || 'a subject';
+          const tutorName =
+            (user as any)?.user_metadata?.full_name || (user as any)?.email || 'A teacher';
+
+          const { data: approverRoles } = await supabase
+            .from('user_roles')
+            .select('user_id, role')
+            .in('role', ['admin', 'headmistress'] as any);
+
+          const approverIds = Array.from(
+            new Set((approverRoles || []).map((r: any) => r.user_id).filter(Boolean))
+          );
+          if (approverIds.length) {
+            await notifyResultsSubmitted(approverIds, tutorName, courseName);
+          }
+        } catch (e) {
+          console.error('notifyResultsSubmitted failed', e);
+        }
+      }
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['class-results'] });
+      // Make sure the admin "Pending Approval" view refreshes immediately
+      queryClient.invalidateQueries({ queryKey: ['pending-results'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
       setLocalResults(new Map());
       toast({
         title: 'Saved',
-        description: vars.status === 'submitted' ? 'Results submitted for approval' : 'Results saved as draft',
+        description:
+          vars.status === 'submitted'
+            ? 'Results submitted — Head Teacher / Admin notified for approval'
+            : 'Results saved as draft',
       });
     },
     onError: (e: any) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
