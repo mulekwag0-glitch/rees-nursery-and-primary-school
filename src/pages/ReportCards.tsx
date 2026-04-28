@@ -179,24 +179,26 @@ export default function ReportCards() {
 
     const { data: rows } = await supabase
       .from('results')
-      .select(`total_marks, student_course_id, student_courses!inner(student_id, semesters!inner(name))`)
+      .select(`total_marks, grade_point, student_course_id, student_courses!inner(student_id, semesters!inner(name))`)
       .eq('status', 'approved')
       .in('student_course_id', scs.map(s => s.id));
 
-    // Sum of all subject totals (each out of 100) per pupil, plus subject count for averaging.
-    const sums: Record<string, { total: number; count: number }> = {};
+    // Sum of approved subject totals per pupil. Tie-break: lower total grade_points wins
+    // (D1=1 is best, F9=9 is worst), then student id for stable ordering.
+    const sums: Record<string, { total: number; count: number; gp: number }> = {};
     (rows || []).forEach((r: any) => {
       if (r.student_courses?.semesters?.name !== termName) return;
       const sid = r.student_courses.student_id;
-      if (!sums[sid]) sums[sid] = { total: 0, count: 0 };
+      if (!sums[sid]) sums[sid] = { total: 0, count: 0, gp: 0 };
       sums[sid].total += Number(r.total_marks || 0);
       sums[sid].count += 1;
+      sums[sid].gp += Number(r.grade_point || 0);
     });
 
-    // Rank by SUM of totals across all subjects (the user requested grand-total ranking).
     const ranked = Object.entries(sums)
-      .map(([sid, v]) => ({ sid, total: v.total, avg: v.count ? v.total / v.count : 0 }))
-      .sort((a, b) => b.total - a.total);
+      .map(([sid, v]) => ({ sid, total: v.total, avg: v.count ? v.total / v.count : 0, gp: v.gp }))
+      // Higher total wins; on tie, lower grade-point sum wins; on tie, stable by id
+      .sort((a, b) => (b.total - a.total) || (a.gp - b.gp) || a.sid.localeCompare(b.sid));
 
     const idx = ranked.findIndex(r => r.sid === studentId);
     if (idx === -1) return null;
@@ -391,7 +393,7 @@ export default function ReportCards() {
         pdf.text(teacherComment, 15, y);
         y += 8;
         pdf.setFont('helvetica', 'bold');
-        pdf.text("Headmistress's Comment:", 15, y);
+        pdf.text("Head Teacher's Comment:", 15, y);
         y += 5;
         pdf.setFont('helvetica', 'normal');
         pdf.text(headComment, 15, y);
@@ -555,7 +557,7 @@ export default function ReportCards() {
                 <Textarea value={teacherComment} onChange={(e) => setTeacherComment(e.target.value)} rows={2} />
               </div>
               <div>
-                <Label>Headmistress's Comment</Label>
+                <Label>Head Teacher's Comment</Label>
                 <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
               </div>
             </div>
@@ -729,13 +731,30 @@ export default function ReportCards() {
                 )}
 
                 {/* Key */}
-                <div className="text-xs mb-5 p-2 bg-amber-50 border border-amber-200 rounded flex flex-wrap gap-3">
-                  <span className="font-bold text-amber-800">KEY:</span>
-                  <span><strong>BE</strong> = Beyond Expectation (80-100)</span>
-                  <span><strong>AE</strong> = Above Expectation (65-79)</span>
-                  <span><strong>ME</strong> = Meeting Expectation (50-64)</span>
-                  <span><strong>BW</strong> = Below Expectation (0-49)</span>
-                </div>
+                {(() => {
+                  const code = (studentData as any)?.programs?.code || '';
+                  const upper = ['P4', 'P5', 'P6', 'P7'].includes(code);
+                  const bands = upper
+                    ? [['D1','95–100'],['D2','80–94'],['C3','60–79'],['C4','55–59'],['C6','50–54'],['P7','45–49'],['P8','40–44'],['F9','0–39']]
+                    : [['D1','90–100'],['D2','80–89'],['C3','60–79'],['C4','55–59'],['C6','50–54'],['P7','45–49'],['P8','40–44'],['F9','0–39']];
+                  return (
+                    <div className="text-xs mb-5 p-2 bg-amber-50 border border-amber-200 rounded">
+                      <div className="flex flex-wrap gap-3 mb-1">
+                        <span className="font-bold text-amber-800">UGANDA GRADING KEY ({upper ? 'Upper Primary' : 'Lower Primary'}):</span>
+                        {bands.map(([g, r]) => (
+                          <span key={g}><strong>{g}</strong> {r}</span>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-[11px] text-amber-900">
+                        <span className="font-semibold">Competency:</span>
+                        <span><strong>BE</strong> Beyond (80–100)</span>
+                        <span><strong>AE</strong> Above (65–79)</span>
+                        <span><strong>ME</strong> Meeting (50–64)</span>
+                        <span><strong>BW</strong> Below (0–49)</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Conduct & Attendance */}
                 <div className="grid grid-cols-2 gap-4 text-sm mb-5 border border-gray-200 rounded-lg p-3">
@@ -756,7 +775,7 @@ export default function ReportCards() {
                     <p className="italic">{teacherComment}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-amber-600">
-                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Headmistress's Comment</p>
+                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Head Teacher's Comment</p>
                     <p className="italic">{headComment}</p>
                   </div>
                 </div>
@@ -774,7 +793,7 @@ export default function ReportCards() {
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Headmistress's Signature</div>
+                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
                   </div>
                 </div>
 
