@@ -179,24 +179,26 @@ export default function ReportCards() {
 
     const { data: rows } = await supabase
       .from('results')
-      .select(`total_marks, student_course_id, student_courses!inner(student_id, semesters!inner(name))`)
+      .select(`total_marks, grade_point, student_course_id, student_courses!inner(student_id, semesters!inner(name))`)
       .eq('status', 'approved')
       .in('student_course_id', scs.map(s => s.id));
 
-    // Sum of all subject totals (each out of 100) per pupil, plus subject count for averaging.
-    const sums: Record<string, { total: number; count: number }> = {};
+    // Sum of approved subject totals per pupil. Tie-break: lower total grade_points wins
+    // (D1=1 is best, F9=9 is worst), then student id for stable ordering.
+    const sums: Record<string, { total: number; count: number; gp: number }> = {};
     (rows || []).forEach((r: any) => {
       if (r.student_courses?.semesters?.name !== termName) return;
       const sid = r.student_courses.student_id;
-      if (!sums[sid]) sums[sid] = { total: 0, count: 0 };
+      if (!sums[sid]) sums[sid] = { total: 0, count: 0, gp: 0 };
       sums[sid].total += Number(r.total_marks || 0);
       sums[sid].count += 1;
+      sums[sid].gp += Number(r.grade_point || 0);
     });
 
-    // Rank by SUM of totals across all subjects (the user requested grand-total ranking).
     const ranked = Object.entries(sums)
-      .map(([sid, v]) => ({ sid, total: v.total, avg: v.count ? v.total / v.count : 0 }))
-      .sort((a, b) => b.total - a.total);
+      .map(([sid, v]) => ({ sid, total: v.total, avg: v.count ? v.total / v.count : 0, gp: v.gp }))
+      // Higher total wins; on tie, lower grade-point sum wins; on tie, stable by id
+      .sort((a, b) => (b.total - a.total) || (a.gp - b.gp) || a.sid.localeCompare(b.sid));
 
     const idx = ranked.findIndex(r => r.sid === studentId);
     if (idx === -1) return null;
