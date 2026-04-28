@@ -113,6 +113,33 @@ export function ResultsEntryForm() {
   const upsertMutation = useMutation({
     mutationFn: async ({ status }: { status: 'draft' | 'submitted' }) => {
       const list = enrolledStudents || [];
+      // Validate every entered/edited mark is within 0–100
+      const invalid: string[] = [];
+      list.forEach((s: any) => {
+        const local = localResults.get(s.studentCourseId);
+        const total = local?.total ?? s.totalMarks;
+        if (total === null || total === undefined) return;
+        const n = Number(total);
+        if (Number.isNaN(n) || n < 0 || n > 100) {
+          invalid.push(`${s.studentName} (${n})`);
+        }
+      });
+      if (invalid.length) {
+        throw new Error(`Marks must be between 0 and 100. Fix: ${invalid.join(', ')}`);
+      }
+      // For SUBMIT we require every pupil to have a value (can't submit blanks)
+      if (status === 'submitted') {
+        const missing = list
+          .filter((s: any) => {
+            const local = localResults.get(s.studentCourseId);
+            const total = local?.total ?? s.totalMarks;
+            return total === null || total === undefined;
+          })
+          .map((s: any) => s.studentName);
+        if (missing.length) {
+          throw new Error(`Cannot submit — missing marks for: ${missing.join(', ')}`);
+        }
+      }
       const rows = list
         .filter((s: any) => localResults.has(s.studentCourseId) || s.resultId)
         .map((s: any) => {
