@@ -144,21 +144,33 @@ function AdminResultsView() {
     queryFn: async (): Promise<PendingBatch[]> => {
       const { data, error } = await supabase
         .from('results')
-        .select(`id, status, created_at, rejection_reason,
+        .select(`id, status, created_at, rejection_reason, tutor_id,
           student_courses:student_course_id (
             courses:course_id (code, name),
             semesters:semester_id (name)
-          ),
-          profiles:tutor_id (full_name)`)
+          )`)
         .in('status', ['submitted', 'approved', 'rejected'])
         .order('created_at', { ascending: false });
       if (error) throw error;
+
+      // Fetch tutor names separately — results.tutor_id has no FK to profiles
+      const tutorIds = Array.from(
+        new Set((data || []).map((r: any) => r.tutor_id).filter(Boolean))
+      );
+      const tutorNames: Record<string, string> = {};
+      if (tutorIds.length) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', tutorIds);
+        (profs || []).forEach((p: any) => { tutorNames[p.id] = p.full_name; });
+      }
 
       const grouped: Record<string, PendingBatch> = {};
       (data || []).forEach((r: any) => {
         const courseCode = r.student_courses?.courses?.code || 'Unknown';
         const semester = r.student_courses?.semesters?.name || 'Unknown';
-        const tutor = r.profiles?.full_name || 'Unknown';
+        const tutor = tutorNames[r.tutor_id] || 'Unknown';
         const key = `${courseCode}__${semester}__${r.status}`;
         if (!grouped[key]) {
           grouped[key] = {
