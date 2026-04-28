@@ -731,13 +731,30 @@ export default function ReportCards() {
                 )}
 
                 {/* Key */}
-                <div className="text-xs mb-5 p-2 bg-amber-50 border border-amber-200 rounded flex flex-wrap gap-3">
-                  <span className="font-bold text-amber-800">KEY:</span>
-                  <span><strong>BE</strong> = Beyond Expectation (80-100)</span>
-                  <span><strong>AE</strong> = Above Expectation (65-79)</span>
-                  <span><strong>ME</strong> = Meeting Expectation (50-64)</span>
-                  <span><strong>BW</strong> = Below Expectation (0-49)</span>
-                </div>
+                {(() => {
+                  const code = (studentData as any)?.programs?.code || '';
+                  const upper = ['P4', 'P5', 'P6', 'P7'].includes(code);
+                  const bands = upper
+                    ? [['D1','95–100'],['D2','80–94'],['C3','60–79'],['C4','55–59'],['C6','50–54'],['P7','45–49'],['P8','40–44'],['F9','0–39']]
+                    : [['D1','90–100'],['D2','80–89'],['C3','60–79'],['C4','55–59'],['C6','50–54'],['P7','45–49'],['P8','40–44'],['F9','0–39']];
+                  return (
+                    <div className="text-xs mb-5 p-2 bg-amber-50 border border-amber-200 rounded">
+                      <div className="flex flex-wrap gap-3 mb-1">
+                        <span className="font-bold text-amber-800">UGANDA GRADING KEY ({upper ? 'Upper Primary' : 'Lower Primary'}):</span>
+                        {bands.map(([g, r]) => (
+                          <span key={g}><strong>{g}</strong> {r}</span>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-[11px] text-amber-900">
+                        <span className="font-semibold">Competency:</span>
+                        <span><strong>BE</strong> Beyond (80–100)</span>
+                        <span><strong>AE</strong> Above (65–79)</span>
+                        <span><strong>ME</strong> Meeting (50–64)</span>
+                        <span><strong>BW</strong> Below (0–49)</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Conduct & Attendance */}
                 <div className="grid grid-cols-2 gap-4 text-sm mb-5 border border-gray-200 rounded-lg p-3">
