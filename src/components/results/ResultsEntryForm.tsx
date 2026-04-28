@@ -221,6 +221,19 @@ export function ResultsEntryForm() {
   const canEdit = role === 'admin' || role === 'headmistress' || role === 'tutor';
   const resultsLocked = !selectedSemesterData?.results_open && role !== 'admin';
 
+  // Determine which grading band applies to the selected class
+  const selectedProgramCode = (programs?.find((p: any) => p.id === selectedProgram) as any)?.code || '';
+  const isUpperPrimary = ['P4', 'P5', 'P6', 'P7'].includes(selectedProgramCode);
+  const gradingBand = isUpperPrimary
+    ? [
+        ['D1', '95–100'], ['D2', '80–94'], ['C3', '60–79'], ['C4', '55–59'],
+        ['C6', '50–54'], ['P7', '45–49'], ['P8', '40–44'], ['F9', '0–39'],
+      ]
+    : [
+        ['D1', '90–100'], ['D2', '80–89'], ['C3', '60–79'], ['C4', '55–59'],
+        ['C6', '50–54'], ['P7', '45–49'], ['P8', '40–44'], ['F9', '0–39'],
+      ];
+
   return (
     <div className="space-y-6">
       <Card>
@@ -269,6 +282,18 @@ export function ResultsEntryForm() {
 
       {selectedCourse && selectedSemester && (
         <Card>
+          <div className="px-6 pt-4">
+            <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs">
+              <span className="font-semibold text-primary">
+                Uganda Grading Bands — {isUpperPrimary ? 'Upper Primary (P4–P7)' : 'Lower Primary (P1–P3)'}:
+              </span>{' '}
+              {gradingBand.map(([g, r], i) => (
+                <span key={g} className="ml-1">
+                  <strong>{g}</strong> {r}{i < gradingBand.length - 1 ? ' ·' : ''}
+                </span>
+              ))}
+            </div>
+          </div>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="text-lg">
