@@ -393,7 +393,7 @@ export default function ReportCards() {
         pdf.text(teacherComment, 15, y);
         y += 8;
         pdf.setFont('helvetica', 'bold');
-        pdf.text("Headmistress's Comment:", 15, y);
+        pdf.text("Head Teacher's Comment:", 15, y);
         y += 5;
         pdf.setFont('helvetica', 'normal');
         pdf.text(headComment, 15, y);
@@ -557,7 +557,7 @@ export default function ReportCards() {
                 <Textarea value={teacherComment} onChange={(e) => setTeacherComment(e.target.value)} rows={2} />
               </div>
               <div>
-                <Label>Headmistress's Comment</Label>
+                <Label>Head Teacher's Comment</Label>
                 <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
               </div>
             </div>
@@ -758,7 +758,7 @@ export default function ReportCards() {
                     <p className="italic">{teacherComment}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-amber-600">
-                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Headmistress's Comment</p>
+                    <p className="font-bold text-xs text-gray-500 uppercase mb-1">Head Teacher's Comment</p>
                     <p className="italic">{headComment}</p>
                   </div>
                 </div>
@@ -776,7 +776,7 @@ export default function ReportCards() {
                     <p className="text-[8px] text-gray-400 mt-1">Scan to verify</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Headmistress's Signature</div>
+                    <div className="w-40 border-t-2 border-black pt-2 text-xs font-medium">Head Teacher's Signature</div>
                   </div>
                 </div>
 
