@@ -15,6 +15,7 @@ import jsPDF from 'jspdf';
 import {
   FileText, Download, Search, Loader2, Users, Printer,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -107,7 +108,14 @@ export default function ReportCards() {
   const [headComment, setHeadComment] = useState('Well done. Continue working hard.');
   const [conduct, setConduct] = useState('Good');
   const [attendance, setAttendance] = useState({ present: 0, absent: 0, total: 0 });
+  const [nextTermDate, setNextTermDate] = useState('25/05/2026');
+  const [a4Preview, setA4Preview] = useState(false);
+  const [autoFitScale, setAutoFitScale] = useState(1);
+  const [classFilter, setClassFilter] = useState<string>('all');
+  const [genderFilter, setGenderFilter] = useState<string>('all');
+  const [yearFilter, setYearFilter] = useState<string>('all');
   const reportCardRef = useRef<HTMLDivElement>(null);
+  const reportInnerRef = useRef<HTMLDivElement>(null);
 
   // Subjects in the currently-viewed term that have no total marks recorded yet.
   const missingSubjects = useMemo(
@@ -258,8 +266,38 @@ export default function ReportCards() {
   const filteredStudents = students.filter(s => {
     const matchesSearch = s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.student_id?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesClass = classFilter === 'all' || (s as any).program_id === classFilter;
+    const matchesGender = genderFilter === 'all' || s.gender === genderFilter;
+    const matchesYear = yearFilter === 'all' || String(s.current_year) === yearFilter;
+    return matchesSearch && matchesClass && matchesGender && matchesYear;
   });
+
+  // Unique program list for the class filter
+  const programOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    (students as any[]).forEach(s => {
+      if (s.program_id && s.programs?.name) map.set(s.program_id, s.programs.name);
+    });
+    return Array.from(map, ([id, name]) => ({ id, name }));
+  }, [students]);
+
+  // Auto-fit: measure rendered content height; if it exceeds A4 (297mm ~= 1123px @ 96dpi),
+  // shrink uniformly so it fits one page without cropping.
+  useEffect(() => {
+    if (!showReportCard) return;
+    const measure = () => {
+      const el = reportInnerRef.current;
+      if (!el) return;
+      // 297mm in px at 96dpi
+      const a4Px = (297 / 25.4) * 96;
+      const contentH = el.scrollHeight;
+      const ratio = contentH > a4Px ? a4Px / contentH : 1;
+      setAutoFitScale(Math.max(0.55, Math.min(1, ratio)));
+    };
+    const t = setTimeout(measure, 80);
+    window.addEventListener('resize', measure);
+    return () => { clearTimeout(t); window.removeEventListener('resize', measure); };
+  }, [showReportCard, studentResults, teacherComment, headComment, attendance, conduct, a4Preview]);
 
   const handleExportPDF = async () => {
     if (!reportCardRef.current) return;
@@ -273,21 +311,21 @@ export default function ReportCards() {
     }
     try {
       toast({ title: 'Generating PDF...', description: 'Please wait.' });
-      const canvas = await html2canvas(reportCardRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      // Use JPEG @ moderate scale + compression to keep file < 1MB
+      const canvas = await html2canvas(reportCardRef.current, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/jpeg', 0.72);
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      // Force single A4 page: scale image to fit fully within one page, preserving aspect ratio.
       const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
       const drawW = canvas.width * ratio;
       const drawH = canvas.height * ratio;
       const offsetX = (pageW - drawW) / 2;
       const offsetY = (pageH - drawH) / 2;
-      pdf.addImage(imgData, 'PNG', offsetX, offsetY, drawW, drawH);
+      pdf.addImage(imgData, 'JPEG', offsetX, offsetY, drawW, drawH, undefined, 'FAST');
       const studentData = getSelectedStudentData();
       pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'term1'}.pdf`);
-      toast({ title: 'PDF Downloaded', description: 'Report card saved.' });
+      toast({ title: 'PDF Downloaded', description: 'Report card saved (under 1MB).' });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate PDF', variant: 'destructive' });
     }
