@@ -15,6 +15,7 @@ import jsPDF from 'jspdf';
 import {
   FileText, Download, Search, Loader2, Users, Printer,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -107,7 +108,14 @@ export default function ReportCards() {
   const [headComment, setHeadComment] = useState('Well done. Continue working hard.');
   const [conduct, setConduct] = useState('Good');
   const [attendance, setAttendance] = useState({ present: 0, absent: 0, total: 0 });
+  const [nextTermDate, setNextTermDate] = useState('25/05/2026');
+  const [a4Preview, setA4Preview] = useState(false);
+  const [autoFitScale, setAutoFitScale] = useState(1);
+  const [classFilter, setClassFilter] = useState<string>('all');
+  const [genderFilter, setGenderFilter] = useState<string>('all');
+  const [yearFilter, setYearFilter] = useState<string>('all');
   const reportCardRef = useRef<HTMLDivElement>(null);
+  const reportInnerRef = useRef<HTMLDivElement>(null);
 
   // Subjects in the currently-viewed term that have no total marks recorded yet.
   const missingSubjects = useMemo(
@@ -258,8 +266,38 @@ export default function ReportCards() {
   const filteredStudents = students.filter(s => {
     const matchesSearch = s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.student_id?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesClass = classFilter === 'all' || (s as any).program_id === classFilter;
+    const matchesGender = genderFilter === 'all' || s.gender === genderFilter;
+    const matchesYear = yearFilter === 'all' || String(s.current_year) === yearFilter;
+    return matchesSearch && matchesClass && matchesGender && matchesYear;
   });
+
+  // Unique program list for the class filter
+  const programOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    (students as any[]).forEach(s => {
+      if (s.program_id && s.programs?.name) map.set(s.program_id, s.programs.name);
+    });
+    return Array.from(map, ([id, name]) => ({ id, name }));
+  }, [students]);
+
+  // Auto-fit: measure rendered content height; if it exceeds A4 (297mm ~= 1123px @ 96dpi),
+  // shrink uniformly so it fits one page without cropping.
+  useEffect(() => {
+    if (!showReportCard) return;
+    const measure = () => {
+      const el = reportInnerRef.current;
+      if (!el) return;
+      // 297mm in px at 96dpi
+      const a4Px = (297 / 25.4) * 96;
+      const contentH = el.scrollHeight;
+      const ratio = contentH > a4Px ? a4Px / contentH : 1;
+      setAutoFitScale(Math.max(0.55, Math.min(1, ratio)));
+    };
+    const t = setTimeout(measure, 80);
+    window.addEventListener('resize', measure);
+    return () => { clearTimeout(t); window.removeEventListener('resize', measure); };
+  }, [showReportCard, studentResults, teacherComment, headComment, attendance, conduct, a4Preview]);
 
   const handleExportPDF = async () => {
     if (!reportCardRef.current) return;
@@ -273,21 +311,21 @@ export default function ReportCards() {
     }
     try {
       toast({ title: 'Generating PDF...', description: 'Please wait.' });
-      const canvas = await html2canvas(reportCardRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      // Use JPEG @ moderate scale + compression to keep file < 1MB
+      const canvas = await html2canvas(reportCardRef.current, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/jpeg', 0.72);
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      // Force single A4 page: scale image to fit fully within one page, preserving aspect ratio.
       const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
       const drawW = canvas.width * ratio;
       const drawH = canvas.height * ratio;
       const offsetX = (pageW - drawW) / 2;
       const offsetY = (pageH - drawH) / 2;
-      pdf.addImage(imgData, 'PNG', offsetX, offsetY, drawW, drawH);
+      pdf.addImage(imgData, 'JPEG', offsetX, offsetY, drawW, drawH, undefined, 'FAST');
       const studentData = getSelectedStudentData();
       pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'term1'}.pdf`);
-      toast({ title: 'PDF Downloaded', description: 'Report card saved.' });
+      toast({ title: 'PDF Downloaded', description: 'Report card saved (under 1MB).' });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to generate PDF', variant: 'destructive' });
     }
@@ -298,7 +336,7 @@ export default function ReportCards() {
     setBatchGenerating(true);
     const skipped: string[] = [];
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
       let isFirst = true;
 
       for (const studentId of selectedStudents) {
@@ -422,6 +460,9 @@ export default function ReportCards() {
         pdf.setFontSize(8);
         pdf.setFont('helvetica', 'bold');
         pdf.text('Key: BE = Beyond Expectation | AE = Above Expectation | ME = Meeting Expectation | BW = Below Expectation', 15, y);
+        y += 6;
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Next term begins: ${nextTermDate}`, 15, y);
       }
 
       pdf.save(`batch_report_cards_${selectedTerm || 'term1'}.pdf`);
@@ -467,13 +508,13 @@ export default function ReportCards() {
         {/* Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Search by name or reg number..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger>
                   <SelectValue placeholder="Select Term" />
                 </SelectTrigger>
                 <SelectContent>
@@ -481,6 +522,32 @@ export default function ReportCards() {
                     <SelectItem key={s.id} value={s.name}>
                       {s.name}{s.is_current ? ' (Current)' : ''} - {s.academic_years?.name}
                     </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  {programOptions.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={genderFilter} onValueChange={setGenderFilter}>
+                <SelectTrigger><SelectValue placeholder="All Genders" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger><SelectValue placeholder="All Years" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {Array.from(new Set((students as any[]).map(s => s.current_year).filter(Boolean))).sort().map(y => (
+                    <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -579,9 +646,30 @@ export default function ReportCards() {
                 <Label>Head Teacher's Comment</Label>
                 <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
               </div>
+              <div>
+                <Label>Next Term Begins</Label>
+                <Input value={nextTermDate} onChange={(e) => setNextTermDate(e.target.value)} placeholder="DD/MM/YYYY" />
+              </div>
+              <div className="flex items-end gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch checked={a4Preview} onCheckedChange={setA4Preview} id="a4-preview" />
+                  <Label htmlFor="a4-preview" className="cursor-pointer">A4 Preview (1:1)</Label>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Auto-fit: {Math.round(autoFitScale * 100)}%
+                </span>
+              </div>
             </div>
 
             {/* Printable Report Card - A4 Portrait (210mm x 297mm) */}
+            <div
+              className="mx-auto"
+              style={{
+                width: a4Preview ? '210mm' : '100%',
+                maxWidth: '210mm',
+                overflow: 'auto',
+              }}
+            >
             <div
               ref={reportCardRef}
               className="report-card-a4 bg-white text-black relative mx-auto"
@@ -591,6 +679,8 @@ export default function ReportCards() {
                 height: '297mm',
                 overflow: 'hidden',
                 boxSizing: 'border-box',
+                transform: a4Preview ? 'none' : 'scale(1)',
+                transformOrigin: 'top left',
               }}
             >
               {/* Outer decorative border (multi-band: red / gold / red) */}
@@ -611,7 +701,16 @@ export default function ReportCards() {
                 <img src={reesLogo} alt="" className="w-[300px] h-[300px] object-contain" />
               </div>
 
-              <div className="relative z-10 px-8 py-6">
+              <div
+                ref={reportInnerRef}
+                className="relative z-10 px-8 py-6"
+                style={{
+                  transform: `scale(${autoFitScale})`,
+                  transformOrigin: 'top left',
+                  width: `${100 / autoFitScale}%`,
+                  height: `${100 / autoFitScale}%`,
+                }}
+              >
                 {/* Header */}
                 <div className="text-center mb-5">
                   <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
@@ -790,13 +889,14 @@ export default function ReportCards() {
                 </div>
 
                 <div className="mt-4 text-center">
-                  <div className="inline-flex items-center gap-4 text-xs text-gray-400 border-t border-gray-200 pt-3">
-                    <span>Next term begins: _________________</span>
+                  <div className="inline-flex items-center gap-4 text-xs text-gray-600 border-t border-gray-200 pt-3">
+                    <span>Next term begins: <strong className="text-red-800">{nextTermDate}</strong></span>
                     <span>•</span>
                     <span>School stamp</span>
                   </div>
                 </div>
               </div>
+            </div>
             </div>
 
             <DialogFooter>
@@ -811,8 +911,11 @@ export default function ReportCards() {
                     <head>
                       <title>Report Card</title>
                       <style>
-                        @page { size: A4 portrait; margin: 0; }
-                        html, body { margin: 0; padding: 0; background: #fff; }
+                        @page { size: A4 portrait; margin: 0 !important; }
+                        @page :first { margin: 0 !important; }
+                        @page :left { margin: 0 !important; }
+                        @page :right { margin: 0 !important; }
+                        html, body { margin: 0 !important; padding: 0 !important; background: #fff; width: 210mm; height: 297mm; overflow: hidden; }
                         body { font-family: Georgia, serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
                         .report-wrap {
                           width: 210mm;
@@ -824,6 +927,8 @@ export default function ReportCards() {
                           overflow: hidden;
                           page-break-after: avoid;
                           page-break-inside: avoid;
+                          break-after: avoid-page;
+                          break-inside: avoid-page;
                         }
                         .report-wrap > div, .report-card-a4 {
                           width: 210mm !important;
@@ -838,10 +943,10 @@ export default function ReportCards() {
                         th { background: #b91c1c; color: white; }
                         img { max-width: 100%; }
                         @media print {
-                          body { margin: 0; }
-                          html, body { width: 210mm; height: 297mm; overflow: hidden; }
-                          .report-wrap { width: 210mm; height: 297mm; overflow: hidden; page-break-after: avoid; }
-                          * { page-break-inside: avoid !important; }
+                          html, body { margin: 0 !important; padding: 0 !important; width: 210mm !important; height: 297mm !important; overflow: hidden !important; }
+                          .report-wrap { width: 210mm !important; height: 297mm !important; overflow: hidden !important; page-break-after: avoid !important; page-break-inside: avoid !important; break-after: avoid-page !important; break-inside: avoid-page !important; }
+                          * { page-break-inside: avoid !important; break-inside: avoid-page !important; }
+                          tr, td, th, div, p, table, tbody, thead { page-break-inside: avoid !important; break-inside: avoid-page !important; }
                         }
                       </style>
                     </head>
