@@ -43,6 +43,17 @@ const getCompetencyColor = (code: string) => {
   return COMPETENCY_RATINGS.find(r => r.code === code)?.color || '';
 };
 
+// Uganda PLE-style division based on aggregate (sum of grade points of best 4 subjects).
+// Lower aggregate = better performance (D1=1 is best).
+const getDivision = (aggregate: number): string => {
+  if (aggregate <= 0) return '—';
+  if (aggregate <= 12) return 'Division I';
+  if (aggregate <= 23) return 'Division II';
+  if (aggregate <= 29) return 'Division III';
+  if (aggregate <= 34) return 'Division IV';
+  return 'Ungraded (U)';
+};
+
 interface Student {
   id: string;
   student_id: string;
