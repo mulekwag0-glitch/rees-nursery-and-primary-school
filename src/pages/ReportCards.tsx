@@ -88,6 +88,18 @@ export default function ReportCards() {
   const [studentResults, setStudentResults] = useState<ResultWithDetails[]>([]);
   const [allTermResults, setAllTermResults] = useState<ResultWithDetails[]>([]);
   const [classPosition, setClassPosition] = useState<{ position: number; total: number; average: number; grandTotal: number } | null>(null);
+
+  // Aggregate = sum of grade points of best 4 subjects (lowest grade_point = best).
+  const aggregateInfo = useMemo(() => {
+    const scored = studentResults.filter(
+      r => r.total_marks !== null && r.total_marks !== undefined && r.grade_point !== null && r.grade_point !== undefined
+    );
+    if (!scored.length) return { aggregate: 0, division: '—', subjectsUsed: 0 };
+    const points = scored.map(r => Number(r.grade_point)).sort((a, b) => a - b);
+    const best = points.slice(0, Math.min(4, points.length));
+    const aggregate = best.reduce((s, p) => s + p, 0);
+    return { aggregate, division: getDivision(aggregate), subjectsUsed: best.length };
+  }, [studentResults]);
   const [batchMode, setBatchMode] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [batchGenerating, setBatchGenerating] = useState(false);
