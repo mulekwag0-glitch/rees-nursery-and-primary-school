@@ -505,13 +505,13 @@ export default function ReportCards() {
         {/* Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Search by name or reg number..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
               </div>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger>
                   <SelectValue placeholder="Select Term" />
                 </SelectTrigger>
                 <SelectContent>
@@ -519,6 +519,32 @@ export default function ReportCards() {
                     <SelectItem key={s.id} value={s.name}>
                       {s.name}{s.is_current ? ' (Current)' : ''} - {s.academic_years?.name}
                     </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  {programOptions.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={genderFilter} onValueChange={setGenderFilter}>
+                <SelectTrigger><SelectValue placeholder="All Genders" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger><SelectValue placeholder="All Years" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {Array.from(new Set((students as any[]).map(s => s.current_year).filter(Boolean))).sort().map(y => (
+                    <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
