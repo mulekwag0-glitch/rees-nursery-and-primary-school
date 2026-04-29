@@ -67,11 +67,21 @@ export default function Admissions() {
     },
   });
 
-  // Auto-generate student ID in REES/YYYY/NNN format
+  // Auto-generate student ID in REES/YYYY/NNN format.
+  // Uses the highest existing numeric suffix for the current year so we never
+  // collide with the UNIQUE constraint on students.student_id.
   const generateStudentId = () => {
     const year = new Date().getFullYear();
-    const count = (students?.length || 0) + 1;
-    return `REES/${year}/${count.toString().padStart(3, '0')}`;
+    const prefix = `REES/${year}/`;
+    let max = 0;
+    (students || []).forEach((s: any) => {
+      const id: string = s.student_id || '';
+      if (id.startsWith(prefix)) {
+        const n = parseInt(id.slice(prefix.length), 10);
+        if (!Number.isNaN(n) && n > max) max = n;
+      }
+    });
+    return `${prefix}${(max + 1).toString().padStart(3, '0')}`;
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
