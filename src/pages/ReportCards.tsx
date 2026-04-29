@@ -826,7 +826,12 @@ export default function ReportCards() {
                           position: relative;
                           overflow: hidden;
                         }
-                        .report-wrap > div { width: 100% !important; max-width: 100% !important; min-height: 297mm !important; }
+                        .report-wrap > div, .report-card-a4 {
+                          width: 210mm !important;
+                          max-width: 210mm !important;
+                          min-height: 297mm !important;
+                          box-sizing: border-box !important;
+                        }
                         table { width: 100%; border-collapse: collapse; }
                         th, td { border: 1px solid #999; padding: 6px; text-align: left; }
                         th { background: #b91c1c; color: white; }
