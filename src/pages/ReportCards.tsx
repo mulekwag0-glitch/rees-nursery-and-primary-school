@@ -908,8 +908,11 @@ export default function ReportCards() {
                     <head>
                       <title>Report Card</title>
                       <style>
-                        @page { size: A4 portrait; margin: 0; }
-                        html, body { margin: 0; padding: 0; background: #fff; }
+                        @page { size: A4 portrait; margin: 0 !important; }
+                        @page :first { margin: 0 !important; }
+                        @page :left { margin: 0 !important; }
+                        @page :right { margin: 0 !important; }
+                        html, body { margin: 0 !important; padding: 0 !important; background: #fff; width: 210mm; height: 297mm; overflow: hidden; }
                         body { font-family: Georgia, serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
                         .report-wrap {
                           width: 210mm;
@@ -921,6 +924,8 @@ export default function ReportCards() {
                           overflow: hidden;
                           page-break-after: avoid;
                           page-break-inside: avoid;
+                          break-after: avoid-page;
+                          break-inside: avoid-page;
                         }
                         .report-wrap > div, .report-card-a4 {
                           width: 210mm !important;
@@ -935,10 +940,10 @@ export default function ReportCards() {
                         th { background: #b91c1c; color: white; }
                         img { max-width: 100%; }
                         @media print {
-                          body { margin: 0; }
-                          html, body { width: 210mm; height: 297mm; overflow: hidden; }
-                          .report-wrap { width: 210mm; height: 297mm; overflow: hidden; page-break-after: avoid; }
-                          * { page-break-inside: avoid !important; }
+                          html, body { margin: 0 !important; padding: 0 !important; width: 210mm !important; height: 297mm !important; overflow: hidden !important; }
+                          .report-wrap { width: 210mm !important; height: 297mm !important; overflow: hidden !important; page-break-after: avoid !important; page-break-inside: avoid !important; break-after: avoid-page !important; break-inside: avoid-page !important; }
+                          * { page-break-inside: avoid !important; break-inside: avoid-page !important; }
+                          tr, td, th, div, p, table, tbody, thead { page-break-inside: avoid !important; break-inside: avoid-page !important; }
                         }
                       </style>
                     </head>
