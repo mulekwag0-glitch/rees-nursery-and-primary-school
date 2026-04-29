@@ -630,24 +630,27 @@ export default function ReportCards() {
                   </div>
                 </div>
 
-                {/* Class Position */}
-                {classPosition && (
+                {/* Aggregates & Division */}
+                {aggregateInfo.subjectsUsed > 0 && (
                   <div className="grid grid-cols-3 gap-3 mb-5 text-center">
                     <div className="bg-amber-50 border border-amber-300 rounded-lg p-3">
-                      <p className="text-xs text-amber-700 uppercase font-semibold">Class Position</p>
-                      <p className="text-2xl font-bold text-amber-900">{classPosition.position} <span className="text-sm font-normal text-amber-700">/ {classPosition.total}</span></p>
+                      <p className="text-xs text-amber-700 uppercase font-semibold">Aggregates</p>
+                      <p className="text-2xl font-bold text-amber-900">{aggregateInfo.aggregate}</p>
+                      <p className="text-[10px] text-amber-700 mt-0.5">Best {aggregateInfo.subjectsUsed} subjects</p>
                     </div>
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                      <p className="text-xs text-red-700 uppercase font-semibold">Grand Total</p>
-                      <p className="text-2xl font-bold text-red-900">
-                        {classPosition.grandTotal} <span className="text-sm font-normal text-red-700">/ {studentResults.length * 100}</span>
-                      </p>
-                      <p className="text-[10px] text-red-700 mt-0.5">Average: {classPosition.average.toFixed(1)}%</p>
+                      <p className="text-xs text-red-700 uppercase font-semibold">Division</p>
+                      <p className="text-2xl font-bold text-red-900">{aggregateInfo.division}</p>
                     </div>
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                      <p className="text-xs text-green-700 uppercase font-semibold">Overall Rating</p>
-                      <p className="text-2xl font-bold text-green-900">{getCompetencyFromScore(classPosition.average)}</p>
-                    </div>
+                    {classPosition && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="text-xs text-green-700 uppercase font-semibold">Total Score</p>
+                        <p className="text-2xl font-bold text-green-900">
+                          {classPosition.grandTotal}
+                          <span className="text-sm font-normal text-green-700"> / {studentResults.length * 100}</span>
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -666,50 +669,14 @@ export default function ReportCards() {
                   </div>
                 )}
 
-                {/* All-term History (only when "All Terms" selected) */}
-                {allTermResults.length > 0 && (
-                  <div className="mb-5">
-                    <h3 className="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">All Terms Performance History</h3>
-                    {Object.entries(
-                      allTermResults.reduce((acc: Record<string, ResultWithDetails[]>, r) => {
-                        const k = r.student_courses.semesters?.name || 'Unknown';
-                        (acc[k] ||= []).push(r);
-                        return acc;
-                      }, {})
-                    )
-                      .sort(([a], [b]) => a.localeCompare(b))
-                      .map(([term, rs]) => {
-                        const avg = rs.reduce((s, r) => s + Number(r.total_marks || 0), 0) / rs.length;
-                        return (
-                          <div key={term} className="mb-3 border border-gray-200 rounded">
-                            <div className="bg-gray-50 px-3 py-1.5 flex justify-between items-center text-xs">
-                              <strong>{term}</strong>
-                              <span>Avg: <strong className="text-red-800">{avg.toFixed(1)}%</strong> · {getCompetencyFromScore(avg)}</span>
-                            </div>
-                            <table className="w-full text-xs">
-                              <tbody>
-                                {rs.map(r => (
-                                  <tr key={r.id} className="border-t border-gray-100">
-                                    <td className="px-3 py-1">{r.student_courses.courses.name}</td>
-                                    <td className="px-2 py-1 text-center w-16">{r.total_marks}</td>
-                                    <td className="px-2 py-1 text-center w-16 font-semibold text-red-800">{getCompetencyFromScore(r.total_marks || 0)}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-
                 {/* Results Table */}
                 {studentResults.length > 0 ? (
                   <table className="w-full border-collapse text-sm mb-5">
                     <thead>
                       <tr>
                         <th className="bg-red-800 text-white border border-red-900 px-3 py-2 text-left">Subject</th>
-                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-20">Total / 100</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-20">Total Score</th>
+                        <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-16">Grade</th>
                         <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center w-14">Rating</th>
                         <th className="bg-red-800 text-white border border-red-900 px-2 py-2 text-center">Remark</th>
                       </tr>
@@ -721,7 +688,8 @@ export default function ReportCards() {
                         return (
                           <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-red-50/40'}>
                             <td className="border border-gray-300 px-3 py-1.5">{r.student_courses.courses.name}</td>
-                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{hasMarks ? `${r.total_marks}/100` : '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{hasMarks ? r.total_marks : '—'}</td>
+                            <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{hasMarks ? (r.grade || '—') : '—'}</td>
                             <td className="border border-gray-300 px-2 py-1.5 text-center font-bold text-red-800">{hasMarks ? competency : '—'}</td>
                             <td className="border border-gray-300 px-2 py-1.5 text-center text-xs italic text-gray-500">
                               {hasMarks ? COMPETENCY_RATINGS.find(c => c.code === competency)?.label : 'Awaiting marks'}
@@ -731,17 +699,12 @@ export default function ReportCards() {
                       })}
                       {studentResults.every(r => r.total_marks !== null && r.total_marks !== undefined) && (
                         <tr className="bg-amber-50 font-bold">
-                          <td className="border border-gray-300 px-3 py-2 text-right">GRAND TOTAL</td>
+                          <td className="border border-gray-300 px-3 py-2 text-right">TOTAL SCORE</td>
                           <td className="border border-gray-300 px-2 py-2 text-center text-red-800">
-                            {studentResults.reduce((s, r) => s + Number(r.total_marks || 0), 0)} / {studentResults.length * 100}
+                            {studentResults.reduce((s, r) => s + Number(r.total_marks || 0), 0)}
                           </td>
-                          <td className="border border-gray-300 px-2 py-2 text-center" colSpan={2}>
-                            Average:{' '}
-                            {(
-                              studentResults.reduce((s, r) => s + Number(r.total_marks || 0), 0) /
-                              studentResults.length
-                            ).toFixed(1)}
-                            %
+                          <td className="border border-gray-300 px-2 py-2 text-center" colSpan={3}>
+                            Aggregate: <span className="text-red-800">{aggregateInfo.aggregate}</span> &nbsp;·&nbsp; {aggregateInfo.division}
                           </td>
                         </tr>
                       )}
