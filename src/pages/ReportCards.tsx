@@ -588,7 +588,8 @@ export default function ReportCards() {
               style={{
                 fontFamily: 'Georgia, serif',
                 width: '210mm',
-                minHeight: '297mm',
+                height: '297mm',
+                overflow: 'hidden',
                 boxSizing: 'border-box',
               }}
             >
