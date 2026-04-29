@@ -336,7 +336,7 @@ export default function ReportCards() {
     setBatchGenerating(true);
     const skipped: string[] = [];
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4', compress: true });
       let isFirst = true;
 
       for (const studentId of selectedStudents) {
@@ -460,6 +460,9 @@ export default function ReportCards() {
         pdf.setFontSize(8);
         pdf.setFont('helvetica', 'bold');
         pdf.text('Key: BE = Beyond Expectation | AE = Above Expectation | ME = Meeting Expectation | BW = Below Expectation', 15, y);
+        y += 6;
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Next term begins: ${nextTermDate}`, 15, y);
       }
 
       pdf.save(`batch_report_cards_${selectedTerm || 'term1'}.pdf`);
