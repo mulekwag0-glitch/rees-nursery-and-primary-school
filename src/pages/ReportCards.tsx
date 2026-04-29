@@ -276,19 +276,15 @@ export default function ReportCards() {
       const canvas = await html2canvas(reportCardRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      if (pdfHeight <= pdf.internal.pageSize.getHeight()) {
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      } else {
-        let position = 0;
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        while (position < pdfHeight) {
-          pdf.addImage(imgData, 'PNG', 0, -position, pdfWidth, pdfHeight);
-          position += pageHeight;
-          if (position < pdfHeight) pdf.addPage();
-        }
-      }
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      // Force single A4 page: scale image to fit fully within one page, preserving aspect ratio.
+      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+      const drawW = canvas.width * ratio;
+      const drawH = canvas.height * ratio;
+      const offsetX = (pageW - drawW) / 2;
+      const offsetY = (pageH - drawH) / 2;
+      pdf.addImage(imgData, 'PNG', offsetX, offsetY, drawW, drawH);
       const studentData = getSelectedStudentData();
       pdf.save(`report_card_${studentData?.student_id || 'unknown'}_${selectedTerm || 'term1'}.pdf`);
       toast({ title: 'PDF Downloaded', description: 'Report card saved.' });
@@ -592,7 +588,8 @@ export default function ReportCards() {
               style={{
                 fontFamily: 'Georgia, serif',
                 width: '210mm',
-                minHeight: '297mm',
+                height: '297mm',
+                overflow: 'hidden',
                 boxSizing: 'border-box',
               }}
             >
@@ -614,7 +611,7 @@ export default function ReportCards() {
                 <img src={reesLogo} alt="" className="w-[300px] h-[300px] object-contain" />
               </div>
 
-              <div className="relative z-10 p-10">
+              <div className="relative z-10 px-8 py-6">
                 {/* Header */}
                 <div className="text-center mb-5">
                   <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
@@ -819,18 +816,22 @@ export default function ReportCards() {
                         body { font-family: Georgia, serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
                         .report-wrap {
                           width: 210mm;
-                          min-height: 297mm;
+                          height: 297mm;
                           margin: 0 auto;
                           padding: 0;
                           box-sizing: border-box;
                           position: relative;
                           overflow: hidden;
+                          page-break-after: avoid;
+                          page-break-inside: avoid;
                         }
                         .report-wrap > div, .report-card-a4 {
                           width: 210mm !important;
                           max-width: 210mm !important;
-                          min-height: 297mm !important;
+                          height: 297mm !important;
+                          max-height: 297mm !important;
                           box-sizing: border-box !important;
+                          overflow: hidden !important;
                         }
                         table { width: 100%; border-collapse: collapse; }
                         th, td { border: 1px solid #999; padding: 6px; text-align: left; }
@@ -838,7 +839,9 @@ export default function ReportCards() {
                         img { max-width: 100%; }
                         @media print {
                           body { margin: 0; }
-                          .report-wrap { width: 210mm; min-height: 297mm; }
+                          html, body { width: 210mm; height: 297mm; overflow: hidden; }
+                          .report-wrap { width: 210mm; height: 297mm; overflow: hidden; page-break-after: avoid; }
+                          * { page-break-inside: avoid !important; }
                         }
                       </style>
                     </head>
