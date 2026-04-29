@@ -611,7 +611,7 @@ export default function ReportCards() {
                 <img src={reesLogo} alt="" className="w-[300px] h-[300px] object-contain" />
               </div>
 
-              <div className="relative z-10 p-10">
+              <div className="relative z-10 px-8 py-6">
                 {/* Header */}
                 <div className="text-center mb-5">
                   <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
