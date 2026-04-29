@@ -816,18 +816,22 @@ export default function ReportCards() {
                         body { font-family: Georgia, serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
                         .report-wrap {
                           width: 210mm;
-                          min-height: 297mm;
+                          height: 297mm;
                           margin: 0 auto;
                           padding: 0;
                           box-sizing: border-box;
                           position: relative;
                           overflow: hidden;
+                          page-break-after: avoid;
+                          page-break-inside: avoid;
                         }
                         .report-wrap > div, .report-card-a4 {
                           width: 210mm !important;
                           max-width: 210mm !important;
-                          min-height: 297mm !important;
+                          height: 297mm !important;
+                          max-height: 297mm !important;
                           box-sizing: border-box !important;
+                          overflow: hidden !important;
                         }
                         table { width: 100%; border-collapse: collapse; }
                         th, td { border: 1px solid #999; padding: 6px; text-align: left; }
@@ -835,7 +839,9 @@ export default function ReportCards() {
                         img { max-width: 100%; }
                         @media print {
                           body { margin: 0; }
-                          .report-wrap { width: 210mm; min-height: 297mm; }
+                          html, body { width: 210mm; height: 297mm; overflow: hidden; }
+                          .report-wrap { width: 210mm; height: 297mm; overflow: hidden; page-break-after: avoid; }
+                          * { page-break-inside: avoid !important; }
                         }
                       </style>
                     </head>
