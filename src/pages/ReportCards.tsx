@@ -643,9 +643,30 @@ export default function ReportCards() {
                 <Label>Head Teacher's Comment</Label>
                 <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
               </div>
+              <div>
+                <Label>Next Term Begins</Label>
+                <Input value={nextTermDate} onChange={(e) => setNextTermDate(e.target.value)} placeholder="DD/MM/YYYY" />
+              </div>
+              <div className="flex items-end gap-3">
+                <div className="flex items-center gap-2">
+                  <Switch checked={a4Preview} onCheckedChange={setA4Preview} id="a4-preview" />
+                  <Label htmlFor="a4-preview" className="cursor-pointer">A4 Preview (1:1)</Label>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Auto-fit: {Math.round(autoFitScale * 100)}%
+                </span>
+              </div>
             </div>
 
             {/* Printable Report Card - A4 Portrait (210mm x 297mm) */}
+            <div
+              className="mx-auto"
+              style={{
+                width: a4Preview ? '210mm' : '100%',
+                maxWidth: '210mm',
+                overflow: 'auto',
+              }}
+            >
             <div
               ref={reportCardRef}
               className="report-card-a4 bg-white text-black relative mx-auto"
@@ -655,6 +676,8 @@ export default function ReportCards() {
                 height: '297mm',
                 overflow: 'hidden',
                 boxSizing: 'border-box',
+                transform: a4Preview ? 'none' : 'scale(1)',
+                transformOrigin: 'top left',
               }}
             >
               {/* Outer decorative border (multi-band: red / gold / red) */}
@@ -675,7 +698,16 @@ export default function ReportCards() {
                 <img src={reesLogo} alt="" className="w-[300px] h-[300px] object-contain" />
               </div>
 
-              <div className="relative z-10 px-8 py-6">
+              <div
+                ref={reportInnerRef}
+                className="relative z-10 px-8 py-6"
+                style={{
+                  transform: `scale(${autoFitScale})`,
+                  transformOrigin: 'top left',
+                  width: `${100 / autoFitScale}%`,
+                  height: `${100 / autoFitScale}%`,
+                }}
+              >
                 {/* Header */}
                 <div className="text-center mb-5">
                   <img src={reesLogo} alt="Logo" className="w-20 h-20 mx-auto mb-2 object-contain" />
@@ -854,13 +886,14 @@ export default function ReportCards() {
                 </div>
 
                 <div className="mt-4 text-center">
-                  <div className="inline-flex items-center gap-4 text-xs text-gray-400 border-t border-gray-200 pt-3">
-                    <span>Next term begins: _________________</span>
+                  <div className="inline-flex items-center gap-4 text-xs text-gray-600 border-t border-gray-200 pt-3">
+                    <span>Next term begins: <strong className="text-red-800">{nextTermDate}</strong></span>
                     <span>•</span>
                     <span>School stamp</span>
                   </div>
                 </div>
               </div>
+            </div>
             </div>
 
             <DialogFooter>
