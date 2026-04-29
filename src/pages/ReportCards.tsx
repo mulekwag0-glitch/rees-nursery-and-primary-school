@@ -585,8 +585,17 @@ export default function ReportCards() {
               </div>
             </div>
 
-            {/* Printable Report Card - A4 Portrait */}
-            <div ref={reportCardRef} className="bg-white text-black relative mx-auto" style={{ fontFamily: 'Georgia, serif', width: '794px', minHeight: '1123px' }}>
+            {/* Printable Report Card - A4 Portrait (210mm x 297mm) */}
+            <div
+              ref={reportCardRef}
+              className="report-card-a4 bg-white text-black relative mx-auto"
+              style={{
+                fontFamily: 'Georgia, serif',
+                width: '210mm',
+                minHeight: '297mm',
+                boxSizing: 'border-box',
+              }}
+            >
               {/* Outer decorative border (multi-band: red / gold / red) */}
               <div className="absolute inset-0 border-[8px] border-red-800 rounded-md" />
               <div className="absolute inset-[10px] border-[3px] border-amber-500 rounded-md" />
