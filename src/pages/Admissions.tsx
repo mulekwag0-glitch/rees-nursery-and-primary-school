@@ -112,7 +112,7 @@ export default function Admissions() {
           program_id: programId,
           current_year: parseInt(currentYear),
           status: 'active',
-          full_name: fullName,
+          full_name: (fullName || '').toUpperCase(),
           gender: gender || null,
           parent_contact: parentContact || null,
         })
