@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserPlus, Search, Loader2, GraduationCap, Phone, MapPin, Camera, X } from 'lucide-react';
-import { notifyStudentAdmitted } from '@/lib/notifications';
 import { logAudit } from '@/lib/audit';
 import { admissionSchema, validateForm } from '@/lib/validation';
 
@@ -94,27 +93,6 @@ export default function Admissions() {
       setPassportPhoto(file);
       setPhotoPreview(URL.createObjectURL(file));
     }
-  };
-
-  const uploadPassportPhoto = async (userId: string): Promise<string | null> => {
-    if (!passportPhoto) return null;
-    const fileExt = passportPhoto.name.split('.').pop();
-    const filePath = `${userId}/passport.${fileExt}`;
-    
-    const { error } = await supabase.storage
-      .from('student-photos')
-      .upload(filePath, passportPhoto, { upsert: true });
-    
-    if (error) {
-      console.error('Photo upload error:', error);
-      return null;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from('student-photos')
-      .getPublicUrl(filePath);
-    
-    return urlData.publicUrl;
   };
 
   const admitMutation = useMutation({
