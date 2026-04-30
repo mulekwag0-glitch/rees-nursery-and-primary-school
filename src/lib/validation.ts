@@ -97,7 +97,7 @@ export const paymentSchema = z.object({
 // ==================== Admissions ====================
 export const admissionSchema = z.object({
   fullName: z.string().trim().min(1, 'Name is required').max(200),
-  email: z.string().trim().email('Invalid email').max(255),
+  email: z.string().trim().email('Invalid email').max(255).optional().or(z.literal('')),
   phone: z.string().max(20).optional().or(z.literal('')),
   programId: z.string().uuid('Select a program'),
   currentYear: z.number().int().min(1).max(6),
