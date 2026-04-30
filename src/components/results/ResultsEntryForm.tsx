@@ -380,12 +380,15 @@ export function ResultsEntryForm() {
                   </thead>
                   <tbody>
                     {filtered.map((s: any) => {
-                      const c = getComputed(s);
-                      const locked = (s.status === 'submitted' || s.status === 'approved') && role === 'tutor';
+                       const c = getComputed(s);
+                       // Tutors may overwrite previously submitted/approved marks —
+                       // doing so resets the row back to the chosen status (draft/submitted)
+                       // so corrections always flow through approval again.
+                       const locked = false;
                       return (
                         <tr key={s.studentCourseId}>
                           <td className="font-mono text-xs">{s.studentNumber}</td>
-                          <td className="font-medium">{s.studentName}</td>
+                          <td className="font-medium uppercase">{s.studentName}</td>
                           <td className="text-center">
                             <Input type="number" min="0" max="100" value={c.total ?? ''}
                               onChange={(e) => handleTotalChange(s.studentCourseId, e.target.value)}
