@@ -112,7 +112,7 @@ export default function Admissions() {
           program_id: programId,
           current_year: parseInt(currentYear),
           status: 'active',
-          full_name: fullName,
+          full_name: (fullName || '').toUpperCase(),
           gender: gender || null,
           parent_contact: parentContact || null,
         })
@@ -373,7 +373,7 @@ export default function Admissions() {
                           </div>
                         </td>
                         <td className="font-mono text-sm">{s.student_id}</td>
-                        <td className="font-medium">{s.full_name}</td>
+                        <td className="font-medium uppercase">{s.full_name}</td>
                         <td className="text-sm text-muted-foreground">{s.email || ''}</td>
                         <td><Badge variant="secondary">{s.programs?.code}</Badge></td>
                         <td className="text-center">{s.current_year}</td>
