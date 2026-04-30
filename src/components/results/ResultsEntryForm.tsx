@@ -128,21 +128,17 @@ export function ResultsEntryForm() {
       if (invalid.length) {
         throw new Error(`Marks must be between 0 and 100. Fix: ${invalid.join(', ')}`);
       }
-      // For SUBMIT we require every pupil to have a value (can't submit blanks)
-      if (status === 'submitted') {
-        const missing = list
-          .filter((s: any) => {
-            const local = localResults.get(s.studentCourseId);
-            const total = local?.total ?? s.totalMarks;
-            return total === null || total === undefined;
-          })
-          .map((s: any) => s.studentName);
-        if (missing.length) {
-          throw new Error(`Cannot submit — missing marks for: ${missing.join(', ')}`);
-        }
-      }
+      // Submit only the rows the tutor actually entered/edited this session,
+      // OR existing rows that already have marks. This allows updating one
+      // pupil at a time without needing every pupil's marks.
       const rows = list
-        .filter((s: any) => localResults.has(s.studentCourseId) || s.resultId)
+        .filter((s: any) => {
+          const local = localResults.get(s.studentCourseId);
+          if (local && local.total !== null && local.total !== undefined) return true;
+          // For submit, also include existing rows that already have marks
+          if (status === 'submitted' && s.resultId && s.totalMarks != null) return true;
+          return false;
+        })
         .map((s: any) => {
           const local = localResults.get(s.studentCourseId);
           const total = local?.total ?? s.totalMarks ?? 0;
@@ -154,12 +150,21 @@ export function ResultsEntryForm() {
             total_marks: total,
             status,
             tutor_id: user?.id,
+            rejection_reason: null,
+            approved_by: null,
+            approved_at: null,
           };
           if (s.resultId) row.id = s.resultId;
           return row;
         });
 
-      if (rows.length === 0) throw new Error('No marks entered');
+      if (rows.length === 0) {
+        throw new Error(
+          status === 'submitted'
+            ? 'Enter marks for at least one pupil before submitting'
+            : 'No marks entered'
+        );
+      }
 
       const { error } = await supabase
         .from('results')
