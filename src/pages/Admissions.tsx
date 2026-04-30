@@ -123,62 +123,51 @@ export default function Admissions() {
         fullName, email, phone, programId, currentYear: parseInt(currentYear),
       });
       const studentIdNumber = generateStudentId();
-      const tempPassword = `REES${new Date().getFullYear()}!`;
 
-      // Use the create-user edge function
-      const { data, error } = await supabase.functions.invoke('create-user', {
-        body: {
-          email,
-          password: tempPassword,
+      // Create the pupil record directly. A user account is NOT required
+      // — pupils don't sign in to the system. The auto-enroll trigger will
+      // place them in the current term's subjects so results can be entered.
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .insert({
+          student_id: studentIdNumber,
+          program_id: programId,
+          current_year: parseInt(currentYear),
+          status: 'active',
           full_name: fullName,
-          role: 'student',
-        },
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      const userId = data.user?.id || data.userId || data.user_id;
-      if (!userId) throw new Error('Failed to create user account');
-
-      // Upload passport photo
-      const photoUrl = await uploadPassportPhoto(userId);
-
-      // Update profile with phone and photo
-      const profileUpdate: any = {};
-      if (phone) profileUpdate.phone = phone;
-      if (photoUrl) profileUpdate.avatar_url = photoUrl;
-      if (Object.keys(profileUpdate).length > 0) {
-        await supabase.from('profiles').update(profileUpdate).eq('id', userId);
-      }
-
-      // Create student record
-      const { data: studentData, error: studentError } = await supabase.from('students').insert({
-        user_id: userId,
-        student_id: studentIdNumber,
-        program_id: programId,
-        current_year: parseInt(currentYear),
-        status: 'active',
-        full_name: fullName,
-        gender: gender || null,
-        parent_contact: parentContact || null,
-      }).select('id').single();
+          gender: gender || null,
+          parent_contact: parentContact || null,
+        })
+        .select('id')
+        .single();
       if (studentError) throw studentError;
 
-      // Auto-enrollment is handled by the database trigger on insert
+      // Optional: upload a passport photo to storage under the new pupil's id
+      if (passportPhoto) {
+        try {
+          const fileExt = passportPhoto.name.split('.').pop();
+          await supabase.storage
+            .from('student-photos')
+            .upload(`${studentData.id}/passport.${fileExt}`, passportPhoto, { upsert: true });
+        } catch (e) {
+          console.error('Photo upload failed (non-fatal):', e);
+        }
+      }
 
-      // Send notification
       const selectedProgram = programs?.find(p => p.id === programId);
-      await notifyStudentAdmitted(userId, studentIdNumber, selectedProgram?.name || 'your program');
-      await logAudit('student_admitted', 'students', userId, null, { student_id: studentIdNumber, email, program_id: programId });
+      await logAudit('student_admitted', 'students', studentData.id, null, {
+        student_id: studentIdNumber,
+        program_id: programId,
+        program_name: selectedProgram?.name,
+      });
 
-      return { studentIdNumber, tempPassword };
+      return { studentIdNumber };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['all-students'] });
       toast({
-        title: 'Student Admitted Successfully',
-        description: `ID: ${data.studentIdNumber} | Temporary password: ${data.tempPassword}`,
+        title: 'Pupil Admitted Successfully',
+        description: `Reg No: ${data.studentIdNumber}. Pupil has been auto-enrolled in current term subjects.`,
       });
       resetForm();
     },
@@ -277,8 +266,8 @@ export default function Admissions() {
                     <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. John Kato" required />
                   </div>
                   <div className="space-y-2">
-                    <Label>Email *</Label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@email.com" required />
+                    <Label>Email</Label>
+                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="optional" />
                   </div>
                   <div className="space-y-2">
                     <Label>Phone</Label>
@@ -324,10 +313,7 @@ export default function Admissions() {
 
                 <div className="p-3 rounded-lg bg-muted text-sm">
                   <p className="text-muted-foreground">
-                    <strong>Auto-generated ID:</strong> {generateStudentId()}
-                  </p>
-                  <p className="text-muted-foreground mt-1">
-                    <strong>Temp Password:</strong> REES{new Date().getFullYear()}!
+                    <strong>Auto-generated Reg No:</strong> {generateStudentId()}
                   </p>
                   {semesters && semesters.length > 0 && (
                     <p className="text-muted-foreground mt-1">
@@ -340,7 +326,7 @@ export default function Admissions() {
 
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-                  <Button type="submit" disabled={admitMutation.isPending || !fullName || !email || !programId}>
+                  <Button type="submit" disabled={admitMutation.isPending || !fullName || !programId}>
                     {admitMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Admit Student
                   </Button>
