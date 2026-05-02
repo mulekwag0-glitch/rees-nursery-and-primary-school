@@ -582,7 +582,18 @@ function FinancePaymentsView() {
                               <Printer className="w-4 h-4" />
                             </Button>
                             {!isApproved && (
-                              <Button variant="ghost" size="sm" onClick={() => setEditTarget({ ...payment })} title="Edit">
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                const existing = (discounts || []).find((d: any) =>
+                                  d.student_id === payment.student_id && d.semester_id === payment.semester_id
+                                );
+                                setEditTarget({
+                                  ...payment,
+                                  discount_id: existing?.id || null,
+                                  discount_amount: existing?.amount ? String(existing.amount) : '',
+                                  discount_reason: existing?.reason || '',
+                                  discount_status: existing?.status || null,
+                                });
+                              }} title="Edit">
                                 <Edit className="w-4 h-4" />
                               </Button>
                             )}
