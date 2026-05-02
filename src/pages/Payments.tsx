@@ -719,25 +719,42 @@ function FinancePaymentsView() {
 
       {/* Edit payment (only while pending) */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Payment</DialogTitle>
-            <DialogDescription>Changes are allowed while the payment is pending. Once approved, it locks.</DialogDescription>
+            <DialogDescription>Update payment details. Changes are allowed while the payment is pending — once approved, it locks.</DialogDescription>
           </DialogHeader>
           {editTarget && (
-            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="space-y-3">
-              <div className="space-y-1.5">
+            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="space-y-4 mt-2">
+              <div className="space-y-2">
+                <Label>Pupil</Label>
+                <Input
+                  value={`${editTarget.students?.full_name || editTarget.students?.profiles?.full_name || '-'} · ${editTarget.students?.student_id || ''}`}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Term</Label>
+                <Input value={editTarget.semesters?.name || '-'} disabled className="bg-muted" />
+              </div>
+
+              <div className="space-y-2">
                 <Label>Amount (UGX)</Label>
                 <Input type="number" min={0} value={editTarget.amount}
-                  onChange={(e) => setEditTarget({ ...editTarget, amount: e.target.value })} required />
+                  onChange={(e) => setEditTarget({ ...editTarget, amount: e.target.value })}
+                  placeholder="Enter amount" required />
               </div>
-              <div className="space-y-1.5">
+
+              <div className="space-y-2">
                 <Label>Payment Date</Label>
-                <Input type="date" value={editTarget.payment_date}
+                <Input type="date" value={(editTarget.payment_date || '').split('T')[0]}
                   onChange={(e) => setEditTarget({ ...editTarget, payment_date: e.target.value })} />
               </div>
-              <div className="space-y-1.5">
-                <Label>Method</Label>
+
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
                 <Select value={editTarget.payment_method} onValueChange={(v) => setEditTarget({ ...editTarget, payment_method: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -748,15 +765,23 @@ function FinancePaymentsView() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label>Notes</Label>
-                <Textarea rows={2} value={editTarget.notes || ''}
-                  onChange={(e) => setEditTarget({ ...editTarget, notes: e.target.value })} />
+
+              <div className="space-y-2">
+                <Label>Receipt Number</Label>
+                <Input value={editTarget.receipt_number || ''} disabled className="bg-muted font-mono" />
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
-                <Button type="submit">Save Changes</Button>
-              </DialogFooter>
+
+              <div className="space-y-2">
+                <Label>Notes (Optional)</Label>
+                <Textarea rows={2} value={editTarget.notes || ''}
+                  onChange={(e) => setEditTarget({ ...editTarget, notes: e.target.value })}
+                  placeholder="Additional notes..." />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditTarget(null)} className="flex-1">Cancel</Button>
+                <Button type="submit" className="flex-1">Save Changes</Button>
+              </div>
             </form>
           )}
         </DialogContent>
