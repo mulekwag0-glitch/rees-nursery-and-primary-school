@@ -9,6 +9,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Send, CheckCircle, Clock, Search, Loader2, Trash2 } from 'lucide-react';
 import { notifyResultsSubmitted } from '@/lib/notifications';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { History } from 'lucide-react';
 
 // Grade is computed server-side by the results_set_grade trigger using
 // the Uganda grading bands (lower vs upper primary). This helper is just
@@ -38,6 +42,8 @@ export function ResultsEntryForm() {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [localResults, setLocalResults] = useState<Map<string, { total: number | null }>>(new Map());
+  const [hideUnentered, setHideUnentered] = useState(false);
+  const [auditOpen, setAuditOpen] = useState<{ studentCourseId: string; name: string } | null>(null);
 
   // Programs (classes)
   const { data: programs } = useQuery({
@@ -159,10 +165,19 @@ export function ResultsEntryForm() {
         });
 
       if (rows.length === 0) {
+        const missing = list
+          .filter((s: any) => {
+            const local = localResults.get(s.studentCourseId);
+            const total = local?.total ?? s.totalMarks;
+            return total === null || total === undefined;
+          })
+          .map((s: any) => s.studentName);
+        const sample = missing.slice(0, 5).join(', ');
+        const more = missing.length > 5 ? ` and ${missing.length - 5} more` : '';
         throw new Error(
           status === 'submitted'
-            ? 'Enter marks for at least one pupil before submitting'
-            : 'No marks entered'
+            ? `No marks to submit. ${missing.length} pupil(s) missing totals: ${sample}${more}. Enter at least one mark, then click Submit.`
+            : `Nothing to save — type a total for at least one pupil.`
         );
       }
 
@@ -246,11 +261,30 @@ export function ResultsEntryForm() {
   const filtered = useMemo(
     () =>
       (enrolledStudents || []).filter(
-        (s: any) =>
-          s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (s.studentNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (s: any) => {
+          const matchesSearch =
+            s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (s.studentNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
+          if (!matchesSearch) return false;
+          if (hideUnentered) {
+            const local = localResults.get(s.studentCourseId);
+            const total = local?.total ?? s.totalMarks;
+            return total !== null && total !== undefined;
+          }
+          return true;
+        }
       ),
-    [enrolledStudents, searchTerm]
+    [enrolledStudents, searchTerm, hideUnentered, localResults]
+  );
+
+  const readyToSubmit = useMemo(
+    () =>
+      (enrolledStudents || []).filter((s: any) => {
+        const local = localResults.get(s.studentCourseId);
+        const total = local?.total ?? s.totalMarks;
+        return total !== null && total !== undefined;
+      }),
+    [enrolledStudents, localResults]
   );
 
   const selectedSemesterData = semesters?.find((s: any) => s.id === selectedSemester);
@@ -345,22 +379,39 @@ export function ResultsEntryForm() {
                 <Button
                   variant="outline"
                   onClick={() => upsertMutation.mutate({ status: 'draft' })}
-                  disabled={upsertMutation.isPending || !filtered.length}
+                  disabled={upsertMutation.isPending || localResults.size === 0}
+                  title={localResults.size === 0 ? 'Type a total for at least one pupil to enable Save Draft' : ''}
                 >
                   {upsertMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Save Draft
                 </Button>
                 <Button
                   onClick={() => upsertMutation.mutate({ status: 'submitted' })}
-                  disabled={upsertMutation.isPending || !filtered.length}
+                  disabled={upsertMutation.isPending || readyToSubmit.length === 0}
+                  title={
+                    readyToSubmit.length === 0
+                      ? 'Submit disabled — no pupil has a total entered yet. Type a mark for at least one pupil.'
+                      : `Will submit marks for ${readyToSubmit.length} pupil(s)`
+                  }
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  Submit
+                  Submit{readyToSubmit.length > 0 ? ` (${readyToSubmit.length})` : ''}
                 </Button>
               </div>
             )}
           </CardHeader>
           <CardContent>
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <Switch id="hide-unentered" checked={hideUnentered} onCheckedChange={setHideUnentered} />
+                <Label htmlFor="hide-unentered" className="text-sm cursor-pointer">
+                  Hide pupils without entered marks
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {readyToSubmit.length} of {(enrolledStudents || []).length} pupils have totals
+              </p>
+            </div>
             {studentsLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
             ) : !filtered.length ? (
@@ -375,7 +426,7 @@ export function ResultsEntryForm() {
                       <th className="text-center w-28">Total Marks (/100)</th>
                       <th className="text-center w-20">Grade</th>
                       <th className="text-center w-24">Status</th>
-                      {canEdit && <th className="text-center w-16">Actions</th>}
+                      {canEdit && <th className="text-center w-24">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -410,11 +461,23 @@ export function ResultsEntryForm() {
                           </td>
                           {canEdit && (
                             <td className="text-center">
-                              {s.resultId && role === 'admin' && (
-                                <Button size="icon" variant="ghost" onClick={() => deleteMutation.mutate(s.resultId)}>
-                                  <Trash2 className="w-4 h-4 text-destructive" />
-                                </Button>
-                              )}
+                              <div className="flex items-center justify-center gap-1">
+                                {s.resultId && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    title="View change history"
+                                    onClick={() => setAuditOpen({ studentCourseId: s.studentCourseId, name: s.studentName })}
+                                  >
+                                    <History className="w-4 h-4 text-muted-foreground" />
+                                  </Button>
+                                )}
+                                {s.resultId && role === 'admin' && (
+                                  <Button size="icon" variant="ghost" onClick={() => deleteMutation.mutate(s.resultId)}>
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           )}
                         </tr>
@@ -427,6 +490,94 @@ export function ResultsEntryForm() {
           </CardContent>
         </Card>
       )}
+
+      <AuditDialog
+        open={!!auditOpen}
+        onClose={() => setAuditOpen(null)}
+        studentCourseId={auditOpen?.studentCourseId}
+        studentName={auditOpen?.name}
+      />
     </div>
+  );
+}
+
+function AuditDialog({
+  open,
+  onClose,
+  studentCourseId,
+  studentName,
+}: {
+  open: boolean;
+  onClose: () => void;
+  studentCourseId?: string;
+  studentName?: string;
+}) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['results-audit', studentCourseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('results_audit' as any)
+        .select('*')
+        .eq('student_course_id', studentCourseId!)
+        .order('changed_at', { ascending: false });
+      if (error) throw error;
+      const userIds = Array.from(new Set((data || []).map((r: any) => r.changed_by).filter(Boolean)));
+      const profiles: Record<string, string> = {};
+      if (userIds.length) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds as string[]);
+        (profs || []).forEach((p: any) => {
+          profiles[p.id] = p.full_name || p.email || p.id.slice(0, 8);
+        });
+      }
+      return (data || []).map((r: any) => ({ ...r, changedByName: profiles[r.changed_by] || 'Unknown' }));
+    },
+    enabled: !!studentCourseId && open,
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="uppercase">Change history — {studentName}</DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>
+        ) : !data?.length ? (
+          <p className="text-sm text-muted-foreground py-6 text-center">No changes recorded yet.</p>
+        ) : (
+          <div className="max-h-96 overflow-y-auto">
+            <table className="data-table w-full text-sm">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Who</th>
+                  <th>Action</th>
+                  <th className="text-center">Marks</th>
+                  <th className="text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((r: any) => (
+                  <tr key={r.id}>
+                    <td className="text-xs">{new Date(r.changed_at).toLocaleString()}</td>
+                    <td>{r.changedByName}</td>
+                    <td className="capitalize">{r.action}</td>
+                    <td className="text-center font-mono text-xs">
+                      {r.old_total ?? '—'} → {r.new_total ?? '—'}
+                    </td>
+                    <td className="text-center text-xs">
+                      {r.old_status ?? '—'} → {r.new_status ?? '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
