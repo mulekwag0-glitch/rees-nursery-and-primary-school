@@ -821,6 +821,31 @@ function FinancePaymentsView() {
                 <Input value={editTarget.receipt_number || ''} disabled className="bg-muted font-mono" />
               </div>
 
+              <div className="space-y-2 p-3 rounded-lg border border-dashed">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Discount (Optional — needs approval)</Label>
+                  {editTarget.discount_status && (
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full capitalize",
+                      editTarget.discount_status === 'approved' && 'bg-success/10 text-success',
+                      editTarget.discount_status === 'pending' && 'bg-warning/10 text-warning',
+                      editTarget.discount_status === 'rejected' && 'bg-destructive/10 text-destructive',
+                    )}>{editTarget.discount_status}</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input type="number" min={0} value={editTarget.discount_amount || ''}
+                    onChange={(e) => setEditTarget({ ...editTarget, discount_amount: e.target.value })}
+                    placeholder="Discount UGX" />
+                  <Input value={editTarget.discount_reason || ''}
+                    onChange={(e) => setEditTarget({ ...editTarget, discount_reason: e.target.value })}
+                    placeholder="Reason" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Editing the discount resets it to pending until re-approved. Set to 0 to remove it.
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label>Notes (Optional)</Label>
                 <Textarea rows={2} value={editTarget.notes || ''}
