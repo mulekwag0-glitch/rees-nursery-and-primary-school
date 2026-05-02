@@ -237,8 +237,44 @@ function FinancePaymentsView() {
       payment_date: editTarget.payment_date,
     }).eq('id', editTarget.id);
     if (error) return toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    toast({ title: 'Payment updated' });
+
+    // Handle discount changes (stored separately in pupil_discounts)
+    const newDiscount = parseFloat(editTarget.discount_amount) || 0;
+    const existingDiscountId = editTarget.discount_id || null;
+    if (newDiscount > 0) {
+      if (existingDiscountId) {
+        const { error: dErr } = await supabase.from('pupil_discounts').update({
+          amount: newDiscount,
+          reason: editTarget.discount_reason || null,
+          status: 'pending',
+          approved_at: null,
+          approved_by: null,
+        }).eq('id', existingDiscountId);
+        if (dErr) toast({ title: 'Discount update failed', description: dErr.message, variant: 'destructive' });
+      } else {
+        const userId = (await supabase.auth.getUser()).data.user?.id;
+        const { error: dErr } = await supabase.from('pupil_discounts').insert({
+          student_id: editTarget.student_id,
+          semester_id: editTarget.semester_id,
+          amount: newDiscount,
+          reason: editTarget.discount_reason || null,
+          status: 'pending',
+          requested_by: userId,
+        });
+        if (dErr) toast({ title: 'Discount not added', description: dErr.message, variant: 'destructive' });
+      }
+    } else if (existingDiscountId) {
+      // Discount cleared — remove it
+      await supabase.from('pupil_discounts').delete().eq('id', existingDiscountId);
+    }
+
+    toast({ title: 'Payment updated', description: 'Balance and totals have been recalculated.' });
     setEditTarget(null);
+    // Refresh all dependent queries so balance/summary stay accurate
+    qc.invalidateQueries({ queryKey: ['all-payments'] });
+    qc.invalidateQueries({ queryKey: ['payment-totals-by-student-term'] });
+    qc.invalidateQueries({ queryKey: ['payment-stats'] });
+    qc.invalidateQueries({ queryKey: ['pupil-discounts'] });
     refetch();
   };
 
@@ -248,8 +284,11 @@ function FinancePaymentsView() {
     );
     if (!fee) return null;
     const paid = paymentTotals?.[`${payment.student_id}|${payment.semester_id}`] || 0;
+    const discount = (discounts || [])
+      .filter((d: any) => d.student_id === payment.student_id && d.semester_id === payment.semester_id && d.status === 'approved')
+      .reduce((s: number, d: any) => s + Number(d.amount || 0), 0);
     const total = Number(fee.total_fee || 0);
-    return { fee: total, paid, balance: total - paid };
+    return { fee: total, paid, discount, balance: total - paid - discount };
   };
 
   const { data: stats } = useQuery({
@@ -543,7 +582,18 @@ function FinancePaymentsView() {
                               <Printer className="w-4 h-4" />
                             </Button>
                             {!isApproved && (
-                              <Button variant="ghost" size="sm" onClick={() => setEditTarget({ ...payment })} title="Edit">
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                const existing = (discounts || []).find((d: any) =>
+                                  d.student_id === payment.student_id && d.semester_id === payment.semester_id
+                                );
+                                setEditTarget({
+                                  ...payment,
+                                  discount_id: existing?.id || null,
+                                  discount_amount: existing?.amount ? String(existing.amount) : '',
+                                  discount_reason: existing?.reason || '',
+                                  discount_status: existing?.status || null,
+                                });
+                              }} title="Edit">
                                 <Edit className="w-4 h-4" />
                               </Button>
                             )}
@@ -769,6 +819,31 @@ function FinancePaymentsView() {
               <div className="space-y-2">
                 <Label>Receipt Number</Label>
                 <Input value={editTarget.receipt_number || ''} disabled className="bg-muted font-mono" />
+              </div>
+
+              <div className="space-y-2 p-3 rounded-lg border border-dashed">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Discount (Optional — needs approval)</Label>
+                  {editTarget.discount_status && (
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full capitalize",
+                      editTarget.discount_status === 'approved' && 'bg-success/10 text-success',
+                      editTarget.discount_status === 'pending' && 'bg-warning/10 text-warning',
+                      editTarget.discount_status === 'rejected' && 'bg-destructive/10 text-destructive',
+                    )}>{editTarget.discount_status}</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input type="number" min={0} value={editTarget.discount_amount || ''}
+                    onChange={(e) => setEditTarget({ ...editTarget, discount_amount: e.target.value })}
+                    placeholder="Discount UGX" />
+                  <Input value={editTarget.discount_reason || ''}
+                    onChange={(e) => setEditTarget({ ...editTarget, discount_reason: e.target.value })}
+                    placeholder="Reason" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Editing the discount resets it to pending until re-approved. Set to 0 to remove it.
+                </p>
               </div>
 
               <div className="space-y-2">
