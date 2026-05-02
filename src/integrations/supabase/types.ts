@@ -894,6 +894,45 @@ export type Database = {
           },
         ]
       }
+      results_audit: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_status: string | null
+          new_total: number | null
+          old_status: string | null
+          old_total: number | null
+          result_id: string | null
+          student_course_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status?: string | null
+          new_total?: number | null
+          old_status?: string | null
+          old_total?: number | null
+          result_id?: string | null
+          student_course_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status?: string | null
+          new_total?: number | null
+          old_status?: string | null
+          old_total?: number | null
+          result_id?: string | null
+          student_course_id?: string
+        }
+        Relationships: []
+      }
       schemes_of_work: {
         Row: {
           activities: string | null
