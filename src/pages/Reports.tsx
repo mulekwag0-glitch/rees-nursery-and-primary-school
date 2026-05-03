@@ -7,7 +7,29 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ExpenseReports } from '@/components/reports/ExpenseReports';
-import { downloadCSV, exportPaymentsCSV, exportEnrollmentsCSV, exportResultsCSV } from '@/lib/csvExport';
+import { exportPaymentsCSV, exportEnrollmentsCSV, exportResultsCSV, exportExpensesCSV } from '@/lib/csvExport';
+import { useToast } from '@/hooks/use-toast';
+
+function ExportButton({ onExport, label }: { onExport: () => Promise<void>; label: string }) {
+  const { toast } = useToast();
+  const [busy, setBusy] = React.useState(false);
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try { await onExport(); toast({ title: 'Exported', description: `${label} downloaded.` }); }
+        catch (e: any) { toast({ title: 'Export failed', description: e.message, variant: 'destructive' }); }
+        finally { setBusy(false); }
+      }}
+    >
+      {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+      Export CSV
+    </Button>
+  );
+}
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
