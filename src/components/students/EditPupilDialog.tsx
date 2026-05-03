@@ -64,13 +64,37 @@ export function EditPupilDialog({ pupil, open, onOpenChange }: Props) {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      // Validate status transition + warn user about side effects
+      const newStatus = form.status || 'active';
+      const oldStatus = pupil.status || 'active';
+      const programChanged = form.program_id && form.program_id !== pupil.program_id;
+
+      if (!form.full_name || !form.full_name.trim()) {
+        throw new Error('Full name is required');
+      }
+      if (!form.program_id) {
+        throw new Error('Class / Program is required');
+      }
+
+      if (newStatus !== oldStatus) {
+        const msg =
+          newStatus === 'active'
+            ? 'Setting status to ACTIVE will auto-enroll this pupil in current term subjects. Continue?'
+            : `Setting status to ${newStatus.toUpperCase()} will remove current-term subject enrollments that have NO marks yet (existing results are preserved). Continue?`;
+        if (!window.confirm(msg)) throw new Error('Cancelled');
+      } else if (programChanged) {
+        if (!window.confirm('Changing class will move this pupil to the new class subjects for the current term (subjects without marks will be re-assigned). Continue?')) {
+          throw new Error('Cancelled');
+        }
+      }
+
       const { error } = await supabase.from('students').update({
         full_name: (form.full_name || '').toUpperCase(),
         gender: form.gender || null,
         parent_contact: form.parent_contact || null,
         program_id: form.program_id,
         current_year: parseInt(form.current_year || '1'),
-        status: form.status || 'active',
+        status: newStatus,
       }).eq('id', pupil.id);
       if (error) throw error;
 
@@ -87,10 +111,15 @@ export function EditPupilDialog({ pupil, open, onOpenChange }: Props) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['all-students'] });
+      qc.invalidateQueries({ queryKey: ['student-courses'] });
+      qc.invalidateQueries({ queryKey: ['enrollments'] });
       toast({ title: 'Updated', description: 'Pupil record updated.' });
       onOpenChange(false);
     },
-    onError: (e: any) => toast({ title: 'Update failed', description: e.message, variant: 'destructive' }),
+    onError: (e: any) => {
+      if (e.message === 'Cancelled') return;
+      toast({ title: 'Update failed', description: e.message, variant: 'destructive' });
+    },
   });
 
   if (!pupil) return null;
