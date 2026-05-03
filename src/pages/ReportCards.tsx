@@ -106,6 +106,8 @@ export default function ReportCards() {
   const [batchGenerating, setBatchGenerating] = useState(false);
   const [teacherComment, setTeacherComment] = useState('Good performance. Keep it up!');
   const [headComment, setHeadComment] = useState('Well done. Continue working hard.');
+  const [teacherCommentEdited, setTeacherCommentEdited] = useState(false);
+  const [headCommentEdited, setHeadCommentEdited] = useState(false);
   const [conduct, setConduct] = useState('Good');
   const [attendance, setAttendance] = useState({ present: 0, absent: 0, total: 0 });
   const [nextTermDate, setNextTermDate] = useState('25/05/2026');
@@ -126,6 +128,45 @@ export default function ReportCards() {
     [studentResults]
   );
   const reportIncomplete = missingSubjects.length > 0;
+
+  // Auto-generate Class Teacher / Head Teacher comments from the pupil's division.
+  const autoComments = useMemo(() => {
+    const div = aggregateInfo.division;
+    const agg = aggregateInfo.aggregate;
+    let teacher = '';
+    let head = '';
+    switch (div) {
+      case 'I':
+        teacher = `Excellent performance with aggregate ${agg}. A first-grade pupil — keep up the outstanding work!`;
+        head = 'Outstanding results. Promoted with distinction. Congratulations!';
+        break;
+      case 'II':
+        teacher = `Very good performance with aggregate ${agg}. Keep working hard to reach Division One.`;
+        head = 'Very good results. Maintain the discipline and effort.';
+        break;
+      case 'III':
+        teacher = `Fair performance with aggregate ${agg}. More effort is needed in weaker subjects.`;
+        head = 'A fair performance. Read more and revise consistently.';
+        break;
+      case 'IV':
+        teacher = `Average performance with aggregate ${agg}. Pay closer attention in class and complete all assignments.`;
+        head = 'Improvement is required. Parents are encouraged to support revision at home.';
+        break;
+      case 'U':
+        teacher = `Below average performance with aggregate ${agg}. Serious revision and extra coaching are needed.`;
+        head = 'Performance is unsatisfactory. Close follow-up by parents and teachers is required.';
+        break;
+      default:
+        teacher = 'Results are pending. Comment will be generated once all marks are entered.';
+        head = 'Awaiting complete results.';
+    }
+    return { teacher, head };
+  }, [aggregateInfo]);
+
+  useEffect(() => {
+    if (!teacherCommentEdited) setTeacherComment(autoComments.teacher);
+    if (!headCommentEdited) setHeadComment(autoComments.head);
+  }, [autoComments, teacherCommentEdited, headCommentEdited]);
 
   const { data: students = [], isLoading: loadingStudents } = useQuery({
     queryKey: ['all-students-report'],
@@ -640,11 +681,43 @@ export default function ReportCards() {
               </div>
               <div>
                 <Label>Class Teacher's Comment</Label>
-                <Textarea value={teacherComment} onChange={(e) => setTeacherComment(e.target.value)} rows={2} />
+                <Textarea
+                  value={teacherComment}
+                  onChange={(e) => { setTeacherCommentEdited(true); setTeacherComment(e.target.value); }}
+                  rows={2}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-generated from performance. Edit to override.
+                  {teacherCommentEdited && (
+                    <button
+                      type="button"
+                      className="ml-2 underline text-primary"
+                      onClick={() => { setTeacherCommentEdited(false); setTeacherComment(autoComments.teacher); }}
+                    >
+                      Reset to auto
+                    </button>
+                  )}
+                </p>
               </div>
               <div>
                 <Label>Head Teacher's Comment</Label>
-                <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
+                <Textarea
+                  value={headComment}
+                  onChange={(e) => { setHeadCommentEdited(true); setHeadComment(e.target.value); }}
+                  rows={2}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-generated from performance. Edit to override.
+                  {headCommentEdited && (
+                    <button
+                      type="button"
+                      className="ml-2 underline text-primary"
+                      onClick={() => { setHeadCommentEdited(false); setHeadComment(autoComments.head); }}
+                    >
+                      Reset to auto
+                    </button>
+                  )}
+                </p>
               </div>
               <div>
                 <Label>Next Term Begins</Label>
