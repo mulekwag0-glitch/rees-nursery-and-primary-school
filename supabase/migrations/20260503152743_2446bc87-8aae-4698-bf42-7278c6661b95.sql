@@ -1,0 +1,1 @@
+ALTER FUNCTION public.validate_student_status_transition() SET search_path = public;
