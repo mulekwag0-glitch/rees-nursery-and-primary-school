@@ -681,11 +681,43 @@ export default function ReportCards() {
               </div>
               <div>
                 <Label>Class Teacher's Comment</Label>
-                <Textarea value={teacherComment} onChange={(e) => setTeacherComment(e.target.value)} rows={2} />
+                <Textarea
+                  value={teacherComment}
+                  onChange={(e) => { setTeacherCommentEdited(true); setTeacherComment(e.target.value); }}
+                  rows={2}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-generated from performance. Edit to override.
+                  {teacherCommentEdited && (
+                    <button
+                      type="button"
+                      className="ml-2 underline text-primary"
+                      onClick={() => { setTeacherCommentEdited(false); setTeacherComment(autoComments.teacher); }}
+                    >
+                      Reset to auto
+                    </button>
+                  )}
+                </p>
               </div>
               <div>
                 <Label>Head Teacher's Comment</Label>
-                <Textarea value={headComment} onChange={(e) => setHeadComment(e.target.value)} rows={2} />
+                <Textarea
+                  value={headComment}
+                  onChange={(e) => { setHeadCommentEdited(true); setHeadComment(e.target.value); }}
+                  rows={2}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Auto-generated from performance. Edit to override.
+                  {headCommentEdited && (
+                    <button
+                      type="button"
+                      className="ml-2 underline text-primary"
+                      onClick={() => { setHeadCommentEdited(false); setHeadComment(autoComments.head); }}
+                    >
+                      Reset to auto
+                    </button>
+                  )}
+                </p>
               </div>
               <div>
                 <Label>Next Term Begins</Label>
