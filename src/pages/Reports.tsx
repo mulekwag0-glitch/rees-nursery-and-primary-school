@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ExpenseReports } from '@/components/reports/ExpenseReports';
+import { downloadCSV, exportPaymentsCSV, exportEnrollmentsCSV, exportResultsCSV } from '@/lib/csvExport';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
