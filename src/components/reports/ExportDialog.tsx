@@ -95,7 +95,7 @@ export function ExportDialog({
           <div className="grid grid-cols-2 gap-3">
             {showSemester && (
               <div className="space-y-1.5">
-                <Label>Term / Semester</Label>
+                <Label>Term</Label>
                 <Select value={filters.semester_id || 'all'} onValueChange={(v) => setF('semester_id', v === 'all' ? undefined : v)}>
                   <SelectTrigger><SelectValue placeholder="All terms" /></SelectTrigger>
                   <SelectContent>
