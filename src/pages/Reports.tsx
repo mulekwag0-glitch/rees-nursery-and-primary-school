@@ -364,10 +364,22 @@ export default function Reports() {
             <TabsTrigger value="enrollments"><Users className="w-4 h-4 mr-2" />Enrollments</TabsTrigger>
             <TabsTrigger value="results"><GraduationCap className="w-4 h-4 mr-2" />Results</TabsTrigger>
           </TabsList>
-          <TabsContent value="payments" className="mt-6"><PaymentReports /></TabsContent>
-          <TabsContent value="expenses" className="mt-6"><ExpenseReports /></TabsContent>
-          <TabsContent value="enrollments" className="mt-6"><EnrollmentReports /></TabsContent>
-          <TabsContent value="results" className="mt-6"><ResultReports /></TabsContent>
+          <TabsContent value="payments" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Payments report" onExport={exportPaymentsCSV} /></div>
+            <PaymentReports />
+          </TabsContent>
+          <TabsContent value="expenses" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Expenses report" onExport={exportExpensesCSV} /></div>
+            <ExpenseReports />
+          </TabsContent>
+          <TabsContent value="enrollments" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Enrollments report" onExport={exportEnrollmentsCSV} /></div>
+            <EnrollmentReports />
+          </TabsContent>
+          <TabsContent value="results" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Results report" onExport={exportResultsCSV} /></div>
+            <ResultReports />
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
