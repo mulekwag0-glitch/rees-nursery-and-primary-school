@@ -83,7 +83,6 @@ const navigation: NavEntry[] = [
     module: 'expenses',
     items: [
       { label: 'Expenses', href: '/expenses', icon: Wallet, roles: ['admin', 'finance'], module: 'expenses' },
-      { label: 'Stock & POS', href: '/stock-pos', icon: Package, roles: ['admin', 'finance'], module: 'expenses' },
       { label: 'School Budget', href: '/work-plan', icon: Target, roles: ['admin'], module: 'expenses' },
     ],
   },
@@ -107,6 +106,7 @@ const navigation: NavEntry[] = [
     module: 'administration',
     items: [
       { label: 'PTA & Appraisal', href: '/administration', icon: Star, roles: ['admin'], module: 'administration' },
+      { label: 'Stock & POS', href: '/stock-pos', icon: Package, roles: ['admin', 'finance'], module: 'administration' },
       { label: 'Store & Assets', href: '/store-assets', icon: Package, roles: ['admin'], module: 'administration' },
     ],
   },
