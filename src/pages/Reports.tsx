@@ -7,26 +7,18 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ExpenseReports } from '@/components/reports/ExpenseReports';
-import { exportPaymentsCSV, exportEnrollmentsCSV, exportResultsCSV, exportExpensesCSV } from '@/lib/csvExport';
-import { useToast } from '@/hooks/use-toast';
+import { ExportDialog } from '@/components/reports/ExportDialog';
+import {
+  PAYMENT_COLUMNS, fetchPayments, summarisePayments,
+  EXPENSE_COLUMNS, fetchExpenses, summariseExpenses,
+  ENROLLMENT_COLUMNS, fetchEnrollments, summariseEnrollments,
+  RESULT_COLUMNS, fetchResults, summariseResults,
+} from '@/lib/csvExport';
 
-function ExportButton({ onExport, label }: { onExport: () => Promise<void>; label: string }) {
-  const { toast } = useToast();
-  const [busy, setBusy] = React.useState(false);
+function ExportTrigger({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      disabled={busy}
-      onClick={async () => {
-        setBusy(true);
-        try { await onExport(); toast({ title: 'Exported', description: `${label} downloaded.` }); }
-        catch (e: any) { toast({ title: 'Export failed', description: e.message, variant: 'destructive' }); }
-        finally { setBusy(false); }
-      }}
-    >
-      {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-      Export CSV
+    <Button size="sm" variant="outline" onClick={onClick}>
+      <Download className="w-4 h-4 mr-2" /> Export CSV
     </Button>
   );
 }
@@ -349,6 +341,7 @@ function ResultReports() {
 }
 
 export default function Reports() {
+  const [openDialog, setOpenDialog] = React.useState<null | 'payments' | 'expenses' | 'enrollments' | 'results'>(null);
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
@@ -365,22 +358,47 @@ export default function Reports() {
             <TabsTrigger value="results"><GraduationCap className="w-4 h-4 mr-2" />Results</TabsTrigger>
           </TabsList>
           <TabsContent value="payments" className="mt-6 space-y-4">
-            <div className="flex justify-end"><ExportButton label="Payments report" onExport={exportPaymentsCSV} /></div>
+            <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('payments')} /></div>
             <PaymentReports />
           </TabsContent>
           <TabsContent value="expenses" className="mt-6 space-y-4">
-            <div className="flex justify-end"><ExportButton label="Expenses report" onExport={exportExpensesCSV} /></div>
+            <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('expenses')} /></div>
             <ExpenseReports />
           </TabsContent>
           <TabsContent value="enrollments" className="mt-6 space-y-4">
-            <div className="flex justify-end"><ExportButton label="Enrollments report" onExport={exportEnrollmentsCSV} /></div>
+            <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('enrollments')} /></div>
             <EnrollmentReports />
           </TabsContent>
           <TabsContent value="results" className="mt-6 space-y-4">
-            <div className="flex justify-end"><ExportButton label="Results report" onExport={exportResultsCSV} /></div>
+            <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('results')} /></div>
             <ResultReports />
           </TabsContent>
         </Tabs>
+
+        <ExportDialog
+          open={openDialog === 'payments'} onOpenChange={(o) => !o && setOpenDialog(null)}
+          title="Export Payments Report" filename="payments_report"
+          columns={PAYMENT_COLUMNS} fetcher={fetchPayments} summariser={summarisePayments}
+          showSemester showProgram showDateRange dateLabel="Payment date"
+        />
+        <ExportDialog
+          open={openDialog === 'expenses'} onOpenChange={(o) => !o && setOpenDialog(null)}
+          title="Export Expenses Report" filename="expenses_report"
+          columns={EXPENSE_COLUMNS} fetcher={fetchExpenses} summariser={summariseExpenses}
+          showSemester={false} showProgram={false} showDateRange dateLabel="Expense date"
+        />
+        <ExportDialog
+          open={openDialog === 'enrollments'} onOpenChange={(o) => !o && setOpenDialog(null)}
+          title="Export Enrollments Report" filename="enrollments_report"
+          columns={ENROLLMENT_COLUMNS} fetcher={fetchEnrollments} summariser={summariseEnrollments}
+          showSemester={false} showProgram showDateRange dateLabel="Enrollment date"
+        />
+        <ExportDialog
+          open={openDialog === 'results'} onOpenChange={(o) => !o && setOpenDialog(null)}
+          title="Export Results Report" filename="results_report"
+          columns={RESULT_COLUMNS} fetcher={fetchResults} summariser={summariseResults}
+          showSemester showProgram showDateRange={false}
+        />
       </div>
     </DashboardLayout>
   );
