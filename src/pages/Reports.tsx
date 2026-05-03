@@ -4,8 +4,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ExpenseReports } from '@/components/reports/ExpenseReports';
+import { exportPaymentsCSV, exportEnrollmentsCSV, exportResultsCSV, exportExpensesCSV } from '@/lib/csvExport';
+import { useToast } from '@/hooks/use-toast';
+
+function ExportButton({ onExport, label }: { onExport: () => Promise<void>; label: string }) {
+  const { toast } = useToast();
+  const [busy, setBusy] = React.useState(false);
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try { await onExport(); toast({ title: 'Exported', description: `${label} downloaded.` }); }
+        catch (e: any) { toast({ title: 'Export failed', description: e.message, variant: 'destructive' }); }
+        finally { setBusy(false); }
+      }}
+    >
+      {busy ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+      Export CSV
+    </Button>
+  );
+}
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
@@ -340,10 +364,22 @@ export default function Reports() {
             <TabsTrigger value="enrollments"><Users className="w-4 h-4 mr-2" />Enrollments</TabsTrigger>
             <TabsTrigger value="results"><GraduationCap className="w-4 h-4 mr-2" />Results</TabsTrigger>
           </TabsList>
-          <TabsContent value="payments" className="mt-6"><PaymentReports /></TabsContent>
-          <TabsContent value="expenses" className="mt-6"><ExpenseReports /></TabsContent>
-          <TabsContent value="enrollments" className="mt-6"><EnrollmentReports /></TabsContent>
-          <TabsContent value="results" className="mt-6"><ResultReports /></TabsContent>
+          <TabsContent value="payments" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Payments report" onExport={exportPaymentsCSV} /></div>
+            <PaymentReports />
+          </TabsContent>
+          <TabsContent value="expenses" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Expenses report" onExport={exportExpensesCSV} /></div>
+            <ExpenseReports />
+          </TabsContent>
+          <TabsContent value="enrollments" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Enrollments report" onExport={exportEnrollmentsCSV} /></div>
+            <EnrollmentReports />
+          </TabsContent>
+          <TabsContent value="results" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportButton label="Results report" onExport={exportResultsCSV} /></div>
+            <ResultReports />
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
