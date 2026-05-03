@@ -93,3 +93,21 @@ export async function exportResultsCSV() {
   }));
   downloadCSV('results_report', rows);
 }
+
+export async function exportExpensesCSV() {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('expense_date, title, category, amount, status, receipt_reference, description')
+    .order('expense_date', { ascending: false });
+  if (error) throw error;
+  const rows = (data || []).map((e: any) => ({
+    Date: e.expense_date,
+    Title: e.title,
+    Category: e.category,
+    'Amount (UGX)': e.amount,
+    Status: e.status,
+    Receipt: e.receipt_reference || '',
+    Description: e.description || '',
+  }));
+  downloadCSV('expenses_report', rows);
+}
