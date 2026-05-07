@@ -165,6 +165,35 @@ export default function Administration() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="pos" className="mt-6 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" />Point of Sale</CardTitle>
+                <CardDescription>Sell uniforms, stockings, sweaters and other stock items directly to pupils. Each sale picks the pupil, decrements stock atomically, and prints a receipt.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button asChild size="lg" className="h-auto py-4">
+                    <Link to="/stock-pos">
+                      <ShoppingCart className="w-5 h-5 mr-2" />
+                      Open Point of Sale
+                      <ExternalLink className="w-4 h-4 ml-2 opacity-70" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className="h-auto py-4">
+                    <Link to="/stock-pos">
+                      <Package className="w-5 h-5 mr-2" />
+                      Manage Stock Items
+                    </Link>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sales are reflected in <Link to="/reports" className="text-primary underline">Reports → Sales</Link> with charts and CSV export.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         <Dialog open={showPtaDialog} onOpenChange={setShowPtaDialog}>
