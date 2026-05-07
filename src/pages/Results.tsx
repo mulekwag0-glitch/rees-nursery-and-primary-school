@@ -169,9 +169,9 @@ function AdminResultsView() {
       const grouped: Record<string, PendingBatch> = {};
       (data || []).forEach((r: any) => {
         const courseCode = r.student_courses?.courses?.code || 'Unknown';
-        const semester = r.student_courses?.semesters?.name || 'Unknown';
+        const term = r.student_courses?.semesters?.name || 'Unknown';
         const tutor = tutorNames[r.tutor_id] || 'Unknown';
-        const key = `${courseCode}__${semester}__${r.status}`;
+        const key = `${courseCode}__${term}__${r.status}`;
         if (!grouped[key]) {
           grouped[key] = {
             key, ids: [],
@@ -202,7 +202,7 @@ function AdminResultsView() {
         .in('id', batch.ids);
       if (error) throw error;
 
-      await logAudit('results_approved', 'results', null, null, { course: batch.course, term: batch.semester, count: batch.count });
+      await logAudit('results_approved', 'results', null, null, { course: batch.course, term: batch.term, count: batch.count });
 
       const notified = new Set<string>();
       for (const r of rows || []) {
@@ -228,7 +228,7 @@ function AdminResultsView() {
         .update({ status: 'rejected', rejection_reason: reason })
         .in('id', batch.ids);
       if (error) throw error;
-      await logAudit('results_rejected', 'results', null, null, { course: batch.course, term: batch.semester, reason });
+      await logAudit('results_rejected', 'results', null, null, { course: batch.course, term: batch.term, reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-results'] });
@@ -273,7 +273,7 @@ function AdminResultsView() {
                         </div>
                         <div>
                           <h3 className="font-semibold">{b.course} - {b.name}</h3>
-                          <p className="text-sm text-muted-foreground">{b.tutor} • {b.count} pupils • {b.semester}</p>
+                          <p className="text-sm text-muted-foreground">{b.tutor} • {b.count} pupils • {b.term}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -309,7 +309,7 @@ function AdminResultsView() {
                         </div>
                         <div>
                           <h3 className="font-semibold">{b.course} - {b.name}</h3>
-                          <p className="text-sm text-muted-foreground">{b.count} pupils • {b.semester}</p>
+                          <p className="text-sm text-muted-foreground">{b.count} pupils • {b.term}</p>
                         </div>
                       </div>
                       <Badge variant="secondary" className="bg-success/20 text-success">Approved</Badge>
@@ -339,7 +339,7 @@ function AdminResultsView() {
                           <XCircle className="w-5 h-5 text-destructive" />
                           <div>
                             <h3 className="font-semibold">{b.course} - {b.name}</h3>
-                            <p className="text-xs text-muted-foreground">{b.tutor} • {b.count} pupils • {b.semester}</p>
+                            <p className="text-xs text-muted-foreground">{b.tutor} • {b.count} pupils • {b.term}</p>
                           </div>
                         </div>
                         <Badge variant="destructive">Rejected</Badge>
@@ -365,7 +365,7 @@ function AdminResultsView() {
           <DialogHeader>
             <DialogTitle>Send results back to tutor</DialogTitle>
             <DialogDescription>
-              {rejectTarget && `${rejectTarget.course} - ${rejectTarget.name} • ${rejectTarget.semester} • ${rejectTarget.count} pupils`}
+              {rejectTarget && `${rejectTarget.course} - ${rejectTarget.name} • ${rejectTarget.term} • ${rejectTarget.count} pupils`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
