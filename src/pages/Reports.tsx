@@ -342,18 +342,19 @@ function ResultReports() {
 }
 
 export default function Reports() {
-  const [openDialog, setOpenDialog] = React.useState<null | 'payments' | 'expenses' | 'enrollments' | 'results'>(null);
+  const [openDialog, setOpenDialog] = React.useState<null | 'payments' | 'expenses' | 'enrollments' | 'results' | 'sales'>(null);
   return (
     <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Reports & Analytics</h1>
-          <p className="text-muted-foreground">Visual insights into payments, enrollments, and results</p>
+          <p className="text-muted-foreground">Visual insights into payments, sales, enrollments, and results</p>
         </div>
 
         <Tabs defaultValue="payments" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsList className="grid w-full grid-cols-5 max-w-2xl">
             <TabsTrigger value="payments"><CreditCard className="w-4 h-4 mr-2" />Payments</TabsTrigger>
+            <TabsTrigger value="sales"><ShoppingCart className="w-4 h-4 mr-2" />Sales</TabsTrigger>
             <TabsTrigger value="expenses"><TrendingDown className="w-4 h-4 mr-2" />Expenses</TabsTrigger>
             <TabsTrigger value="enrollments"><Users className="w-4 h-4 mr-2" />Enrollments</TabsTrigger>
             <TabsTrigger value="results"><GraduationCap className="w-4 h-4 mr-2" />Results</TabsTrigger>
@@ -361,6 +362,10 @@ export default function Reports() {
           <TabsContent value="payments" className="mt-6 space-y-4">
             <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('payments')} /></div>
             <PaymentReports />
+          </TabsContent>
+          <TabsContent value="sales" className="mt-6 space-y-4">
+            <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('sales')} /></div>
+            <SalesReports />
           </TabsContent>
           <TabsContent value="expenses" className="mt-6 space-y-4">
             <div className="flex justify-end"><ExportTrigger onClick={() => setOpenDialog('expenses')} /></div>
@@ -380,25 +385,31 @@ export default function Reports() {
           open={openDialog === 'payments'} onOpenChange={(o) => !o && setOpenDialog(null)}
           title="Export Payments Report" filename="payments_report"
           columns={PAYMENT_COLUMNS} fetcher={fetchPayments} summariser={summarisePayments}
-          showSemester showProgram showDateRange dateLabel="Payment date"
+          showTerm showProgram showDateRange dateLabel="Payment date"
+        />
+        <ExportDialog
+          open={openDialog === 'sales'} onOpenChange={(o) => !o && setOpenDialog(null)}
+          title="Export Sales Report" filename="sales_report"
+          columns={SALES_COLUMNS} fetcher={fetchSales} summariser={summariseSales}
+          showTerm={false} showProgram showDateRange dateLabel="Sale date"
         />
         <ExportDialog
           open={openDialog === 'expenses'} onOpenChange={(o) => !o && setOpenDialog(null)}
           title="Export Expenses Report" filename="expenses_report"
           columns={EXPENSE_COLUMNS} fetcher={fetchExpenses} summariser={summariseExpenses}
-          showSemester={false} showProgram={false} showDateRange dateLabel="Expense date"
+          showTerm={false} showProgram={false} showDateRange dateLabel="Expense date"
         />
         <ExportDialog
           open={openDialog === 'enrollments'} onOpenChange={(o) => !o && setOpenDialog(null)}
           title="Export Enrollments Report" filename="enrollments_report"
           columns={ENROLLMENT_COLUMNS} fetcher={fetchEnrollments} summariser={summariseEnrollments}
-          showSemester={false} showProgram showDateRange dateLabel="Enrollment date"
+          showTerm={false} showProgram showDateRange dateLabel="Enrollment date"
         />
         <ExportDialog
           open={openDialog === 'results'} onOpenChange={(o) => !o && setOpenDialog(null)}
           title="Export Results Report" filename="results_report"
           columns={RESULT_COLUMNS} fetcher={fetchResults} summariser={summariseResults}
-          showSemester showProgram showDateRange={false}
+          showTerm showProgram showDateRange={false}
         />
       </div>
     </DashboardLayout>
