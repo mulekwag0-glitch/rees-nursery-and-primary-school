@@ -4,7 +4,7 @@ export const ROW_HARD_CAP = 50000;
 export const ROW_WARN_THRESHOLD = 5000;
 
 export type ExportFilters = {
-  semester_id?: string;
+  term_id?: string;
   program_id?: string;
   date_from?: string;
   date_to?: string;
@@ -26,10 +26,28 @@ export function buildCSV(
   rows: Record<string, any>[],
   columns: ColumnDef[],
   summary?: Record<string, any> | null,
+  filters?: ExportFilters,
+  termLookup?: Record<string, string>,
+  programLookup?: Record<string, string>,
 ) {
   if (!rows.length) throw new Error('No data matches the selected filters.');
+  const lines: string[] = [];
+
+  // Criteria header block
+  if (filters) {
+    const parts: string[] = [];
+    if (filters.term_id) parts.push(`Term: ${termLookup?.[filters.term_id] || filters.term_id}`);
+    if (filters.program_id) parts.push(`Class: ${programLookup?.[filters.program_id] || filters.program_id}`);
+    if (filters.date_from) parts.push(`From: ${filters.date_from}`);
+    if (filters.date_to) parts.push(`To: ${filters.date_to}`);
+    if (parts.length) {
+      lines.push(escape('Criteria: ' + parts.join(' | ')));
+      lines.push('');
+    }
+  }
+
   const headers = columns.map((c) => c.label);
-  const lines = [headers.join(',')];
+  lines.push(headers.join(','));
   for (const r of rows) lines.push(columns.map((c) => escape(r[c.key])).join(','));
   if (summary) {
     lines.push('');
@@ -44,12 +62,6 @@ export function buildCSV(
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-}
-
-function applyDateRange<T extends { gte: any; lte: any }>(q: T, col: string, f: ExportFilters): T {
-  if (f.date_from) (q as any).gte(col, f.date_from);
-  if (f.date_to) (q as any).lte(col, f.date_to);
-  return q;
 }
 
 // ---------- PAYMENTS ----------
@@ -69,10 +81,10 @@ export const PAYMENT_COLUMNS: ColumnDef[] = [
 export async function fetchPayments(filters: ExportFilters) {
   let q = supabase
     .from('payments')
-    .select('receipt_number, payment_date, amount, payment_method, status, notes, students:student_id (student_id, full_name, program_id, programs:program_id (name)), semesters:semester_id (name)', { count: 'exact' })
+    .select('receipt_number, payment_date, amount, payment_method, status, notes, students:student_id (student_id, full_name, program_id, programs:program_id (name)), semesters:semester_id (name)')
     .order('payment_date', { ascending: false })
     .limit(ROW_HARD_CAP + 1);
-  if (filters.semester_id) q = q.eq('semester_id', filters.semester_id);
+  if (filters.term_id) q = q.eq('semester_id', filters.term_id);
   if (filters.date_from) q = q.gte('payment_date', filters.date_from);
   if (filters.date_to) q = q.lte('payment_date', filters.date_to);
   const { data, error } = await q;
@@ -219,7 +231,7 @@ export async function fetchResults(filters: ExportFilters) {
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   let rows = data || [];
-  if (filters.semester_id) rows = rows.filter((r: any) => r.student_courses?.semester_id === filters.semester_id);
+  if (filters.term_id) rows = rows.filter((r: any) => r.student_courses?.semester_id === filters.term_id);
   if (filters.program_id) rows = rows.filter((r: any) => r.student_courses?.students?.program_id === filters.program_id);
   return rows.map((r: any) => ({
     RegNo: r.student_courses?.students?.student_id || '',
@@ -246,5 +258,59 @@ export function summariseResults(rows: any[]) {
     Pupil: `${n} results`,
     Total: avg.toFixed(1),
     Grade: `pass: ${n ? Math.round((passed / n) * 100) : 0}%`,
+  };
+}
+
+// ---------- SALES (POS) ----------
+export const SALES_COLUMNS: ColumnDef[] = [
+  { key: 'Receipt', label: 'Receipt', default: true },
+  { key: 'Date', label: 'Date', default: true },
+  { key: 'RegNo', label: 'Reg No', default: true },
+  { key: 'Pupil', label: 'Pupil Name', default: true },
+  { key: 'Class', label: 'Class', default: true },
+  { key: 'Items', label: 'Items', default: true },
+  { key: 'ItemCount', label: 'Item Count', default: false },
+  { key: 'Amount', label: 'Amount (UGX)', default: true },
+  { key: 'Method', label: 'Method', default: true },
+  { key: 'Notes', label: 'Notes', default: false },
+];
+
+export async function fetchSales(filters: ExportFilters) {
+  let q = (supabase as any)
+    .from('stock_sales')
+    .select('receipt_number, sale_date, total_amount, payment_method, notes, items, students:student_id (student_id, full_name, program_id, programs:program_id (name))')
+    .order('sale_date', { ascending: false })
+    .limit(ROW_HARD_CAP + 1);
+  if (filters.date_from) q = q.gte('sale_date', filters.date_from);
+  if (filters.date_to) q = q.lte('sale_date', filters.date_to);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  let rows = data || [];
+  if (filters.program_id) rows = rows.filter((r: any) => r.students?.program_id === filters.program_id);
+  return rows.map((r: any) => {
+    const items = Array.isArray(r.items) ? r.items : [];
+    return {
+      Receipt: r.receipt_number,
+      Date: r.sale_date,
+      RegNo: r.students?.student_id || '',
+      Pupil: r.students?.full_name || '',
+      Class: r.students?.programs?.name || '',
+      Items: items.map((i: any) => `${i.qty}x ${i.name}`).join('; '),
+      ItemCount: items.reduce((s: number, i: any) => s + Number(i.qty || 0), 0),
+      Amount: Number(r.total_amount) || 0,
+      Method: r.payment_method,
+      Notes: r.notes || '',
+    };
+  });
+}
+
+export function summariseSales(rows: any[]) {
+  const total = rows.reduce((s, r) => s + (Number(r.Amount) || 0), 0);
+  const units = rows.reduce((s, r) => s + (Number(r.ItemCount) || 0), 0);
+  return {
+    Receipt: 'TOTAL',
+    Pupil: `${rows.length} sales`,
+    ItemCount: units,
+    Amount: total,
   };
 }
