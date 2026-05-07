@@ -59,7 +59,7 @@ function StudentResultsView() {
       const grouped: Record<string, any> = {};
       data?.forEach((sc: any) => {
         const term = sc.semesters?.name || 'Unknown';
-        if (!grouped[term]) grouped[term] = { semester: term, courses: [], totalGP: 0, totalCU: 0 };
+        if (!grouped[term]) grouped[term] = { term: term, courses: [], totalGP: 0, totalCU: 0 };
         const result = sc.results?.[0];
         if (result && result.status === 'approved') {
           const cu = sc.courses?.credit_units || 0;
@@ -86,13 +86,13 @@ function StudentResultsView() {
 
   return (
     <div className="space-y-6">
-      {studentResults.map((semester: any, index: number) => (
+      {studentResults.map((term: any, index: number) => (
         <Card key={index}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">{semester.semester}</CardTitle>
-                <CardDescription>Term GPA: {semester.gpa.toFixed(2)}</CardDescription>
+                <CardTitle className="text-lg">{term.term}</CardTitle>
+                <CardDescription>Term GPA: {term.gpa.toFixed(2)}</CardDescription>
               </div>
               <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Download PDF</Button>
             </div>
@@ -102,7 +102,7 @@ function StudentResultsView() {
               <table className="data-table">
                 <thead><tr><th>Code</th><th>Subject</th><th className="text-center">Total / 100</th><th className="text-center">Grade</th></tr></thead>
                 <tbody>
-                  {semester.courses.map((course: any, idx: number) => (
+                  {term.courses.map((course: any, idx: number) => (
                     <tr key={idx}>
                       <td className="font-medium">{course.code}</td>
                       <td>{course.name}</td>
@@ -126,7 +126,7 @@ interface PendingBatch {
   course: string;
   name: string;
   tutor: string;
-  semester: string;
+  term: string;
   status: string;
   count: number;
   submitted: string;
