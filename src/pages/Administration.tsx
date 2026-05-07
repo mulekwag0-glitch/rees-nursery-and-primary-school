@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Users, Star, Loader2 } from 'lucide-react';
+import { Plus, Users, Star, Loader2, ShoppingCart, ExternalLink, Package } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Administration() {
   const { toast } = useToast();
@@ -106,9 +107,10 @@ export default function Administration() {
         </div>
 
         <Tabs defaultValue="pta" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-auto">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
             <TabsTrigger value="pta" className="flex gap-2"><Users className="w-4 h-4" /><span>PTA</span></TabsTrigger>
             <TabsTrigger value="appraisal" className="flex gap-2"><Star className="w-4 h-4" /><span>Appraisal</span></TabsTrigger>
+            <TabsTrigger value="pos" className="flex gap-2"><ShoppingCart className="w-4 h-4" /><span>POS</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="pta" className="mt-6 space-y-4">
