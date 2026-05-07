@@ -341,6 +341,125 @@ function ResultReports() {
   );
 }
 
+function SalesReports() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['report-sales'],
+    queryFn: async () => {
+      const { data: sales, error } = await (supabase as any)
+        .from('stock_sales')
+        .select('total_amount, sale_date, payment_method, items')
+        .order('sale_date');
+      if (error) throw error;
+
+      const monthlyMap: Record<string, number> = {};
+      const methodMap: Record<string, number> = {};
+      const itemMap: Record<string, { qty: number; revenue: number }> = {};
+      let totalUnits = 0;
+
+      (sales || []).forEach((s: any) => {
+        const month = new Date(s.sale_date).toLocaleDateString('en', { month: 'short', year: '2-digit' });
+        monthlyMap[month] = (monthlyMap[month] || 0) + parseFloat(s.total_amount);
+        const m = (s.payment_method || 'cash').replace('_', ' ');
+        methodMap[m] = (methodMap[m] || 0) + parseFloat(s.total_amount);
+        const items = Array.isArray(s.items) ? s.items : [];
+        items.forEach((it: any) => {
+          const name = it.name || 'Unknown';
+          if (!itemMap[name]) itemMap[name] = { qty: 0, revenue: 0 };
+          itemMap[name].qty += Number(it.qty) || 0;
+          itemMap[name].revenue += (Number(it.qty) || 0) * (Number(it.unit_price) || 0);
+          totalUnits += Number(it.qty) || 0;
+        });
+      });
+
+      const topItems = Object.entries(itemMap)
+        .map(([name, v]) => ({ name, qty: v.qty, revenue: v.revenue }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 8);
+
+      return {
+        monthly: Object.entries(monthlyMap).map(([month, amount]) => ({ month, amount })),
+        methods: Object.entries(methodMap).map(([name, value]) => ({ name, value })),
+        topItems,
+        total: (sales || []).reduce((s: number, r: any) => s + parseFloat(r.total_amount), 0),
+        count: sales?.length || 0,
+        units: totalUnits,
+      };
+    },
+  });
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="bg-primary text-primary-foreground">
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold">{data?.count || 0}</p>
+            <p className="text-sm opacity-80">Total Sales</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-success text-success-foreground">
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold">UGX {((data?.total || 0) / 1000).toFixed(0)}K</p>
+            <p className="text-sm opacity-80">Revenue</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-secondary text-secondary-foreground">
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold">{data?.units || 0}</p>
+            <p className="text-sm opacity-80">Units Sold</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle className="text-base">Monthly Sales</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={data?.monthly}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" />
+                <XAxis dataKey="month" fontSize={12} />
+                <YAxis fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
+                <Tooltip formatter={(v: number) => `UGX ${v.toLocaleString()}`} />
+                <Bar dataKey="amount" fill="hsl(173, 58%, 39%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-base">Payment Methods</CardTitle></CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={data?.methods} cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  {data?.methods.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Tooltip formatter={(v: number) => `UGX ${v.toLocaleString()}`} />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Top Selling Items</CardTitle></CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={data?.topItems} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" />
+              <XAxis type="number" fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
+              <YAxis type="category" dataKey="name" fontSize={11} width={140} />
+              <Tooltip formatter={(v: number) => `UGX ${v.toLocaleString()}`} />
+              <Bar dataKey="revenue" fill="hsl(38, 92%, 50%)" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Reports() {
   const [openDialog, setOpenDialog] = React.useState<null | 'payments' | 'expenses' | 'enrollments' | 'results' | 'sales'>(null);
   return (
