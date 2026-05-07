@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown, Download } from 'lucide-react';
+import { Loader2, Users, CreditCard, GraduationCap, TrendingUp, TrendingDown, Download, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ExpenseReports } from '@/components/reports/ExpenseReports';
 import { ExportDialog } from '@/components/reports/ExportDialog';
@@ -13,6 +13,7 @@ import {
   EXPENSE_COLUMNS, fetchExpenses, summariseExpenses,
   ENROLLMENT_COLUMNS, fetchEnrollments, summariseEnrollments,
   RESULT_COLUMNS, fetchResults, summariseResults,
+  SALES_COLUMNS, fetchSales, summariseSales,
 } from '@/lib/csvExport';
 
 function ExportTrigger({ onClick }: { onClick: () => void }) {
@@ -42,21 +43,21 @@ function PaymentReports() {
       // Monthly trend
       const monthlyMap: Record<string, number> = {};
       const methodMap: Record<string, number> = {};
-      const semesterMap: Record<string, number> = {};
+      const termMap: Record<string, number> = {};
 
       payments?.forEach((p: any) => {
         const month = new Date(p.payment_date).toLocaleDateString('en', { month: 'short', year: '2-digit' });
         monthlyMap[month] = (monthlyMap[month] || 0) + parseFloat(p.amount);
         const method = (p.payment_method || 'cash').replace('_', ' ');
         methodMap[method] = (methodMap[method] || 0) + parseFloat(p.amount);
-        const sem = p.semesters?.name || 'Unknown';
-        semesterMap[sem] = (semesterMap[sem] || 0) + parseFloat(p.amount);
+        const term = p.semesters?.name || 'Unknown';
+        termMap[term] = (termMap[term] || 0) + parseFloat(p.amount);
       });
 
       return {
         monthly: Object.entries(monthlyMap).map(([month, amount]) => ({ month, amount })),
         methods: Object.entries(methodMap).map(([name, value]) => ({ name, value })),
-        semesters: Object.entries(semesterMap).map(([name, amount]) => ({ name, amount })),
+        terms: Object.entries(termMap).map(([name, amount]) => ({ name, amount })),
         total: payments?.reduce((s, p) => s + parseFloat(p.amount as any), 0) || 0,
         count: payments?.length || 0,
       };
@@ -104,11 +105,11 @@ function PaymentReports() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Revenue by Semester</CardTitle>
+          <CardTitle className="text-base">Revenue by Term</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={data?.semesters} layout="vertical">
+            <BarChart data={data?.terms} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 32%, 91%)" />
               <XAxis type="number" fontSize={12} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
               <YAxis type="category" dataKey="name" fontSize={11} width={150} />
