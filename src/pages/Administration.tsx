@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Users, Star, Loader2 } from 'lucide-react';
+import { Plus, Users, Star, Loader2, ShoppingCart, ExternalLink, Package } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Administration() {
   const { toast } = useToast();
@@ -106,9 +107,10 @@ export default function Administration() {
         </div>
 
         <Tabs defaultValue="pta" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-auto">
+          <TabsList className="grid w-full grid-cols-3 h-auto">
             <TabsTrigger value="pta" className="flex gap-2"><Users className="w-4 h-4" /><span>PTA</span></TabsTrigger>
             <TabsTrigger value="appraisal" className="flex gap-2"><Star className="w-4 h-4" /><span>Appraisal</span></TabsTrigger>
+            <TabsTrigger value="pos" className="flex gap-2"><ShoppingCart className="w-4 h-4" /><span>POS</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="pta" className="mt-6 space-y-4">
@@ -162,6 +164,35 @@ export default function Administration() {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="pos" className="mt-6 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" />Point of Sale</CardTitle>
+                <CardDescription>Sell uniforms, stockings, sweaters and other stock items directly to pupils. Each sale picks the pupil, decrements stock atomically, and prints a receipt.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button asChild size="lg" className="h-auto py-4">
+                    <Link to="/stock-pos">
+                      <ShoppingCart className="w-5 h-5 mr-2" />
+                      Open Point of Sale
+                      <ExternalLink className="w-4 h-4 ml-2 opacity-70" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className="h-auto py-4">
+                    <Link to="/stock-pos">
+                      <Package className="w-5 h-5 mr-2" />
+                      Manage Stock Items
+                    </Link>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sales are reflected in <Link to="/reports" className="text-primary underline">Reports → Sales</Link> with charts and CSV export.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

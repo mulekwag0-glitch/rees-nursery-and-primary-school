@@ -59,7 +59,7 @@ function StudentResultsView() {
       const grouped: Record<string, any> = {};
       data?.forEach((sc: any) => {
         const term = sc.semesters?.name || 'Unknown';
-        if (!grouped[term]) grouped[term] = { semester: term, courses: [], totalGP: 0, totalCU: 0 };
+        if (!grouped[term]) grouped[term] = { term: term, courses: [], totalGP: 0, totalCU: 0 };
         const result = sc.results?.[0];
         if (result && result.status === 'approved') {
           const cu = sc.courses?.credit_units || 0;
@@ -86,13 +86,13 @@ function StudentResultsView() {
 
   return (
     <div className="space-y-6">
-      {studentResults.map((semester: any, index: number) => (
+      {studentResults.map((term: any, index: number) => (
         <Card key={index}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-lg">{semester.semester}</CardTitle>
-                <CardDescription>Term GPA: {semester.gpa.toFixed(2)}</CardDescription>
+                <CardTitle className="text-lg">{term.term}</CardTitle>
+                <CardDescription>Term GPA: {term.gpa.toFixed(2)}</CardDescription>
               </div>
               <Button variant="outline" size="sm"><Download className="w-4 h-4 mr-2" />Download PDF</Button>
             </div>
@@ -102,7 +102,7 @@ function StudentResultsView() {
               <table className="data-table">
                 <thead><tr><th>Code</th><th>Subject</th><th className="text-center">Total / 100</th><th className="text-center">Grade</th></tr></thead>
                 <tbody>
-                  {semester.courses.map((course: any, idx: number) => (
+                  {term.courses.map((course: any, idx: number) => (
                     <tr key={idx}>
                       <td className="font-medium">{course.code}</td>
                       <td>{course.name}</td>
@@ -126,7 +126,7 @@ interface PendingBatch {
   course: string;
   name: string;
   tutor: string;
-  semester: string;
+  term: string;
   status: string;
   count: number;
   submitted: string;
@@ -169,15 +169,15 @@ function AdminResultsView() {
       const grouped: Record<string, PendingBatch> = {};
       (data || []).forEach((r: any) => {
         const courseCode = r.student_courses?.courses?.code || 'Unknown';
-        const semester = r.student_courses?.semesters?.name || 'Unknown';
+        const term = r.student_courses?.semesters?.name || 'Unknown';
         const tutor = tutorNames[r.tutor_id] || 'Unknown';
-        const key = `${courseCode}__${semester}__${r.status}`;
+        const key = `${courseCode}__${term}__${r.status}`;
         if (!grouped[key]) {
           grouped[key] = {
             key, ids: [],
             course: courseCode,
             name: r.student_courses?.courses?.name || 'Unknown',
-            tutor, semester, status: r.status, count: 0,
+            tutor, term, status: r.status, count: 0,
             submitted: r.created_at,
             rejection_reason: r.rejection_reason,
           };
@@ -202,7 +202,7 @@ function AdminResultsView() {
         .in('id', batch.ids);
       if (error) throw error;
 
-      await logAudit('results_approved', 'results', null, null, { course: batch.course, term: batch.semester, count: batch.count });
+      await logAudit('results_approved', 'results', null, null, { course: batch.course, term: batch.term, count: batch.count });
 
       const notified = new Set<string>();
       for (const r of rows || []) {
@@ -228,7 +228,7 @@ function AdminResultsView() {
         .update({ status: 'rejected', rejection_reason: reason })
         .in('id', batch.ids);
       if (error) throw error;
-      await logAudit('results_rejected', 'results', null, null, { course: batch.course, term: batch.semester, reason });
+      await logAudit('results_rejected', 'results', null, null, { course: batch.course, term: batch.term, reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-results'] });
@@ -273,7 +273,7 @@ function AdminResultsView() {
                         </div>
                         <div>
                           <h3 className="font-semibold">{b.course} - {b.name}</h3>
-                          <p className="text-sm text-muted-foreground">{b.tutor} • {b.count} pupils • {b.semester}</p>
+                          <p className="text-sm text-muted-foreground">{b.tutor} • {b.count} pupils • {b.term}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -309,7 +309,7 @@ function AdminResultsView() {
                         </div>
                         <div>
                           <h3 className="font-semibold">{b.course} - {b.name}</h3>
-                          <p className="text-sm text-muted-foreground">{b.count} pupils • {b.semester}</p>
+                          <p className="text-sm text-muted-foreground">{b.count} pupils • {b.term}</p>
                         </div>
                       </div>
                       <Badge variant="secondary" className="bg-success/20 text-success">Approved</Badge>
@@ -339,7 +339,7 @@ function AdminResultsView() {
                           <XCircle className="w-5 h-5 text-destructive" />
                           <div>
                             <h3 className="font-semibold">{b.course} - {b.name}</h3>
-                            <p className="text-xs text-muted-foreground">{b.tutor} • {b.count} pupils • {b.semester}</p>
+                            <p className="text-xs text-muted-foreground">{b.tutor} • {b.count} pupils • {b.term}</p>
                           </div>
                         </div>
                         <Badge variant="destructive">Rejected</Badge>
@@ -365,7 +365,7 @@ function AdminResultsView() {
           <DialogHeader>
             <DialogTitle>Send results back to tutor</DialogTitle>
             <DialogDescription>
-              {rejectTarget && `${rejectTarget.course} - ${rejectTarget.name} • ${rejectTarget.semester} • ${rejectTarget.count} pupils`}
+              {rejectTarget && `${rejectTarget.course} - ${rejectTarget.name} • ${rejectTarget.term} • ${rejectTarget.count} pupils`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">

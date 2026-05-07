@@ -21,7 +21,7 @@ type Props = {
   columns: ColumnDef[];
   fetcher: (f: ExportFilters) => Promise<any[]>;
   summariser?: (rows: any[]) => Record<string, any>;
-  showSemester?: boolean;
+  showTerm?: boolean;
   showProgram?: boolean;
   showDateRange?: boolean;
   dateLabel?: string;
@@ -29,7 +29,7 @@ type Props = {
 
 export function ExportDialog({
   open, onOpenChange, title, filename, columns, fetcher, summariser,
-  showSemester = true, showProgram = true, showDateRange = true, dateLabel = 'Date range',
+  showTerm = true, showProgram = true, showDateRange = true, dateLabel = 'Date range',
 }: Props) {
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExportFilters>({});
@@ -44,10 +44,10 @@ export function ExportDialog({
     }
   }, [open, columns]);
 
-  const { data: semesters } = useQuery({
-    queryKey: ['exp-semesters'],
+  const { data: terms } = useQuery({
+    queryKey: ['exp-terms'],
     queryFn: async () => (await supabase.from('semesters').select('id, name').order('start_date', { ascending: false })).data || [],
-    enabled: open && showSemester,
+    enabled: open && showTerm,
   });
   const { data: programs } = useQuery({
     queryKey: ['exp-programs'],
@@ -73,7 +73,9 @@ export function ExportDialog({
           return;
         }
       }
-      buildCSV(filename, rows, cols, includeSummary && summariser ? summariser(rows) : null);
+      const termLookup = Object.fromEntries((terms || []).map((t: any) => [t.id, t.name]));
+      const programLookup = Object.fromEntries((programs || []).map((p: any) => [p.id, p.name]));
+      buildCSV(filename, rows, cols, includeSummary && summariser ? summariser(rows) : null, filters, termLookup, programLookup);
       toast({ title: 'Exported', description: `${rows.length} rows downloaded.` });
       onOpenChange(false);
     } catch (e: any) {
@@ -93,14 +95,14 @@ export function ExportDialog({
 
         <div className="space-y-4 mt-2">
           <div className="grid grid-cols-2 gap-3">
-            {showSemester && (
+            {showTerm && (
               <div className="space-y-1.5">
                 <Label>Term</Label>
-                <Select value={filters.semester_id || 'all'} onValueChange={(v) => setF('semester_id', v === 'all' ? undefined : v)}>
+                <Select value={filters.term_id || 'all'} onValueChange={(v) => setF('term_id', v === 'all' ? undefined : v)}>
                   <SelectTrigger><SelectValue placeholder="All terms" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All terms</SelectItem>
-                    {semesters?.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    {terms?.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
