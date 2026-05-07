@@ -177,7 +177,7 @@ function AdminResultsView() {
             key, ids: [],
             course: courseCode,
             name: r.student_courses?.courses?.name || 'Unknown',
-            tutor, semester, status: r.status, count: 0,
+            tutor, term, status: r.status, count: 0,
             submitted: r.created_at,
             rejection_reason: r.rejection_reason,
           };
